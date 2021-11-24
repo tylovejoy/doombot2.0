@@ -1,3 +1,4 @@
+import inspect
 from os import environ
 
 from beanie import Document, init_beanie
@@ -29,6 +30,10 @@ class Map(Document):
     async def get_all_maps(cls, map_name):
         return await cls.find(cls.map_name == map_name).to_list()
 
+    @classmethod
+    async def filter_search(cls, **kwargs):
+        pass
+
 
 DB_PASSWORD = environ["DB_PASSWORD"]
 
@@ -37,8 +42,11 @@ async def database_init():
     client = motor.motor_asyncio.AsyncIOMotorClient(
         f"mongodb+srv://mapbot:{DB_PASSWORD}@mapbot.oult0.mongodb.net/doombot?retryWrites=true&w=majority"
     )
+
     try:
-        await init_beanie(database=client.doombot, document_models=[Record, Map])
+        await init_beanie(
+            database=client.doombot, document_models=Document.__subclasses__()
+        )
     except ServerSelectionTimeoutError:
         logger.critical("Database connection failed..")
     else:

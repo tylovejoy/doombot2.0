@@ -1,9 +1,7 @@
 import discord
 
 
-def create_embed(
-    title: str, desc: str, user: discord.Member, color: hex = 0x000001
-):
+def create_embed(title: str, desc: str, user: discord.Member, color: hex = 0x000001):
     embed = discord.Embed(title=title, description=desc, color=color)
     embed.set_author(name=user, icon_url=user.avatar.url)
 

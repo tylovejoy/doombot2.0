@@ -23,6 +23,7 @@ class MapSearch(commands.Cog):
         map_name: str = commands.Option(
             description="Name of a particular Overwatch map."
         ),
+        map_type: str = commands.Option(description="A type of map."),
     ):
         """Search for maps."""
         await ctx.trigger_typing()
