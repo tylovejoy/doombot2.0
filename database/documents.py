@@ -1,8 +1,7 @@
-import inspect
 from os import environ
-
+import re
 from beanie import Document, init_beanie
-from typing import List
+from typing import Any, List
 import motor
 from logging import getLogger
 from pymongo.errors import ServerSelectionTimeoutError
@@ -32,9 +31,22 @@ class Map(Document):
         return await cls.find(cls.map_name == map_name).to_list()
 
     @classmethod
-    async def filter_search(cls, **filter: dict) -> List["Map"]:
-        """Get all amps with a particulkar filter."""
-        return await cls.find(filter).to_list()
+    async def filter_search(cls, **filters: Any) -> List["Map"]:
+        """Get all amps with a particular filter."""
+        map_name = filters.get("map_name")
+        map_type = filters.get("map_type")
+        creator = filters.get("creator")
+
+        search_filter = {}
+
+        if map_name:
+            search_filter.update({"map_name": map_name})
+        if map_type:
+            search_filter.update({"map_type": map_type})
+        if creator:
+            search_filter.update({"creator": re.compile(creator, re.IGNORECASE)})
+
+        return await cls.find(search_filter).to_list()
 
 
 DB_PASSWORD = environ["DB_PASSWORD"]
