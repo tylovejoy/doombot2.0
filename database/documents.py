@@ -27,12 +27,14 @@ class Map(Document):
     description: str
 
     @classmethod
-    async def get_all_maps(cls, map_name):
+    async def get_all_maps(cls, map_name: str) -> List["Map"]:
+        """Get all maps with a particular map name."""
         return await cls.find(cls.map_name == map_name).to_list()
 
     @classmethod
-    async def filter_search(cls, **kwargs):
-        pass
+    async def filter_search(cls, **filter: dict) -> List["Map"]:
+        """Get all amps with a particulkar filter."""
+        return await cls.find(filter).to_list()
 
 
 DB_PASSWORD = environ["DB_PASSWORD"]
