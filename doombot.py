@@ -32,13 +32,10 @@ class DoomBot(commands.Bot):
         super().__init__(
             command_prefix=commands.when_mentioned_or("/"),
             case_insensitive=True,
-            description="", 
+            description="",
             intents=intents,
-            slash_command_guilds=[195387617972322306]
+            slash_command_guilds=[195387617972322306],
         )
-
-        
-    
 
     async def on_ready(self):
         app_info = await self.application_info()

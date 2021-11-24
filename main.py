@@ -1,19 +1,17 @@
 import argparse
-from typing import NoReturn
-import discord
-from discord.ext import commands
 from pathlib import Path
 from os import environ
-import sys
 import logging
 
 from doombot import DoomBot
 
-# Aguments
+# Arguments
 parser = argparse.ArgumentParser(description="Choose a logging level.")
-parser.add_argument("--log", nargs="?",)
+parser.add_argument(
+    "--log",
+    nargs="?",
+)
 args = parser.parse_args()
-print(args)
 
 # Logging setup
 logging_level = {
@@ -42,7 +40,7 @@ bot = DoomBot()
 def load_all_extensions():
     """Load all *.py files in /cogs/ as Cogs."""
 
-    cogs = [x.stem for x in Path("src/cogs").glob("*.py")]
+    cogs = [x.stem for x in Path("cogs").glob("*.py")]
     logger.info("Loading extensions...")
     for extension in cogs:
         try:
@@ -54,8 +52,7 @@ def load_all_extensions():
     logger.info("Extensions loaded.")
 
 
-
-# Run bot
 TOKEN = environ["TOKEN"]
+# Load cogs before running the bot for slash commands to be registered
 load_all_extensions()
 bot.run(TOKEN)
