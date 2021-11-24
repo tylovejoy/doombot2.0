@@ -4,6 +4,8 @@ from beanie import Document, init_beanie
 from typing import Any, List
 import motor
 from logging import getLogger
+
+from beanie.odm.operators.find.evaluation import RegEx
 from pymongo.errors import ServerSelectionTimeoutError
 
 logger = getLogger(__name__)
@@ -44,7 +46,7 @@ class Map(Document):
         if map_type:
             search_filter.update({"map_type": map_type})
         if creator:
-            search_filter.update({"creator": re.compile(creator, re.IGNORECASE)})
+            search_filter.update(RegEx("creator", creator, "i"))
 
         return await cls.find(search_filter).to_list()
 

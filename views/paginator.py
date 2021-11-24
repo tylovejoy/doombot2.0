@@ -2,9 +2,12 @@ import discord
 from copy import deepcopy
 from typing import List
 
+
 class Paginator(discord.ui.View):
-    def __init__(self, embeds: List[discord.Embed], author: discord.Member):
-        super().__init__(timeout=120)
+    def __init__(
+        self, embeds: List[discord.Embed], author: discord.Member, timeout=120
+    ):
+        super().__init__(timeout=timeout)
         self.pages = embeds
         self.author = author
         self._curr_page = 0
@@ -85,7 +88,3 @@ class Paginator(discord.ui.View):
         await interaction.response.edit_message(
             embed=self.formatted_pages[-1], view=self
         )
-
-    @discord.ui.button(label="Close", style=discord.ButtonStyle.red)
-    async def close(self, button: discord.ui.Button, interaction: discord.Interaction):
-        self.stop()

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from discord.ext import commands
 from thefuzz import fuzz
 
@@ -17,31 +19,43 @@ class MapSearch(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(slash_command=True, name="maps", slash_commands_guilds=[195387617972322306])
+    @commands.command(
+        slash_command=True, name="maps", slash_commands_guilds=[195387617972322306]
+    )
     async def search_maps(
         self,
         ctx: commands.Context,
-        map_name: str = commands.Option(description="Name of a particular Overwatch map."),
-        map_type: str = commands.Option(description="A specific type of map."),
-        creator: str = commands.Option(description="Name of a specific creator.")
+        map_name: Optional[str] = commands.Option(
+            description="Name of a particular Overwatch map."
+        ),
+        map_type: Optional[str] = commands.Option(
+            description="A specific type of map."
+        ),
+        creator: Optional[str] = commands.Option(
+            description="Name of a specific creator."
+        ),
     ):
         """Search for maps."""
 
-        await ctx.trigger_typing()
-        fuzzy_name = self.fuzzy_map_enum(map_name)
-        fuzzy_type = self.fuzzy_map_type_enum(map_type)
+        fuzzy_name, fuzzy_type = None, None
+        if map_name:
+            fuzzy_name = self.fuzzy_map_enum(map_name)
+        if map_type:
+            fuzzy_type = self.fuzzy_map_type_enum(map_type)
 
-        search = await Map.filter_search(map_name=fuzzy_name, map_type=fuzzy_type, creator=creator)
+        search = await Map.filter_search(
+            map_name=fuzzy_name if fuzzy_name else None,
+            map_type=fuzzy_type if fuzzy_type else None,
+            creator=creator,
+        )
 
         embed = create_embed(title=f"Map Search", desc="", user=ctx.author)
         embeds = split_map_embeds(embed, search)
-        
-        view = Paginator(embeds, ctx.author)
-        paginator = await ctx.send(embed=view.formatted_pages[0], view=view, ephemeral=True)
+
+        view = Paginator(embeds, ctx.author, timeout=None)
+        await ctx.send(embed=view.formatted_pages[0], view=view, ephemeral=True)
 
         await view.wait()
-        await paginator.delete()
-
 
     @staticmethod
     def fuzzy_map_enum(map_name: str) -> MapNames:
