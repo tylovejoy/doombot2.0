@@ -44,8 +44,8 @@ class MapSearch(commands.Cog):
             fuzzy_type = self.fuzzy_map_type_enum(map_type)
 
         search = await Map.filter_search(
-            map_name=fuzzy_name if fuzzy_name else None,
-            map_type=fuzzy_type if fuzzy_type else None,
+            map_name=fuzzy_name,
+            map_type=fuzzy_type,
             creator=creator,
         )
 
