@@ -4,12 +4,12 @@ from thefuzz import fuzz
 
 class ExtendedEnum(Enum):
 
+    def __str__(self) -> str:
+        return self.value
+
     @classmethod
     def list(cls):
         return list(map(lambda c: c.value, cls))
-
-    def __str__(self) -> str:
-        return self.value
 
     @classmethod
     def fuzz(cls, value):
