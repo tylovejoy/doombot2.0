@@ -1,7 +1,17 @@
 from enum import Enum
 
+class ExtendedEnum(Enum):
 
-class MapNames(Enum):
+    @classmethod
+    def list(cls):
+        return list(map(lambda c: c.value, cls))
+
+    def __str__(self) -> str:
+        return self.value
+    
+
+class MapNames(ExtendedEnum):
+    
     AYUTTHAYA = "Ayutthaya"
     BLACK_FOREST = "Black Forest"
     BLIZZARD_WORLD = "Blizzard World"
@@ -38,11 +48,8 @@ class MapNames(Enum):
     WORKSHOP_GREEN_SCREEN = "Workshop Green Screen"
     WORKSHOP_ISLAND = "Workshop Island"
 
-    def __str__(self) -> str:
-        return self.value
 
-
-class MapTypes(Enum):
+class MapTypes(ExtendedEnum):
 
     SINGLE = "Single"
     MULTI = "Multilevel"
@@ -60,6 +67,3 @@ class MapTypes(Enum):
     DIVERGE = "Diverge"
     BONUS = "Bonus"
     TOURNAMENT = "Tournament"
-
-    def __str__(self) -> str:
-        return self.value
