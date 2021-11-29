@@ -1,4 +1,6 @@
 from enum import Enum
+from operator import itemgetter
+from thefuzz import fuzz
 
 class ExtendedEnum(Enum):
 
@@ -8,10 +10,18 @@ class ExtendedEnum(Enum):
 
     def __str__(self) -> str:
         return self.value
+
+    @classmethod
+    def fuzz(cls, value):
+        values = [
+            (member, fuzz.partial_ratio(value, member.value))
+            for name, member in cls.__members__.items()
+        ]
+        return max(values, key=itemgetter(1))[0]
     
 
 class MapNames(ExtendedEnum):
-    
+
     AYUTTHAYA = "Ayutthaya"
     BLACK_FOREST = "Black Forest"
     BLIZZARD_WORLD = "Blizzard World"
