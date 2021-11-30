@@ -3,11 +3,10 @@ from typing import Optional
 from discord.ext import commands
 
 from database.documents import Map
-from utils.embed import create_embed
+from utils.embed import create_embed, maps_embed_fields, split_embeds
 from utils.enum import MapNames, MapTypes
 from logging import getLogger
 
-from utils.maps import split_map_embeds
 from views.paginator import Paginator
 
 logger = getLogger(__name__)
@@ -48,7 +47,7 @@ class MapSearch(commands.Cog):
         )
 
         embed = create_embed(title=f"Map Search", desc="", user=ctx.author)
-        embeds = split_map_embeds(embed, search)
+        embeds = split_embeds(embed, search, maps_embed_fields)
 
         view = Paginator(embeds, ctx.author, timeout=None)
         await ctx.send(embed=view.formatted_pages[0], view=view, ephemeral=True)
