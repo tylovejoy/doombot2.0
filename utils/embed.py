@@ -1,4 +1,4 @@
-from typing import Callable, List, Union
+from typing import Callable, List, Optional, Union
 import discord
 
 from database.documents import ExperiencePoints, Map, Record
@@ -32,7 +32,7 @@ def records_embed_fields(r: Record, count: int) -> dict:
         "name": f"#{count} - {ExperiencePoints.get_alias(r.user_id)}",
         "value": (
             f"> Record: {display_record(r.record)}\n"
-            f"> Verified: {Emoji.check(r.verified)}"
+            f"> Verified: {Emoji.is_verified(r.verified)}"
         ),
     }
 
@@ -40,7 +40,7 @@ def records_embed_fields(r: Record, count: int) -> dict:
 def split_embeds(
     initial_embed: discord.Embed,
     documents: List[Union[Map, Record]],
-    field_opts: Callable[[Union[Map, Record]], dict],
+    field_opts: Callable,
 ) -> List[discord.Embed]:
     """Split data into multiple embeds."""
     embed = initial_embed.copy()

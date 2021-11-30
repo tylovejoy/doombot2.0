@@ -84,7 +84,7 @@ class Emoji(Enum):
     NOT_VERIFIED = "❌"
 
     @classmethod
-    def check(cls, value: bool):
+    def is_verified(cls, value: bool):
         if value:
             return cls.VERIFIED
         else:
