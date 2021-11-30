@@ -77,3 +77,17 @@ class MapTypes(ExtendedEnum):
     DIVERGE = "Diverge"
     BONUS = "Bonus"
     TOURNAMENT = "Tournament"
+
+class Emoji(Enum):
+    VERIFIED = "✅"
+    NOT_VERIFIED = "❌"
+
+    @classmethod
+    def check(cls, value: bool):
+        if value:
+            return cls.VERIFIED
+        else:
+            return cls.NOT_VERIFIED
+    
+    def __str__(self) -> str:
+        return self.value

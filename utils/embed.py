@@ -1,7 +1,9 @@
 from typing import Callable, List, Union
 import discord
 
-from database.documents import Map, Record
+from database.documents import ExperiencePoints, Map, Record
+from utils.enum import Emoji
+from utils.utils import display_record, get_user_name
 
 
 def create_embed(title: str, desc: str, user: discord.Member, color: hex = 0x000001):
@@ -14,7 +16,7 @@ def create_embed(title: str, desc: str, user: discord.Member, color: hex = 0x000
     return embed
 
 
-def maps_embed_fields(m: Map) -> dict:
+def maps_embed_fields(m: Map, *args) -> dict:
     return {
         "name": f"{m.code} - {m.map_name}",
         "value": (
@@ -22,6 +24,16 @@ def maps_embed_fields(m: Map) -> dict:
             f"> Map Type(s): {', '.join(m.map_type)}\n"
             f"> Description: {m.description}"
         ),
+    }
+
+
+def records_embed_fields(r: Record, count: int) -> dict:
+    return {
+        "name": f"#{count} - {ExperiencePoints.get_alias(r.user_id)}",
+        "value": (
+            f"> Record: {display_record(r.record)}\n"
+            f"> Verified: {Emoji.check(r.verified)}"
+        )
     }
 
 
@@ -35,7 +47,7 @@ def split_embeds(
     embeds = []
     count = len(documents)
     for i, doc in enumerate(documents):
-        embed.add_field(**field_opts(doc), inline=False)
+        embed.add_field(**field_opts(doc, i), inline=False)
 
         if i != 0 and ((i + 1) % 10 == 0 or count - 1 == i):
             embeds.append(embed)

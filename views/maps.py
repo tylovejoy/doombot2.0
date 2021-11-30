@@ -15,7 +15,7 @@ class MapTypeSelect(discord.ui.Select):
         super().__init__(
             placeholder="Choose map types...",
             min_values=1,
-            max_values=sum(MapTypes.list()),
+            max_values=len(MapTypes.list()),
             options=options,
         )
 

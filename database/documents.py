@@ -11,6 +11,15 @@ from pymongo.errors import ServerSelectionTimeoutError
 logger = getLogger(__name__)
 
 
+class ExperiencePoints(Document):
+    user_id: int
+    alias: str
+
+    @classmethod
+    async def get_alias(cls, user_id: int) -> str:
+        return (await cls.find_one(cls.user_id == user_id)).alias
+
+
 class Record(Document):
     user_id: int
     code: str
@@ -49,6 +58,12 @@ class Map(Document):
             search_filter.update(RegEx("creator", creator, "i"))
 
         return await cls.find(search_filter).to_list()
+
+    @classmethod
+    async def random(cls):
+        return await cls.find().aggregate(
+            [{"$sample": {"size": 1}}], projection_model=cls
+        )
 
 
 DB_PASSWORD = environ["DB_PASSWORD"]
