@@ -33,7 +33,7 @@ def records_embed_fields(r: Record, count: int) -> dict:
         "value": (
             f"> Record: {display_record(r.record)}\n"
             f"> Verified: {Emoji.check(r.verified)}"
-        )
+        ),
     }
 
 

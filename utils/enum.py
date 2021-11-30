@@ -78,6 +78,7 @@ class MapTypes(ExtendedEnum):
     BONUS = "Bonus"
     TOURNAMENT = "Tournament"
 
+
 class Emoji(Enum):
     VERIFIED = "✅"
     NOT_VERIFIED = "❌"
@@ -88,6 +89,6 @@ class Emoji(Enum):
             return cls.VERIFIED
         else:
             return cls.NOT_VERIFIED
-    
+
     def __str__(self) -> str:
         return self.value
