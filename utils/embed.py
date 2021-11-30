@@ -14,17 +14,22 @@ def create_embed(title: str, desc: str, user: discord.Member, color: hex = 0x000
     return embed
 
 
-def maps_embed_fields(m: Map) -> dict: 
+def maps_embed_fields(m: Map) -> dict:
     return {
         "name": f"{m.code} - {m.map_name}",
         "value": (
             f"> Creator(s): {m.creator}\n"
             f"> Map Type(s): {', '.join(m.map_type)}\n"
             f"> Description: {m.description}"
-        )
+        ),
     }
 
-def split_embeds(initial_embed: discord.Embed, documents: List[Union[Map, Record]], field_opts: Callable[[Union[Map, Record]], dict]) -> List[discord.Embed]:
+
+def split_embeds(
+    initial_embed: discord.Embed,
+    documents: List[Union[Map, Record]],
+    field_opts: Callable[[Union[Map, Record]], dict],
+) -> List[discord.Embed]:
     """Split data into multiple embeds."""
     embed = initial_embed.copy()
     embeds = []
@@ -40,4 +45,3 @@ def split_embeds(initial_embed: discord.Embed, documents: List[Union[Map, Record
             embeds.append(embed)
 
     return embeds
-

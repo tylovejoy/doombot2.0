@@ -20,4 +20,4 @@ class MapTypeSelect(discord.ui.Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
-        self.value_set = True 
+        self.value_set = True

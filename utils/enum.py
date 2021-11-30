@@ -2,8 +2,8 @@ from enum import Enum
 from operator import itemgetter
 from thefuzz import fuzz
 
-class ExtendedEnum(Enum):
 
+class ExtendedEnum(Enum):
     def __str__(self) -> str:
         return self.value
 
@@ -18,7 +18,7 @@ class ExtendedEnum(Enum):
             for name, member in cls.__members__.items()
         ]
         return max(values, key=itemgetter(1))[0]
-    
+
 
 class MapNames(ExtendedEnum):
 

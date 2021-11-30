@@ -22,12 +22,8 @@ class MapSubmit(commands.Cog):
         map_name: str = commands.Option(
             description="Name of a particular Overwatch map."
         ),
-        creator: str = commands.Option(
-            description="Creator(s) of the map."
-        ),
-        description: str = commands.Option(
-            description="Description of the map."
-        ),
+        creator: str = commands.Option(description="Creator(s) of the map."),
+        description: str = commands.Option(description="Description of the map."),
     ):
         """Submit maps."""
         pass
