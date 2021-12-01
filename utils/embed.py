@@ -1,9 +1,9 @@
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Union
 import discord
 
 from database.documents import ExperiencePoints, Map, Record
 from utils.enum import Emoji
-from utils.utils import display_record, get_user_name
+from utils.utils import display_record
 
 
 def create_embed(title: str, desc: str, user: discord.Member, color: hex = 0x000001):

@@ -1,5 +1,4 @@
 import re
-from database.documents import ExperiencePoints
 import datetime
 
 

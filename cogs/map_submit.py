@@ -1,5 +1,3 @@
-from typing import Optional
-import discord
 from discord.ext import commands
 from logging import getLogger
 
@@ -26,4 +24,3 @@ class MapSubmit(commands.Cog):
         description: str = commands.Option(description="Description of the map."),
     ):
         """Submit maps."""
-        

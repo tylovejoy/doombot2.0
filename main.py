@@ -39,7 +39,6 @@ bot = DoomBot()
 
 def load_all_extensions():
     """Load all *.py files in /cogs/ as Cogs."""
-
     cogs = [x.stem for x in Path("cogs").glob("*.py")]
     logger.info("Loading extensions...")
     for extension in cogs:
