@@ -20,7 +20,6 @@ class Paginator(discord.ui.View):
     @property
     def formatted_pages(self) -> List[discord.Embed]:
         """The embeds with formatted footers to act as pages."""
-
         pages = deepcopy(self.pages)  # copy by value not reference
         for page in pages:
             if page.footer.text == discord.Embed.Empty:
