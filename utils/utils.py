@@ -19,9 +19,9 @@ def time_convert(time_input):
     time_list = time_input.split(":")
     if len(time_list) == 1:
         return float(time_list[0])
-    elif len(time_list) == 2:
+    if len(time_list) == 2:
         return float((int(time_list[0]) * 60) + (neg_time * float(time_list[1])))
-    elif len(time_list) == 3:
+    if len(time_list) == 3:
         return float(
             (int(time_list[0]) * 3600)
             + (neg_time * (int(time_list[1]) * 60))
