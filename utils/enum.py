@@ -87,8 +87,7 @@ class Emoji(Enum):
     def is_verified(cls, value: bool):
         if value:
             return cls.VERIFIED
-        else:
-            return cls.NOT_VERIFIED
+        return cls.NOT_VERIFIED
 
     def __str__(self) -> str:
         return self.value

@@ -26,4 +26,4 @@ class MapSubmit(commands.Cog):
         description: str = commands.Option(description="Description of the map."),
     ):
         """Submit maps."""
-        pass
+        
