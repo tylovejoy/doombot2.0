@@ -33,7 +33,6 @@ class MapSearch(commands.Cog):
         ),
     ):
         """Search for maps."""
-
         fuzzy_name, fuzzy_type = None, None
         if map_name:
             fuzzy_name = MapNames.fuzz(map_name)
@@ -46,7 +45,7 @@ class MapSearch(commands.Cog):
             creator=creator,
         )
 
-        embed = create_embed(title=f"Map Search", desc="", user=ctx.author)
+        embed = create_embed(title="Map Search", desc="", user=ctx.author)
         embeds = split_embeds(embed, search, maps_embed_fields)
 
         view = Paginator(embeds, ctx.author, timeout=None)

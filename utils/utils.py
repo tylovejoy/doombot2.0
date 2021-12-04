@@ -1,5 +1,4 @@
 import re
-from database.documents import ExperiencePoints
 import datetime
 
 
@@ -19,9 +18,9 @@ def time_convert(time_input):
     time_list = time_input.split(":")
     if len(time_list) == 1:
         return float(time_list[0])
-    elif len(time_list) == 2:
+    if len(time_list) == 2:
         return float((int(time_list[0]) * 60) + (neg_time * float(time_list[1])))
-    elif len(time_list) == 3:
+    if len(time_list) == 3:
         return float(
             (int(time_list[0]) * 3600)
             + (neg_time * (int(time_list[1]) * 60))
@@ -34,7 +33,7 @@ def display_record(record):
     """Display record in HH:MM:SS.SS format."""
     if check_negative(record):
         return format_timedelta(record)
-    elif str(datetime.timedelta(seconds=record)).count(".") == 1:
+    if str(datetime.timedelta(seconds=record)).count(".") == 1:
         return str(datetime.timedelta(seconds=record))[: -4 or None]
     return str(datetime.timedelta(seconds=record)) + ".00"
 
@@ -53,5 +52,4 @@ def check_negative(s):
 def format_timedelta(td):
     if datetime.timedelta(seconds=td) < datetime.timedelta(0):
         return "-" + format_timedelta(-1 * td)
-    else:
-        return str(td)
+    return str(td)

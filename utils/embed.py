@@ -1,9 +1,9 @@
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Union
 import discord
 
 from database.documents import ExperiencePoints, Map, Record
 from utils.enum import Emoji
-from utils.utils import display_record, get_user_name
+from utils.utils import display_record
 
 
 def create_embed(title: str, desc: str, user: discord.Member, color: hex = 0x000001):
@@ -27,7 +27,7 @@ def maps_embed_fields(m: Map, *args) -> dict:
     }
 
 
-def records_embed_fields(r: Record, count: int) -> dict:
+def records_basic_embed_fields(r: Record, count: int) -> dict:
     return {
         "name": f"#{count} - {ExperiencePoints.get_alias(r.user_id)}",
         "value": (
@@ -36,6 +36,19 @@ def records_embed_fields(r: Record, count: int) -> dict:
         ),
     }
 
+
+def records_wr_embed_fields(r: Record, *args) -> dict:
+    return {
+        "name": f"{r.level} - {ExperiencePoints.get_alias(r.user_id)}",
+        "value": f"> Record: {display_record(r.record)}\n",
+    }
+
+
+def records_wr_level_embed_fields(r: Record, *args) -> dict:
+    return {
+        "name": f"{ExperiencePoints.get_alias(r.user_id)}",
+        "value": f"> Record: {display_record(r.record)}\n",
+    }
 
 def split_embeds(
     initial_embed: discord.Embed,

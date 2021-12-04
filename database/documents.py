@@ -1,5 +1,4 @@
 from os import environ
-import re
 from beanie import Document, init_beanie
 from typing import Any, List
 import motor
