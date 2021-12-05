@@ -10,6 +10,15 @@ from pymongo.errors import ServerSelectionTimeoutError
 logger = getLogger(__name__)
 
 
+class StoreItems(Document):
+    item: str
+    price: int
+
+    @classmethod
+    async def get_price(cls, item: str) -> int:
+        return (await cls.find_one(cls.item == item)).price
+
+
 class ExperiencePoints(Document):
     user_id: int
     alias: str
