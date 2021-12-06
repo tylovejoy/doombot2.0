@@ -50,6 +50,7 @@ def records_wr_level_embed_fields(r: Record, *args) -> dict:
         "value": f"> Record: {display_record(r.record)}\n",
     }
 
+
 def split_embeds(
     initial_embed: discord.Embed,
     documents: List[Union[Map, Record]],
