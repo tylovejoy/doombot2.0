@@ -18,7 +18,7 @@ class MapTypeSelect(discord.ui.Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
-        return self.values
+        self.view.confirm.disabled = False
 
 
 class ConfirmButton(discord.ui.Button):
@@ -39,5 +39,5 @@ class MapSubmitView(discord.ui.View):
         self.select_menu = MapTypeSelect()
         self.add_item(self.select_menu)
 
-        self.confirm = ConfirmButton(row=1, disabled=False)
+        self.confirm = ConfirmButton(row=1, disabled=True)
         self.add_item(self.confirm)

@@ -23,22 +23,20 @@ def setup(bot):
 
 
 def preprocess_map_code(map_code):
+    """Converts map codes to acceptable format."""
     return map_code.upper().replace("O", "0")
 
 
 def autocomplete_maps(options, focused):
+    """Display autocomplete for map names and types."""
     case = lambda x: x.casefold().startswith(options[focused].casefold())
     if focused == "map_name":
-
         if options[focused] == "":
             return AutoCompleteResponse({k: k for k in MapNames.list()[:25]})
-
         keys = {k: k for k in MAPS_AUTOCOMPLETE if case(k)}
-
         response = AutoCompleteResponse()
         for k in keys:
             response.add_option(k, k)
-
         return response
 
     if focused == "map_type":
@@ -46,7 +44,6 @@ def autocomplete_maps(options, focused):
         keys = {k: k for k in MAP_TYPES_AUTOCOMPLETE if case(k)}
         for k in keys:
             response.add_option(k, k)
-
         return response
 
 
@@ -111,7 +108,7 @@ class submitmap(discord.SlashCommand, guilds=[195387617972322306]):
     async def callback(self) -> None:
         self.map_code = preprocess_map_code(self.map_code)
 
-        if Map.check_code(self.map_code):
+        if await Map.check_code(self.map_code):
             await self.interaction.response.send_message(
                 content="This workshop code already exists in the database!", ephemeral=True,
             )
@@ -127,6 +124,10 @@ class submitmap(discord.SlashCommand, guilds=[195387617972322306]):
         view = MapSubmitView()
         await self.interaction.response.send_message(
             content=preview, ephemeral=True, view=view
+        )
+        await view.wait()
+        await self.interaction.response.send_message(
+            view=view
         )
         await view.wait()
         if view.confirm.value:
