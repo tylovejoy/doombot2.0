@@ -11,14 +11,6 @@ class ExtendedEnum(Enum):
     def list(cls):
         return sorted(list(map(lambda c: c.value, cls)))
 
-    @classmethod
-    def fuzz(cls, value):
-        values = [
-            (member, fuzz.partial_ratio(value, member.value))
-            for name, member in cls.__members__.items()
-        ]
-        return max(values, key=itemgetter(1))[0]
-
 
 class MapNames(ExtendedEnum):
 

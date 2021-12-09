@@ -7,7 +7,7 @@ from database.documents import Map
 from utils.embed import create_embed, maps_embed_fields, split_embeds
 
 from utils.enum import MapNames, MapTypes
-from views.maps import MapSubmitView, MapTypeSelect
+from views.maps import MapSubmitView
 from views.paginator import Paginator
 
 
@@ -64,15 +64,10 @@ class maps(discord.SlashCommand, guilds=[195387617972322306]):
     creator: Optional[str] = discord.Option(description="Name of a specific creator.")
 
     async def callback(self) -> None:
-        fuzzy_name, fuzzy_type = None, None
-        if self.map_name:
-            fuzzy_name = MapNames.fuzz(self.map_name)
-        if self.map_type:
-            fuzzy_type = MapTypes.fuzz(self.map_type)
 
         search = await Map.filter_search(
-            map_name=fuzzy_name,
-            map_type=fuzzy_type,
+            map_name=self.map_name,
+            map_type=self.map_type,
             creator=self.creator,
         )
 
@@ -116,6 +111,12 @@ class submitmap(discord.SlashCommand, guilds=[195387617972322306]):
     async def callback(self) -> None:
         self.map_code = preprocess_map_code(self.map_code)
 
+        if Map.check_code(self.map_code):
+            await self.interaction.response.send_message(
+                content="This workshop code already exists in the database!", ephemeral=True,
+            )
+            return
+
         preview = (
             f"**Map Code:** {self.map_code}\n"
             f"**Map Name:** {self.map_name}\n"
@@ -135,6 +136,16 @@ class submitmap(discord.SlashCommand, guilds=[195387617972322306]):
                 f"{'―' * 15}\n"
                 "**__SUBMISSION CONFIRMED__** and submitted to the database!"
             )
+
+            submission = Map(
+                user_id=self.interaction.user.id,
+                code=self.map_code,
+                creator=self.creator,
+                description=self.description,
+                map_name=self.map_name,
+                map_type=view.select_menu.values,
+            )
+            await submission.insert()
             await self.interaction.edit_original_message(content=preview, view=view)
 
     async def autocomplete(
