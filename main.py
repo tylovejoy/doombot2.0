@@ -1,10 +1,8 @@
 import argparse
-from pathlib import Path
 from os import environ
 import logging
-from slash import map_search
+from slash import map_commands
 from doombot import DoomBot
-import discord
 
 # Arguments
 parser = argparse.ArgumentParser(description="Choose a logging level.")
@@ -41,13 +39,15 @@ bot = DoomBot()
 def load_all_extensions():
     """Load all slashes."""
     logger.info("Loading slash...")
-    bot.application_command(map_search.maps)
+    map_commands.setup(bot)
     logger.info("Slash loaded.")
 
+
 @bot.event
-async def setup(): 
-    await bot.upload_guild_application_commands() 
+async def setup():
+    await bot.upload_guild_application_commands()
     pass
+
 
 TOKEN = environ["TOKEN"]
 # Load cogs before running the bot for slash commands to be registered

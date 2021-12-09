@@ -9,7 +9,7 @@ class ExtendedEnum(Enum):
 
     @classmethod
     def list(cls):
-        return list(map(lambda c: c.value, cls))
+        return sorted(list(map(lambda c: c.value, cls)))
 
     @classmethod
     def fuzz(cls, value):

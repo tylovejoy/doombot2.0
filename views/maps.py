@@ -1,4 +1,5 @@
 import discord
+from discord.interactions import Interaction
 
 from utils.enum import MapTypes
 
@@ -6,10 +7,7 @@ from utils.enum import MapTypes
 class MapTypeSelect(discord.ui.Select):
     def __init__(self):
 
-        options = [
-            discord.SelectOption(label=x, description="Map Type")
-            for x in MapTypes.list()
-        ]
+        options = [discord.SelectOption(label=x) for x in MapTypes.list()]
         self.value_set = False
 
         super().__init__(
@@ -20,4 +18,26 @@ class MapTypeSelect(discord.ui.Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
-        self.value_set = True
+        return self.values
+
+
+class ConfirmButton(discord.ui.Button):
+    def __init__(self, row=0, disabled=False):
+        super().__init__(
+            label="Accept", style=discord.ButtonStyle.green, row=row, disabled=disabled
+        )
+        self.value = None
+
+    async def callback(self, interaction: Interaction):
+        self.value = True
+        self.view.stop()
+
+
+class MapSubmitView(discord.ui.View):
+    def __init__(self, *, timeout=None):
+        super().__init__(timeout=timeout)
+        self.select_menu = MapTypeSelect()
+        self.add_item(self.select_menu)
+
+        self.confirm = ConfirmButton(row=1, disabled=False)
+        self.add_item(self.confirm)
