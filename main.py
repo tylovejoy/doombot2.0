@@ -2,8 +2,9 @@ import argparse
 from pathlib import Path
 from os import environ
 import logging
-
+from slash import map_search
 from doombot import DoomBot
+import discord
 
 # Arguments
 parser = argparse.ArgumentParser(description="Choose a logging level.")
@@ -23,10 +24,10 @@ logging_level = {
 }
 
 logger = logging.getLogger()
-logger.setLevel(logging_level[args.log])
+logger.setLevel(logging_level.get(args.log, logging.INFO))
 
 consoleHandle = logging.StreamHandler()
-consoleHandle.setLevel(logging_level[args.log])
+consoleHandle.setLevel(logging_level.get(args.log, logging.INFO))
 consoleHandle.setFormatter(
     logging.Formatter("%(name)-18s :: %(levelname)-8s :: %(message)s")
 )
@@ -38,18 +39,15 @@ bot = DoomBot()
 
 
 def load_all_extensions():
-    """Load all *.py files in /cogs/ as Cogs."""
-    cogs = [x.stem for x in Path("cogs").glob("*.py")]
-    logger.info("Loading extensions...")
-    for extension in cogs:
-        try:
-            bot.load_extension(f"cogs.{extension}")
-            logger.info(f"Loading {extension}...")
-        except Exception as e:
-            error = f"{extension}\n {type(e).__name__} : {e}"
-            logger.info(f"failed to load extension {error}")
-    logger.info("Extensions loaded.")
+    """Load all slashes."""
+    logger.info("Loading slash...")
+    bot.application_command(map_search.maps)
+    logger.info("Slash loaded.")
 
+@bot.event
+async def setup(): 
+    await bot.upload_guild_application_commands() 
+    pass
 
 TOKEN = environ["TOKEN"]
 # Load cogs before running the bot for slash commands to be registered

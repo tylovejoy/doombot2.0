@@ -16,7 +16,7 @@ ______  _____  _____ ___  _________  _____  _____
 """
 
 
-class DoomBot(commands.Bot):
+class DoomBot(discord.Client):
     def __init__(self, **kwargs):
         """Initialize Bot."""
         intents = discord.Intents(
