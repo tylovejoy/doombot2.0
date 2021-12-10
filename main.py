@@ -46,7 +46,6 @@ def load_all_extensions():
 @bot.event
 async def setup():
     await bot.upload_guild_application_commands()
-    pass
 
 
 TOKEN = environ["TOKEN"]
