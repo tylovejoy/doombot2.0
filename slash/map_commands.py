@@ -1,7 +1,6 @@
 from logging import getLogger
 from typing import Dict, Optional, Union
 import discord
-from discord import enums
 from discord.app import AutoCompleteResponse
 from database.documents import Map
 from utils.embed import create_embed, maps_embed_fields, split_embeds
@@ -77,7 +76,6 @@ class maps(discord.SlashCommand, guilds=[195387617972322306]):
             creator=self.creator,
         )
 
-
         if not search:
             await self.interaction.response.send_message(
                 content="Nothing found with the selected filters.", ephemeral=True
@@ -125,9 +123,7 @@ class submitmap(discord.SlashCommand, guilds=[195387617972322306]):
             )
             return
 
-        
         self.map_name = MapNames.fuzz(self.map_name)
-
 
         preview = (
             f"**Map Code:** {self.map_code}\n"
@@ -173,15 +169,16 @@ class submitmap(discord.SlashCommand, guilds=[195387617972322306]):
 
         return autocomplete_maps(options, focused)
 
+
 class deletemap(discord.SlashCommand, guilds=[195387617972322306]):
-    
+
     map_code: str = discord.Option(
         description="Workshop code for this parkour map.",
     )
-    
+
     async def callback(self) -> None:
         self.map_code = preprocess_map_code(self.map_code)
-        
+
         if not await Map.check_code(self.map_code):
             await self.interaction.response.send_message(
                 content="This workshop code doesn't exist in the database!",
@@ -192,13 +189,13 @@ class deletemap(discord.SlashCommand, guilds=[195387617972322306]):
         map_document = await Map.find_one_map(self.map_code)
 
         if self.interaction.user.id != map_document.user_id and not any(
-                role.id in ROLE_WHITELIST for role in self.interaction.user.roles
-            ):
-                await self.interaction.response.send_message(
-                    content="You do not have permission to delete this!",
-                    ephemeral=True,
-                )
-                return
+            role.id in ROLE_WHITELIST for role in self.interaction.user.roles
+        ):
+            await self.interaction.response.send_message(
+                content="You do not have permission to delete this!",
+                ephemeral=True,
+            )
+            return
 
         preview = (
             f"**Map Code:** {map_document.code}\n"
@@ -218,15 +215,9 @@ class deletemap(discord.SlashCommand, guilds=[195387617972322306]):
         await view.wait()
         if view.confirm.value:
             view.clear_items()
-            preview += (
-                f"{'―' * 15}\n"
-                "**__MAP DELETED__** from the database!"
-            )
+            preview += f"{'―' * 15}\n" "**__MAP DELETED__** from the database!"
             await map_document.delete()
             await self.interaction.edit_original_message(content=preview, view=view)
-
-
-
 
 
 class editmap(discord.SlashCommand, guilds=[195387617972322306]):
@@ -283,7 +274,7 @@ class editmap(discord.SlashCommand, guilds=[195387617972322306]):
             f"**Map Name:** {map_document.map_name}\n"
             f"**Creator(s):** {map_document.creator}\n"
             f"**Description:** {map_document.description}\n"
-        )  
+        )
 
         view = MapSubmitView(confirm_disabled=False)
         for x in view.select_menu.options:
