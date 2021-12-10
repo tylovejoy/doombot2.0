@@ -34,10 +34,10 @@ class ConfirmButton(discord.ui.Button):
 
 
 class MapSubmitView(discord.ui.View):
-    def __init__(self, *, timeout=None):
+    def __init__(self, *, timeout=None, confirm_disabled=True):
         super().__init__(timeout=timeout)
         self.select_menu = MapTypeSelect()
         self.add_item(self.select_menu)
 
-        self.confirm = ConfirmButton(row=1, disabled=True)
+        self.confirm = ConfirmButton(row=1, disabled=confirm_disabled)
         self.add_item(self.confirm)

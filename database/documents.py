@@ -45,6 +45,11 @@ class Map(Document):
     description: str
 
     @classmethod
+    async def find_one_map(cls, map_code: str) -> "Map":
+        """Find a single map using its workshop code."""
+        return await cls.find_one(cls.code == map_code)
+
+    @classmethod
     async def check_code(cls, map_code: str) -> bool:
         """Check if a map exists with specific map_code."""
         return await cls.find_one(cls.code == map_code).exists()
@@ -73,9 +78,12 @@ class Map(Document):
         return await cls.find(search_filter).to_list()
 
     @classmethod
-    async def random(cls):
-        return await cls.find().aggregate(
-            [{"$sample": {"size": 1}}], projection_model=cls
+    async def random(cls, amount: int):
+        """Find {amount} random maps."""
+        return (
+            await cls.find()
+            .aggregate([{"$sample": {"size": amount}}], projection_model=cls)
+            .to_list()
         )
 
 
