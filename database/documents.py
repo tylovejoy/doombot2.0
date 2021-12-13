@@ -86,10 +86,9 @@ class Record(Document):
                         "$group": {
                             "_id": {"code": "$code", "level": "$level"},
                             "record": {"$first": "$record"},
-                            "posted_by": {"$push": "$posted_by"},
+                            "posted_by": {"$first": "$posted_by"},
                         }
                     },
-                    {"$unwind": {"path": "$posted_by"}},
                     {"$match": {"posted_by": user_id}},
                 ],
                 projection_model=WorldRecordsAggregate,

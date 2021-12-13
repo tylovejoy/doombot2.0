@@ -123,11 +123,6 @@ class SubmitRecord(
 class Test(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
     """test"""
 
-    member: discord.Member = discord.Option(description="user id")
-
     async def callback(self) -> None:
-        # x = await Record.find_world_records(self.member.id - 2)
-        # print(self.member.id - 2)
-        # for i in x:
-        #     print(i.id.code, i.id.level, i.record)
-        print(await Record.find_unique_players())
+
+        pass
