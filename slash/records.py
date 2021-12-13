@@ -20,7 +20,8 @@ def setup(bot):
 
 async def check_user(interaction):
     """Check if user exists, if not create a new user."""
-    if not await ExperiencePoints.user_exists(interaction.user.id):
+    user = await ExperiencePoints.find_user(interaction.user.id)
+    if not user:
         new_user = ExperiencePoints(
             user_id=interaction.user.id,
             alias=interaction.user.name,
@@ -28,7 +29,7 @@ async def check_user(interaction):
         )
         await new_user.insert()
         return new_user
-    return ExperiencePoints.find_user(interaction.user.id)
+    return user
 
 
 class SubmitRecord(
@@ -99,6 +100,7 @@ class SubmitRecord(
             await self.interaction.edit_original_message(
                 content="Submitted.", view=view
             )
+            await record_document.save()
 
             # TODO: Find rank using $rank aggregation mongo 5.0 only
             # TODO: Send to hidden verification channel.
@@ -124,7 +126,8 @@ class Test(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
     member: discord.Member = discord.Option(description="user id")
 
     async def callback(self) -> None:
-        # x = await Record.find_world_records(int(self.member))
+        # x = await Record.find_world_records(self.member.id - 2)
+        # print(self.member.id - 2)
         # for i in x:
         #     print(i.id.code, i.id.level, i.record)
-        print(type(self.member.id))
+        print(await Record.find_unique_players())

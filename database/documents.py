@@ -53,6 +53,14 @@ class WorldRecordsAggregate(BaseModel):
     record: float
 
 
+class UniquePlayers(BaseModel):
+    name: str
+    posted_by: int
+
+    def __str__(self):
+        return f"{self.name}, {self.posted_by}"
+
+
 class Record(Document):
     posted_by: int  # TODO: user_id
     code: str
@@ -61,6 +69,11 @@ class Record(Document):
     verified: bool
     message_id: int
     hidden_id: int
+
+    @classmethod
+    async def find_unique_players(cls):
+        x = await cls.find().project(projection_model=UniquePlayers).to_list()
+        return set(str(i) for i in x)
 
     @classmethod
     async def find_world_records(cls, user_id: int):
