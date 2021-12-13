@@ -3,9 +3,11 @@ from typing import Dict, Optional, Union
 import discord
 from discord.app import AutoCompleteResponse
 from database.documents import Map
+from slash.parents import SubmitParent, DeleteParent, EditParent
 from utils.embed import create_embed, maps_embed_fields, split_embeds
-from utils.constants import ROLE_WHITELIST
+from utils.constants import ROLE_WHITELIST, GUILD_ID, NEWEST_MAPS_ID
 from utils.enum import MapNames, MapTypes
+from utils.utils import preprocess_map_code, case_ignore_compare
 from views.maps import MapSubmitView
 from views.paginator import Paginator
 
@@ -17,39 +19,39 @@ MAP_TYPES_AUTOCOMPLETE = {k: k for k in MapTypes.list()}
 
 
 def setup(bot):
-    bot.application_command(maps)
-    bot.application_command(submitmap)
-    bot.application_command(editmap)
-    bot.application_command(random)
-    bot.application_command(deletemap)
-
-
-def preprocess_map_code(map_code):
-    """Converts map codes to acceptable format."""
-    return map_code.upper().replace("O", "0")
+    bot.application_command(MapSearch)
+    bot.application_command(SubmitMap)
+    bot.application_command(EditMap)
+    bot.application_command(RandomMap)
+    bot.application_command(DeleteMap)
 
 
 def autocomplete_maps(options, focused):
     """Display autocomplete for map names and types."""
-    case = lambda x: x.casefold().startswith(options[focused].casefold())
     if focused == "map_name":
         if options[focused] == "":
             return AutoCompleteResponse({k: k for k in MapNames.list()[:25]})
-        keys = {k: k for k in MAPS_AUTOCOMPLETE if case(k)}
-        response = AutoCompleteResponse()
-        for k in keys:
-            response.add_option(k, k)
+        response = AutoCompleteResponse(
+            {
+                k: k
+                for k in MAPS_AUTOCOMPLETE
+                if case_ignore_compare(k, options[focused])
+            }
+        )
         return response
 
     if focused == "map_type":
-        response = AutoCompleteResponse()
-        keys = {k: k for k in MAP_TYPES_AUTOCOMPLETE if case(k)}
-        for k in keys:
-            response.add_option(k, k)
+        response = AutoCompleteResponse(
+            {
+                k: k
+                for k in MAP_TYPES_AUTOCOMPLETE
+                if case_ignore_compare(k, options[focused])
+            }
+        )
         return response
 
 
-class maps(discord.SlashCommand, guilds=[195387617972322306]):
+class MapSearch(discord.SlashCommand, guilds=[GUILD_ID], name="map_search"):
     """Search for maps using filters."""
 
     map_name: Optional[str] = discord.Option(
@@ -98,7 +100,9 @@ class maps(discord.SlashCommand, guilds=[195387617972322306]):
         return autocomplete_maps(options, focused)
 
 
-class submitmap(discord.SlashCommand, guilds=[195387617972322306]):
+class SubmitMap(
+    discord.SlashCommand, guilds=[GUILD_ID], parent=SubmitParent, name="map"
+):
     """Submit maps to the database."""
 
     map_code: str = discord.Option(
@@ -163,6 +167,14 @@ class submitmap(discord.SlashCommand, guilds=[195387617972322306]):
             await submission.insert()
             await self.interaction.edit_original_message(content=preview, view=view)
 
+            new_maps_channel = self.interaction.guild.get_channel(NEWEST_MAPS_ID)
+
+            embed = create_embed(title="New Map!", desc="", user=self.interaction.user)
+            embed.add_field(**maps_embed_fields(submission), inline=False)
+
+            new_map = await new_maps_channel.send(embed=embed)
+            await new_map.create_thread(name=f"Discuss {self.map_code} here.")
+
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
     ):
@@ -170,7 +182,10 @@ class submitmap(discord.SlashCommand, guilds=[195387617972322306]):
         return autocomplete_maps(options, focused)
 
 
-class deletemap(discord.SlashCommand, guilds=[195387617972322306]):
+class DeleteMap(
+    discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=DeleteParent
+):
+    """Delete a map from the database."""
 
     map_code: str = discord.Option(
         description="Workshop code for this parkour map.",
@@ -220,7 +235,7 @@ class deletemap(discord.SlashCommand, guilds=[195387617972322306]):
             await self.interaction.edit_original_message(content=preview, view=view)
 
 
-class editmap(discord.SlashCommand, guilds=[195387617972322306]):
+class EditMap(discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=EditParent):
     """Edit maps that you have submitted to the database. You can edit any field."""
 
     map_code: str = discord.Option(
@@ -306,11 +321,11 @@ class editmap(discord.SlashCommand, guilds=[195387617972322306]):
         return autocomplete_maps(options, focused)
 
 
-class random(discord.SlashCommand, guilds=[195387617972322306]):
+class RandomMap(discord.SlashCommand, guilds=[GUILD_ID], name="random_map"):
     """Find random maps."""
 
     number: Optional[int] = discord.Option(
-        description="How many random maps to find? default: 1",
+        description="How many random maps to find? default: 1", default=1
     )
 
     async def callback(self) -> None:

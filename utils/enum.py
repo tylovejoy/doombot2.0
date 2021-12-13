@@ -17,7 +17,7 @@ class ExtendedEnum(Enum):
             (member, fuzz.partial_ratio(value, member.value))
             for name, member in cls.__members__.items()
         ]
-        return max(values, key=itemgetter(1))[0]
+        return str(max(values, key=itemgetter(1))[0])
 
 
 class MapNames(ExtendedEnum):

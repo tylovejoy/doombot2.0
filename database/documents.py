@@ -5,6 +5,7 @@ import motor
 from logging import getLogger
 
 from beanie.odm.operators.find.evaluation import RegEx
+from pydantic import BaseModel
 from pymongo.errors import ServerSelectionTimeoutError
 
 logger = getLogger(__name__)
@@ -22,18 +23,96 @@ class StoreItems(Document):
 class ExperiencePoints(Document):
     user_id: int
     alias: str
+    alerts_enabled: bool
+
+    @classmethod
+    async def find_user(cls, user_id):
+        return await cls.find_one(cls.user_id == user_id)
 
     @classmethod
     async def get_alias(cls, user_id: int) -> str:
-        return (await cls.find_one(cls.user_id == user_id)).alias
+        return (await cls.find_user(user_id)).alias
+
+    @classmethod
+    async def is_alertable(cls, user_id: int) -> bool:
+        return (await cls.find_user(user_id)).alerts_enabled
+
+    @classmethod
+    async def user_exists(cls, user_id: int) -> bool:
+        return await cls.find_one(cls.user_id == user_id).exists()
 
 
 class Record(Document):
-    user_id: int
+    posted_by: int  # TODO: user_id
     code: str
     level: str
     record: float
     verified: bool
+    message_id: int
+    hidden_id: int
+
+    @classmethod
+    async def find_record(cls, code: str, level: str, user_id: int) -> "Record":
+        return await cls.find_one(
+            cls.code == code, cls.level == level, cls.posted_by == user_id
+        )
+
+    @classmethod
+    async def get_level_names(cls, map_code: str):
+        all_levels = (
+            await cls.find(cls.code == map_code)
+            .aggregate(
+                [{"$project": {"level": 1}}, {"$sort": {"level": 1}}],
+                projection_model=MapLevels,
+            )
+            .to_list()
+        )
+        return [str(x) for x in all_levels]
+
+    @classmethod
+    async def get_codes(cls, starts_with):
+        all_codes = (
+            await cls.find(RegEx("code", "^" + starts_with, "i"))
+            .aggregate(
+                [
+                    {"$project": {"code": 1}},
+                    {"$sort": {"code": 1}},
+                    {"$limit": 25},
+                    {
+                        "$lookup": {
+                            "from": "Map",
+                            "localField": "code",
+                            "foreignField": "code",
+                            "as": "map_data",
+                        }
+                    },
+                ],
+                projection_model=MapCodes,
+            )
+            .to_list()
+        )
+        print(list((str(x), x.get_data()) for x in all_codes))
+        return ((x.get_data(), str(x)) for x in all_codes)
+
+
+class MapLevels(BaseModel):
+    level: str
+
+    def __str__(self):
+        return self.level
+
+
+class MapCodes(BaseModel):
+    code: str
+    map_data: list
+
+    def __str__(self):
+        return self.code
+
+    def get_data(self):
+        if self.map_data:
+            return f"{self.code} -- ({self.map_data[0]['map_name']} by {self.map_data[0]['creator']})"
+        return self.code
 
 
 class Map(Document):

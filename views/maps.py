@@ -1,7 +1,7 @@
 import discord
-from discord.interactions import Interaction
 
 from utils.enum import MapTypes
+from views.basic import ConfirmButton
 
 
 class MapTypeSelect(discord.ui.Select):
@@ -19,18 +19,6 @@ class MapTypeSelect(discord.ui.Select):
 
     async def callback(self, interaction: discord.Interaction):
         self.view.confirm.disabled = False
-
-
-class ConfirmButton(discord.ui.Button):
-    def __init__(self, row=0, disabled=False):
-        super().__init__(
-            label="Accept", style=discord.ButtonStyle.green, row=row, disabled=disabled
-        )
-        self.value = None
-
-    async def callback(self, interaction: Interaction):
-        self.value = True
-        self.view.stop()
 
 
 class MapSubmitView(discord.ui.View):

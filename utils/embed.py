@@ -20,34 +20,45 @@ def maps_embed_fields(m: Map, *args) -> dict:
     return {
         "name": f"{m.code} - {m.map_name}",
         "value": (
-            f"> Creator(s): {m.creator}\n"
-            f"> Map Type(s): {', '.join(m.map_type)}\n"
-            f"> Description: {m.description}"
+            f"> **Creator(s):** {m.creator}\n"
+            f"> **Map Type(s):** {', '.join(m.map_type)}\n"
+            f"> **Description:** {m.description}"
         ),
     }
 
 
-def records_basic_embed_fields(r: Record, count: int) -> dict:
+def records_board_embed_fields(r: Record, count: int) -> dict:
     return {
-        "name": f"#{count} - {ExperiencePoints.get_alias(r.user_id)}",
+        "name": f"#{count} - {ExperiencePoints.get_alias(r.posted_by)}",
         "value": (
-            f"> Record: {display_record(r.record)}\n"
-            f"> Verified: {Emoji.is_verified(r.verified)}"
+            f"> **Record**: {display_record(r.record)}\n"
+            f"> **Verified**: {Emoji.is_verified(r.verified)}"
+        ),
+    }
+
+
+async def records_basic_embed_fields(r: Record) -> dict:
+    return {
+        "name": f"{await ExperiencePoints.get_alias(r.posted_by)}",
+        "value": (
+            f"> **Map Code:** {r.code}\n"
+            f"> **Level name:** {r.level}\n"
+            f"> **Record:** {display_record(r.record)}\n"
         ),
     }
 
 
 def records_wr_embed_fields(r: Record, *args) -> dict:
     return {
-        "name": f"{r.level} - {ExperiencePoints.get_alias(r.user_id)}",
-        "value": f"> Record: {display_record(r.record)}\n",
+        "name": f"{r.level} - {ExperiencePoints.get_alias(r.posted_by)}",
+        "value": f"> **Record**: {display_record(r.record)}\n",
     }
 
 
 def records_wr_level_embed_fields(r: Record, *args) -> dict:
     return {
-        "name": f"{ExperiencePoints.get_alias(r.user_id)}",
-        "value": f"> Record: {display_record(r.record)}\n",
+        "name": f"{ExperiencePoints.get_alias(r.posted_by)}",
+        "value": f"> **Record:** {display_record(r.record)}\n",
     }
 
 

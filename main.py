@@ -1,7 +1,7 @@
 import argparse
 from os import environ
 import logging
-from slash import map_commands
+from slash import maps, records, parents
 from doombot import DoomBot
 
 # Arguments
@@ -39,7 +39,9 @@ bot = DoomBot()
 def load_all_extensions():
     """Load all slashes."""
     logger.info("Loading slash...")
-    map_commands.setup(bot)
+    parents.setup(bot)
+    maps.setup(bot)
+    records.setup(bot)
     logger.info("Slash loaded.")
 
 

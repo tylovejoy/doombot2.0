@@ -1,6 +1,7 @@
 import re
 import datetime
 
+from utils.errors import InvalidTime
 
 TIME_REGEX = re.compile(
     r"(?<!.)(\d{1,2})?:?(\d{1,2})?:?(?<!\d)(\d{1,2})\.?\d{1,4}?(?!.)"
@@ -14,19 +15,21 @@ def is_time_format(s):
 
 def time_convert(time_input):
     """Convert time (str) into seconds (float)."""
-    neg_time = -1 if time_input[0] == "-" else 1
-    time_list = time_input.split(":")
-    if len(time_list) == 1:
-        return float(time_list[0])
-    if len(time_list) == 2:
-        return float((int(time_list[0]) * 60) + (neg_time * float(time_list[1])))
-    if len(time_list) == 3:
-        return float(
-            (int(time_list[0]) * 3600)
-            + (neg_time * (int(time_list[1]) * 60))
-            + (neg_time * float(time_list[2]))
-        )
-    return
+    try:
+        neg_time = -1 if time_input[0] == "-" else 1
+        time_list = time_input.split(":")
+        if len(time_list) == 1:
+            return float(time_list[0])
+        if len(time_list) == 2:
+            return float((int(time_list[0]) * 60) + (neg_time * float(time_list[1])))
+        if len(time_list) == 3:
+            return float(
+                (int(time_list[0]) * 3600)
+                + (neg_time * (int(time_list[1]) * 60))
+                + (neg_time * float(time_list[2]))
+            )
+    except Exception:
+        raise InvalidTime("Record is not in the correct format! HH:MM:SS.ss")
 
 
 def display_record(record):
@@ -53,3 +56,12 @@ def format_timedelta(td):
     if datetime.timedelta(seconds=td) < datetime.timedelta(0):
         return "-" + format_timedelta(-1 * td)
     return str(td)
+
+
+def preprocess_map_code(map_code):
+    """Converts map codes to acceptable format."""
+    return map_code.upper().replace("O", "0")
+
+
+def case_ignore_compare(string1, string2):
+    return string1.casefold().startswith(string2.casefold())
