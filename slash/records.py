@@ -5,10 +5,11 @@ import discord
 from discord.app import AutoCompleteResponse
 from database.documents import Record, ExperiencePoints, WorldRecordsAggregate
 from slash.parents import SubmitParent
-from utils.constants import GUILD_ID
+from utils.constants import GUILD_ID, VERIFICATION_CHANNEL_ID
 from utils.embed import create_embed, records_basic_embed_fields
+from utils.enum import Emoji
 from utils.utils import preprocess_map_code, time_convert
-from views.records import RecordSubmitView
+from views.records import RecordSubmitView, VerificationView
 
 logger = getLogger(__name__)
 
@@ -57,15 +58,15 @@ class SubmitRecord(
 
         record_seconds = time_convert(self.record)
         await check_user(self.interaction)
-
+        
         record_document = await Record.find_record(
             self.map_code, self.map_level, self.interaction.user.id
         )
 
         if (
             record_document
-            and record_document.verified
             and record_seconds >= record_document.record
+            and record_document.verified
         ):
             await self.interaction.response.send_message(
                 "Personal best needs to be faster to update.", ephemeral=True
@@ -77,18 +78,19 @@ class SubmitRecord(
                 posted_by=self.interaction.user.id,
                 code=self.map_code,
                 level=self.map_level,
-                record=record_seconds,
                 verified=False,
                 message_id=0,
                 hidden_id=0,
             )
+        
+        record_document.record = record_seconds
 
         embed = create_embed(
             title="New submission", desc="", user=self.interaction.user
         )
         embed.add_field(**await records_basic_embed_fields(record_document))
         # TODO: Add image/attachment to embed
-
+        # TODO: Find rank using $rank aggregation mongo 5.0 only
         view = RecordSubmitView()
         await self.interaction.response.send_message(
             "Is this correct?", ephemeral=True, view=view, embed=embed
@@ -100,10 +102,19 @@ class SubmitRecord(
             await self.interaction.edit_original_message(
                 content="Submitted.", view=view
             )
+            
+            message = await self.interaction.channel.send(content=f"{Emoji.TIME} Waiting for verification...", embed=embed)
+            record_document.message_id = message.id
+
+            verification_channel = self.interaction.guild.get_channel(VERIFICATION_CHANNEL_ID)
+            verify_view = VerificationView()
+            hidden_msg = await verification_channel.send(embed=embed, view=verify_view)
+            record_document.hidden_id = hidden_msg.id
             await record_document.save()
 
-            # TODO: Find rank using $rank aggregation mongo 5.0 only
-            # TODO: Send to hidden verification channel.
+
+            
+            
 
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str

@@ -82,6 +82,7 @@ class MapTypes(ExtendedEnum):
 class Emoji(Enum):
     VERIFIED = "✅"
     NOT_VERIFIED = "❌"
+    TIME = "⌛"
 
     @classmethod
     def is_verified(cls, value: bool):
