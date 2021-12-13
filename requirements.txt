@@ -1,7 +1,7 @@
 aiohttp==3.7.4.post0
 async-timeout==3.0.1
 attrs==21.2.0
-beanie==1.7.2
+beanie==1.8.5
 chardet==4.0.0
 click==7.1.2
 discord.py @ git+https://github.com/iDevision/enhanced-discord.py.git@e621d5288eeec2472f248efe8ce5581348dadf8a

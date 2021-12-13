@@ -1,9 +1,9 @@
 from logging import getLogger
-from typing import Dict, Union
+from typing import Dict, Union, Optional, List
 
 import discord
 from discord.app import AutoCompleteResponse
-from database.documents import Record, ExperiencePoints
+from database.documents import Record, ExperiencePoints, WorldRecordsAggregate
 from slash.parents import SubmitParent
 from utils.constants import GUILD_ID
 from utils.embed import create_embed, records_basic_embed_fields
@@ -15,6 +15,7 @@ logger = getLogger(__name__)
 
 def setup(bot):
     bot.application_command(SubmitRecord)
+    bot.application_command(Test)
 
 
 async def check_user(interaction):
@@ -115,3 +116,15 @@ class SubmitRecord(
                 {k: v for k, v in await Record.get_codes(options[focused])}
             )
             return response
+
+
+class Test(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
+    """test"""
+
+    member: discord.Member = discord.Option(description="user id")
+
+    async def callback(self) -> None:
+        # x = await Record.find_world_records(int(self.member))
+        # for i in x:
+        #     print(i.id.code, i.id.level, i.record)
+        print(type(self.member.id))

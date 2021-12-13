@@ -1,11 +1,11 @@
 from os import environ
-from beanie import Document, init_beanie
+from beanie import Document, init_beanie, Link
 from typing import Any, List
 import motor
 from logging import getLogger
 
 from beanie.odm.operators.find.evaluation import RegEx
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pymongo.errors import ServerSelectionTimeoutError
 
 logger = getLogger(__name__)
@@ -42,6 +42,17 @@ class ExperiencePoints(Document):
         return await cls.find_one(cls.user_id == user_id).exists()
 
 
+class WorldRecordsSubAggregate(Document):
+    code: str
+    level: str
+
+
+class WorldRecordsAggregate(BaseModel):
+    id: Link[WorldRecordsSubAggregate] = Field(None, alias="_id")
+    posted_by: int
+    record: float
+
+
 class Record(Document):
     posted_by: int  # TODO: user_id
     code: str
@@ -50,6 +61,28 @@ class Record(Document):
     verified: bool
     message_id: int
     hidden_id: int
+
+    @classmethod
+    async def find_world_records(cls, user_id: int):
+        return (
+            await cls.find(cls.verified == True)
+            .aggregate(
+                [
+                    {"$sort": {"record": 1}},
+                    {
+                        "$group": {
+                            "_id": {"code": "$code", "level": "$level"},
+                            "record": {"$first": "$record"},
+                            "posted_by": {"$push": "$posted_by"},
+                        }
+                    },
+                    {"$unwind": {"path": "$posted_by"}},
+                    {"$match": {"posted_by": user_id}},
+                ],
+                projection_model=WorldRecordsAggregate,
+            )
+            .to_list()
+        )
 
     @classmethod
     async def find_record(cls, code: str, level: str, user_id: int) -> "Record":
