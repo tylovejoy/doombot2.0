@@ -1,7 +1,7 @@
 import argparse
 from os import environ
 import logging
-from slash import maps, records, parents
+from slash import maps, records, parents, tournament
 from doombot import DoomBot
 
 # Arguments
@@ -42,6 +42,7 @@ def load_all_extensions():
     parents.setup(bot)
     maps.setup(bot)
     records.setup(bot)
+    tournament.setup(bot)
     logger.info("Slash loaded.")
 
 
