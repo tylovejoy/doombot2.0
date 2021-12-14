@@ -52,6 +52,7 @@ def autocomplete_maps(options, focused):
 
 
 class MapSearch(discord.SlashCommand, guilds=[GUILD_ID], name="map_search"):
+
     """Search for maps using filters."""
 
     map_name: Optional[str] = discord.Option(
@@ -103,6 +104,7 @@ class MapSearch(discord.SlashCommand, guilds=[GUILD_ID], name="map_search"):
 class SubmitMap(
     discord.SlashCommand, guilds=[GUILD_ID], parent=SubmitParent, name="map"
 ):
+
     """Submit maps to the database."""
 
     map_code: str = discord.Option(
@@ -186,6 +188,7 @@ class SubmitMap(
 class DeleteMap(
     discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=DeleteParent
 ):
+
     """Delete a map from the database."""
 
     map_code: str = discord.Option(
@@ -238,6 +241,7 @@ class DeleteMap(
 
 
 class EditMap(discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=EditParent):
+
     """Edit maps that you have submitted to the database. You can edit any field."""
 
     map_code: str = discord.Option(
@@ -325,6 +329,7 @@ class EditMap(discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=EditPa
 
 
 class RandomMap(discord.SlashCommand, guilds=[GUILD_ID], name="random_map"):
+
     """Find random maps."""
 
     number: Optional[int] = discord.Option(

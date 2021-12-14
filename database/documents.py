@@ -12,6 +12,7 @@ logger = getLogger(__name__)
 
 
 class StoreItems(Document):
+
     """Collection of items to be bought."""
 
     item: str
@@ -24,6 +25,7 @@ class StoreItems(Document):
 
 
 class ExperiencePoints(Document):
+
     """Collection of user data."""
 
     user_id: int
@@ -52,6 +54,7 @@ class ExperiencePoints(Document):
 
 
 class WorldRecordsSubAggregate(Document):
+
     """Projection model for World Records aggregation."""
 
     code: str
@@ -59,6 +62,7 @@ class WorldRecordsSubAggregate(Document):
 
 
 class WorldRecordsAggregate(BaseModel):
+
     """Projection model for World Records aggregation."""
 
     id: Link[WorldRecordsSubAggregate] = Field(None, alias="_id")
@@ -67,6 +71,7 @@ class WorldRecordsAggregate(BaseModel):
 
 
 class UniquePlayers(BaseModel):
+
     """Projection model for unique players in a Record aggregation."""
 
     name: str
@@ -78,6 +83,7 @@ class UniquePlayers(BaseModel):
 
 
 class Record(Document):
+
     """Collection of personal best records."""
 
     posted_by: int  # TODO: user_id
@@ -164,15 +170,18 @@ class Record(Document):
 
 
 class MapLevels(BaseModel):
+
     """Projection model for Map aggregation."""
 
     level: str
 
     def __str__(self):
+        """String representation."""
         return self.level
 
 
 class MapCodes(BaseModel):
+
     """Project model for Map aggregation."""
 
     code: str
@@ -190,6 +199,7 @@ class MapCodes(BaseModel):
 
 
 class Map(Document):
+
     """Collection of Maps."""
 
     user_id: int

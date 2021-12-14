@@ -4,11 +4,13 @@ from typing import List
 
 
 class Paginator(discord.ui.View):
+
     """ "A view for paginating multiple embeds."""
 
     def __init__(
         self, embeds: List[discord.Embed], author: discord.Member, timeout=120
     ):
+        """Init paginator."""
         super().__init__(timeout=timeout)
         self.pages = embeds
         self.author = author

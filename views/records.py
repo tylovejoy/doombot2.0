@@ -14,9 +14,11 @@ from utils.constants import (
 
 
 class RecordSubmitView(discord.ui.View):
+
     """View for record submissions."""
 
     def __init__(self, *, timeout=None, confirm_disabled=False):
+        """Init view."""
         super().__init__(timeout=timeout)
 
         self.confirm = ConfirmButton(row=1, disabled=confirm_disabled)
@@ -24,9 +26,11 @@ class RecordSubmitView(discord.ui.View):
 
 
 class VerificationView(discord.ui.View):
+
     """View for verification notifications."""
 
     def __init__(self):
+        """Init view."""
         super().__init__(timeout=None)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
@@ -37,11 +41,13 @@ class VerificationView(discord.ui.View):
 
     @discord.ui.button(label="Verify", style=discord.ButtonStyle.green)
     async def verify(self, button: discord.ui.Button, interaction: discord.Interaction):
+        """Button component for verification acceptance."""
         await self.verification(interaction, True)
         self.stop()
 
     @discord.ui.button(label="Reject", style=discord.ButtonStyle.red)
     async def reject(self, button: discord.ui.Button, interaction: discord.Interaction):
+        """Button component for verification rejection."""
         await self.verification(interaction, False)
         self.stop()
 

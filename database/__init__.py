@@ -1,0 +1,1 @@
+"""DoomBot database."""

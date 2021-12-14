@@ -1,9 +1,9 @@
 from logging import getLogger
-from typing import Dict, Union, Optional, List
+from typing import Dict, Union
 
 import discord
 from discord.app import AutoCompleteResponse
-from database.documents import Record, ExperiencePoints, WorldRecordsAggregate
+from database.documents import Record, ExperiencePoints
 from slash.parents import SubmitParent
 from utils.constants import GUILD_ID, VERIFICATION_CHANNEL_ID
 from utils.embed import create_embed, records_basic_embed_fields
@@ -36,6 +36,7 @@ async def check_user(interaction):
 class SubmitRecord(
     discord.SlashCommand, guilds=[GUILD_ID], name="record", parent=SubmitParent
 ):
+
     """Submit personal records to the database."""
 
     map_code: str = discord.Option(
@@ -143,6 +144,7 @@ class SubmitRecord(
 
 
 class Test(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
+
     """test"""
 
     async def callback(self) -> None:
