@@ -1,31 +1,13 @@
-import argparse
 from os import environ
 import logging
 from slash import maps, records, parents, tournament
 from doombot import DoomBot
 
-# Arguments
-parser = argparse.ArgumentParser(description="Choose a logging level.")
-parser.add_argument(
-    "--log",
-    nargs="?",
-)
-args = parser.parse_args()
-
-# Logging setup
-logging_level = {
-    "info": logging.INFO,
-    "debug": logging.DEBUG,
-    "critical": logging.CRITICAL,
-    "error": logging.ERROR,
-    "warning": logging.WARNING,
-}
-
 logger = logging.getLogger()
-logger.setLevel(logging_level.get(args.log, logging.INFO))
+logger.setLevel(logging.INFO)
 
 consoleHandle = logging.StreamHandler()
-consoleHandle.setLevel(logging_level.get(args.log, logging.INFO))
+consoleHandle.setLevel(logging.INFO)
 consoleHandle.setFormatter(
     logging.Formatter("%(name)-18s :: %(levelname)-8s :: %(message)s")
 )
