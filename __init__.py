@@ -1,1 +1,1 @@
-"""DoomBot"""
+"""DoomBot."""
