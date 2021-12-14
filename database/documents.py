@@ -1,12 +1,16 @@
 from os import environ
 from beanie import Document, init_beanie, Link
-from typing import Any, List
+from typing import Any, List, Optional, Union
 import motor
 from logging import getLogger
 
 from beanie.odm.operators.find.evaluation import RegEx
 from pydantic import BaseModel, Field
+from datetime import datetime
+import pydantic
 from pymongo.errors import ServerSelectionTimeoutError
+
+from slash.tournament import Hardcore
 
 logger = getLogger(__name__)
 
@@ -276,6 +280,65 @@ class Map(Document):
             .aggregate([{"$sample": {"size": amount}}], projection_model=cls)
             .to_list()
         )
+
+
+class TournamentMaps(BaseModel):
+
+    """Tournament data maps object."""
+
+    code: str
+    creator: str
+    map_name: str
+    
+
+class TournamentRecords(BaseModel):
+    """Base model for tournament records."""
+    record: float
+    posted_by: int
+    attachment_url: str
+
+class TournamentMissions(BaseModel):
+    """Base model for tournament missions."""
+    type: str
+    target: str
+
+class TournamentMissionsCategories(BaseModel):
+    """Base model for tournament mission categories."""
+    easy: Optional[TournamentMissions]
+    medium: Optional[TournamentMissions]
+    hard: Optional[TournamentMissions]
+    expert: Optional[TournamentMissions]
+
+class TournamentCategories(BaseModel):
+
+    """Base models for tournament categories."""
+
+    ta: Union[TournamentMaps, Optional[List[TournamentRecords]], Optional[TournamentMissionsCategories]]
+    mc: Union[TournamentMaps, Optional[List[TournamentRecords]], Optional[TournamentMissionsCategories]]
+    hc: Union[TournamentMaps, Optional[List[TournamentRecords]], Optional[TournamentMissionsCategories]]
+    bo: Union[TournamentMaps, Optional[List[TournamentRecords]], Optional[TournamentMissionsCategories]]
+
+
+class Tournament(Document):
+
+    """Collection of Tournament data."""
+
+    tournament_id: int
+    name: str
+    bracket: bool
+    bracket_category: Optional[str]
+    schedule_start: datetime
+    schedule_end: datetime
+    unix_start: str
+    unix_end: str
+
+    maps: TournamentCategories
+    records: TournamentCategories
+    missions: TournamentCategories
+
+
+
+
 
 
 DB_PASSWORD = environ["DB_PASSWORD"]
