@@ -1,16 +1,16 @@
 from os import environ
 from beanie import Document, init_beanie, Link
-from typing import Any, List, Optional, Union
+from typing import Any, List, Literal, Optional, Union
 import motor
 from logging import getLogger
 
 from beanie.odm.operators.find.evaluation import RegEx
 from pydantic import BaseModel, Field
 from datetime import datetime
-import pydantic
 from pymongo.errors import ServerSelectionTimeoutError
 
-from slash.tournament import Hardcore
+
+CategoryLiteral = Literal["ta", "mc", "hc", "bo"]
 
 logger = getLogger(__name__)
 
@@ -325,20 +325,34 @@ class Tournament(Document):
 
     tournament_id: int
     name: str
+    active: bool
     bracket: bool
     bracket_category: Optional[str]
     schedule_start: datetime
     schedule_end: datetime
-    unix_start: str
-    unix_end: str
 
     maps: TournamentCategories
     records: TournamentCategories
     missions: TournamentCategories
 
 
+    def get_map_str(self, category: CategoryLiteral) -> str:
+        return f"{self.maps[category]['code']} - {self.maps[category]['level']} by {self.maps[category]['author']}\n"
 
+    def get_all_map_str(self) -> str:
+        return (
+            self.get_map_str("ta") + 
+            self.get_map_str("mc") + 
+            self.get_map_str("hc") +
+            self.get_map_str("bo")
+        )
 
+    def get_records(self, category: CategoryLiteral) -> List[TournamentRecords]:
+        return self.records[category]
+
+    @classmethod
+    async def find_latest(cls):
+        return await cls.find().sort(-cls.tournament_id).limit(1).to_list()
 
 
 DB_PASSWORD = environ["DB_PASSWORD"]
