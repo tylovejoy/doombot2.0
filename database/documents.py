@@ -8,7 +8,7 @@ from beanie.odm.operators.find.evaluation import RegEx
 from pydantic import BaseModel, Field
 from datetime import datetime
 from pymongo.errors import ServerSelectionTimeoutError
-
+from time import mktime
 
 CategoryLiteral = Literal["ta", "mc", "hc", "bo"]
 
@@ -335,6 +335,13 @@ class Tournament(Document):
     records: TournamentCategories
     missions: TournamentCategories
 
+    @staticmethod
+    def get_unix_timestamp(dt: datetime) -> str:
+        return str(mktime(dt.timetuple()))
+
+    @classmethod
+    async def find_latest(cls):
+        return await cls.find().sort(-cls.tournament_id).limit(1).to_list()
 
     def get_map_str(self, category: CategoryLiteral) -> str:
         return f"{self.maps[category]['code']} - {self.maps[category]['level']} by {self.maps[category]['author']}\n"
@@ -350,9 +357,11 @@ class Tournament(Document):
     def get_records(self, category: CategoryLiteral) -> List[TournamentRecords]:
         return self.records[category]
 
-    @classmethod
-    async def find_latest(cls):
-        return await cls.find().sort(-cls.tournament_id).limit(1).to_list()
+    def get_unix_start(self):
+        return self.get_unix_timestamp(self.schedule_start)
+
+    def get_unix_end(self):
+        return self.get_unix_timestamp(self.schedule_end)
 
 
 DB_PASSWORD = environ["DB_PASSWORD"]
