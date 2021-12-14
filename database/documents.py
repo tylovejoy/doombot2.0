@@ -82,6 +82,14 @@ class UniquePlayers(BaseModel):
         return f"{self.name}, {self.posted_by}"
 
 
+class CurrentRecordPlacement(BaseModel):
+
+    """Projection model for $rank mongo aggregation."""
+
+    posted_by: int
+    rank: int
+
+
 class Record(Document):
 
     """Collection of personal best records."""
@@ -93,6 +101,24 @@ class Record(Document):
     verified: bool
     message_id: int
     hidden_id: int
+
+    @classmethod
+    async def find_current_rank(cls, map_code: str, map_level: str, user_id: int):
+        """Find the current rank placement of a record."""
+        return (
+            await cls.find(cls.code == map_code, cls.level == map_level)
+            .aggregate(
+                [
+                    {
+                        "$setWindowFields": {"sortBy": {"record": 1}},
+                        "output": {"rank": {"$rank": {}}},
+                    },
+                    {"$match": {"posted_by": user_id}},
+                ],
+                projection_model=CurrentRecordPlacement,
+            )
+            .to_list()
+        )
 
     @classmethod
     async def find_unique_players(cls):
