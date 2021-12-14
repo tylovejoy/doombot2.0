@@ -48,6 +48,7 @@ def load_all_extensions():
 
 @bot.event
 async def setup():
+    """Upload slash commands to discord."""
     await bot.upload_guild_application_commands()
 
 

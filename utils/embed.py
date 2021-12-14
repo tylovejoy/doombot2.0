@@ -7,6 +7,7 @@ from utils.utils import display_record
 
 
 def create_embed(title: str, desc: str, user: discord.Member, color: hex = 0x000001):
+    """Create a standardized embed."""
     embed = discord.Embed(title=title, description=desc, color=color)
     embed.set_author(name=user, icon_url=user.avatar.url)
 
@@ -17,6 +18,7 @@ def create_embed(title: str, desc: str, user: discord.Member, color: hex = 0x000
 
 
 def maps_embed_fields(m: Map, *args) -> dict:
+    """Embed fields for a map."""
     return {
         "name": f"{m.code} - {m.map_name}",
         "value": (
@@ -28,6 +30,7 @@ def maps_embed_fields(m: Map, *args) -> dict:
 
 
 def records_board_embed_fields(r: Record, count: int) -> dict:
+    """Embed fields for a record board."""
     return {
         "name": f"#{count} - {ExperiencePoints.get_alias(r.posted_by)}",
         "value": (
@@ -38,6 +41,7 @@ def records_board_embed_fields(r: Record, count: int) -> dict:
 
 
 async def records_basic_embed_fields(r: Record) -> dict:
+    """Embed fields for record submissions."""
     return {
         "name": f"{await ExperiencePoints.get_alias(r.posted_by)}",
         "value": (
@@ -49,6 +53,7 @@ async def records_basic_embed_fields(r: Record) -> dict:
 
 
 def records_wr_embed_fields(r: Record, *args) -> dict:
+    """Embed fields for world records among multiple levels."""
     return {
         "name": f"{r.level} - {ExperiencePoints.get_alias(r.posted_by)}",
         "value": f"> **Record**: {display_record(r.record)}\n",
@@ -56,6 +61,7 @@ def records_wr_embed_fields(r: Record, *args) -> dict:
 
 
 def records_wr_level_embed_fields(r: Record, *args) -> dict:
+    """Embed fields for a single world record."""
     return {
         "name": f"{ExperiencePoints.get_alias(r.posted_by)}",
         "value": f"> **Record:** {display_record(r.record)}\n",

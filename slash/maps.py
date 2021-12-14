@@ -65,7 +65,7 @@ class MapSearch(discord.SlashCommand, guilds=[GUILD_ID], name="map_search"):
     creator: Optional[str] = discord.Option(description="Name of a specific creator.")
 
     async def callback(self) -> None:
-
+        """Callback for map search slash command."""
         fuzzy_name, fuzzy_type = None, None
         if self.map_name:
             fuzzy_name = MapNames.fuzz(self.map_name)
@@ -96,7 +96,7 @@ class MapSearch(discord.SlashCommand, guilds=[GUILD_ID], name="map_search"):
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
     ):
-
+        """Autocomplete for slash command."""
         return autocomplete_maps(options, focused)
 
 
@@ -118,6 +118,7 @@ class SubmitMap(
     )
 
     async def callback(self) -> None:
+        """Callback for map submission slash command."""
         self.map_code = preprocess_map_code(self.map_code)
 
         if await Map.check_code(self.map_code):
@@ -178,7 +179,7 @@ class SubmitMap(
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
     ):
-
+        """Autocomplete for map submission slash command."""
         return autocomplete_maps(options, focused)
 
 
@@ -192,6 +193,7 @@ class DeleteMap(
     )
 
     async def callback(self) -> None:
+        """Callback for deleting a map slash command."""
         self.map_code = preprocess_map_code(self.map_code)
 
         if not await Map.check_code(self.map_code):
@@ -256,6 +258,7 @@ class EditMap(discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=EditPa
     )
 
     async def callback(self) -> None:
+        """Callback for edit map slash command."""
         self.map_code = preprocess_map_code(self.map_code)
 
         if self.new_map_code:
@@ -317,7 +320,7 @@ class EditMap(discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=EditPa
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
     ):
-
+        """Autocomplete for edit map slash command."""
         return autocomplete_maps(options, focused)
 
 
@@ -329,6 +332,7 @@ class RandomMap(discord.SlashCommand, guilds=[GUILD_ID], name="random_map"):
     )
 
     async def callback(self) -> None:
+        """Callback for random map slash command."""
         search = await Map.random(self.number or 1)
 
         embed = create_embed(

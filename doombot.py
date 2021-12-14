@@ -38,6 +38,7 @@ class DoomBot(discord.Client):
         )
 
     async def on_ready(self):
+        """Display bot info on ready event."""
         app_info = await self.application_info()
         logger.info(
             f"{DOOMBOT_ASCII}"

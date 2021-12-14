@@ -4,6 +4,8 @@ from typing import List
 
 
 class Paginator(discord.ui.View):
+    """ "A view for paginating multiple embeds."""
+
     def __init__(
         self, embeds: List[discord.Embed], author: discord.Member, timeout=120
     ):
@@ -38,16 +40,19 @@ class Paginator(discord.ui.View):
         return pages
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        """Check if the interaction user is the original users who started the interaction."""
         if interaction.user == self.author:
             return True
         return False
 
     async def on_timeout(self) -> None:
+        """Stop view on timeout."""
         self.stop()
         return await super().on_timeout()
 
     @discord.ui.button(label="First", emoji="⏮")
     async def first(self, button: discord.ui.Button, interaction: discord.Interaction):
+        """Button component to return to the first pagination page."""
         if len(self.pages) == 1:
             button.disabled = True
         self._curr_page = 0
@@ -57,6 +62,7 @@ class Paginator(discord.ui.View):
 
     @discord.ui.button(label="Back", emoji="◀")
     async def back(self, button: discord.ui.Button, interaction: discord.Interaction):
+        """Button component to go back to the last pagination page."""
         if len(self.pages) == 1:
             button.disabled = True
         if self._curr_page == 0:
@@ -69,6 +75,7 @@ class Paginator(discord.ui.View):
 
     @discord.ui.button(label="Next", emoji="▶")
     async def next(self, button: discord.ui.Button, interaction: discord.Interaction):
+        """Button component to go to the next pagination page."""
         if len(self.pages) == 1:
             button.disabled = True
         if self._curr_page == len(self.pages) - 1:
@@ -81,6 +88,7 @@ class Paginator(discord.ui.View):
 
     @discord.ui.button(label="Last", emoji="⏭")
     async def last(self, button: discord.ui.Button, interaction: discord.Interaction):
+        """Button component to go to the last pagination page."""
         if len(self.pages) == 1:
             button.disabled = True
         self._curr_page = len(self.pages) - 1

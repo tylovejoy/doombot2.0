@@ -12,56 +12,74 @@ logger = getLogger(__name__)
 
 
 class StoreItems(Document):
+    """Collection of items to be bought."""
+
     item: str
     price: int
 
     @classmethod
     async def get_price(cls, item: str) -> int:
+        """Get the price of an item."""
         return (await cls.find_one(cls.item == item)).price
 
 
 class ExperiencePoints(Document):
+    """Collection of user data."""
+
     user_id: int
     alias: str
     alerts_enabled: bool
 
     @classmethod
     async def find_user(cls, user_id):
+        """Find a user."""
         return await cls.find_one(cls.user_id == user_id)
 
     @classmethod
     async def get_alias(cls, user_id: int) -> str:
+        """Get an alias of a user."""
         return (await cls.find_user(user_id)).alias
 
     @classmethod
     async def is_alertable(cls, user_id: int) -> bool:
+        """Get a bool of if the user is alertable."""
         return (await cls.find_user(user_id)).alerts_enabled
 
     @classmethod
     async def user_exists(cls, user_id: int) -> bool:
+        """Check if the user exists."""
         return await cls.find_one(cls.user_id == user_id).exists()
 
 
 class WorldRecordsSubAggregate(Document):
+    """Projection model for World Records aggregation."""
+
     code: str
     level: str
 
 
 class WorldRecordsAggregate(BaseModel):
+    """Projection model for World Records aggregation."""
+
     id: Link[WorldRecordsSubAggregate] = Field(None, alias="_id")
     posted_by: int
     record: float
 
 
 class UniquePlayers(BaseModel):
+    """Projection model for unique players in a Record aggregation."""
+
     name: str
     posted_by: int
 
     def __str__(self):
+        """String representation."""
         return f"{self.name}, {self.posted_by}"
 
 
 class Record(Document):
+    """Collection of personal best records."""
+
     posted_by: int  # TODO: user_id
     code: str
     level: str
@@ -72,11 +90,13 @@ class Record(Document):
 
     @classmethod
     async def find_unique_players(cls):
+        """Find unique players."""
         x = await cls.find().project(projection_model=UniquePlayers).to_list()
         return set(str(i) for i in x)
 
     @classmethod
     async def find_world_records(cls, user_id: int):
+        """Find all the world records that a user has."""
         return (
             await cls.find(cls.verified == True)
             .aggregate(
@@ -98,12 +118,14 @@ class Record(Document):
 
     @classmethod
     async def find_record(cls, code: str, level: str, user_id: int) -> "Record":
+        """Find a specific record."""
         return await cls.find_one(
             cls.code == code, cls.level == level, cls.posted_by == user_id
         )
 
     @classmethod
     async def get_level_names(cls, map_code: str):
+        """Get the names of levels in a map code."""
         all_levels = (
             await cls.find(cls.code == map_code)
             .aggregate(
@@ -116,6 +138,7 @@ class Record(Document):
 
     @classmethod
     async def get_codes(cls, starts_with):
+        """Get map codes that start with a specific string."""
         all_codes = (
             await cls.find(RegEx("code", "^" + starts_with, "i"))
             .aggregate(
@@ -141,6 +164,8 @@ class Record(Document):
 
 
 class MapLevels(BaseModel):
+    """Projection model for Map aggregation."""
+
     level: str
 
     def __str__(self):
@@ -148,19 +173,25 @@ class MapLevels(BaseModel):
 
 
 class MapCodes(BaseModel):
+    """Project model for Map aggregation."""
+
     code: str
     map_data: list
 
     def __str__(self):
+        """String representation."""
         return self.code
 
     def get_data(self):
+        """Get the code and creator/map name if submitted to the database."""
         if self.map_data:
             return f"{self.code} -- ({self.map_data[0]['map_name']} by {self.map_data[0]['creator']})"
         return self.code
 
 
 class Map(Document):
+    """Collection of Maps."""
+
     user_id: int
     code: str
     creator: str
@@ -215,6 +246,7 @@ DB_PASSWORD = environ["DB_PASSWORD"]
 
 
 async def database_init():
+    """Initialize mongo database."""
     client = motor.motor_asyncio.AsyncIOMotorClient(
         f"mongodb+srv://mapbot:{DB_PASSWORD}@mapbot.oult0.mongodb.net/doombot?retryWrites=true&w=majority"
     )

@@ -4,15 +4,20 @@ from thefuzz import fuzz
 
 
 class ExtendedEnum(Enum):
+    """Base class for enums."""
+
     def __str__(self) -> str:
+        """String representation."""
         return self.value
 
     @classmethod
     def list(cls):
+        """List of all values in the cls."""
         return sorted(list(map(lambda c: c.value, cls)))
 
     @classmethod
     def fuzz(cls, value):
+        """Fuzz a value."""
         values = [
             (member, fuzz.partial_ratio(value, member.value))
             for name, member in cls.__members__.items()
@@ -21,6 +26,7 @@ class ExtendedEnum(Enum):
 
 
 class MapNames(ExtendedEnum):
+    """An enum of Overwatch map names."""
 
     AYUTTHAYA = "Ayutthaya"
     BLACK_FOREST = "Black Forest"
@@ -60,6 +66,7 @@ class MapNames(ExtendedEnum):
 
 
 class MapTypes(ExtendedEnum):
+    """An enum of map types."""
 
     SINGLE = "Single"
     MULTI = "Multilevel"
@@ -80,15 +87,19 @@ class MapTypes(ExtendedEnum):
 
 
 class Emoji(Enum):
+    """An enum of emojis."""
+
     VERIFIED = "✅"
     NOT_VERIFIED = "❌"
     TIME = "⌛"
 
     @classmethod
     def is_verified(cls, value: bool):
+        """Check for verification status. Return the proper emoji."""
         if value:
             return cls.VERIFIED
         return cls.NOT_VERIFIED
 
     def __str__(self) -> str:
+        """String representation."""
         return self.value

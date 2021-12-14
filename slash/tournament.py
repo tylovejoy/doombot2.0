@@ -12,10 +12,10 @@ def setup(bot):
 class TournamentParent(
     discord.SlashCommand, guilds=[GUILD_ID], name="tournament", parent=SubmitParent
 ):
-    """Tournament parent."""
+    """Tournament slash command parent class."""
 
 
 class Hardcore(
     discord.SlashCommand, guilds=[GUILD_ID], name="hardcore", parent=TournamentParent
 ):
-    """Tournament parent."""
+    """Hardcore tournament submission."""

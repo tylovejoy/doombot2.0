@@ -9,7 +9,7 @@ from utils.constants import GUILD_ID, VERIFICATION_CHANNEL_ID
 from utils.embed import create_embed, records_basic_embed_fields
 from utils.enum import Emoji
 from utils.utils import preprocess_map_code, time_convert
-from views.records import RecordSubmitView, VerificationView
+from views.records import RecordSubmitView, VerificationView, find_orig_msg
 
 logger = getLogger(__name__)
 
@@ -51,6 +51,7 @@ class SubmitRecord(
     )
 
     async def callback(self) -> None:
+        """Callback for submitting records slash command."""
         self.map_code = preprocess_map_code(self.map_code)
         self.map_level = self.map_level.upper()
 
@@ -58,11 +59,12 @@ class SubmitRecord(
 
         record_seconds = time_convert(self.record)
         await check_user(self.interaction)
-        
+
         record_document = await Record.find_record(
             self.map_code, self.map_level, self.interaction.user.id
         )
 
+        # Check if new record is faster than a verified one.
         if (
             record_document
             and record_seconds >= record_document.record
@@ -73,6 +75,7 @@ class SubmitRecord(
             )
             return
 
+        # Create initial document if none found.
         if not record_document:
             record_document = Record(
                 posted_by=self.interaction.user.id,
@@ -82,7 +85,7 @@ class SubmitRecord(
                 message_id=0,
                 hidden_id=0,
             )
-        
+
         record_document.record = record_seconds
 
         embed = create_embed(
@@ -102,23 +105,31 @@ class SubmitRecord(
             await self.interaction.edit_original_message(
                 content="Submitted.", view=view
             )
-            
-            message = await self.interaction.channel.send(content=f"{Emoji.TIME} Waiting for verification...", embed=embed)
+            # Delete old submission
+            try:
+                original = await find_orig_msg(self.interaction, record_document)
+                await original.delete()
+            except (discord.NotFound, discord.HTTPException):
+                pass
+
+            message = await self.interaction.channel.send(
+                content=f"{Emoji.TIME} Waiting for verification...", embed=embed
+            )
             record_document.message_id = message.id
 
-            verification_channel = self.interaction.guild.get_channel(VERIFICATION_CHANNEL_ID)
+            # Send verification notification.
+            verification_channel = self.interaction.guild.get_channel(
+                VERIFICATION_CHANNEL_ID
+            )
             verify_view = VerificationView()
             hidden_msg = await verification_channel.send(embed=embed, view=verify_view)
             record_document.hidden_id = hidden_msg.id
             await record_document.save()
 
-
-            
-            
-
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
     ):
+        """Autocomplete for record submissions."""
         if focused == "map_level":
             map_code = options.get("map_code")
             map_code = map_code.upper() if map_code else "NULL"
@@ -135,5 +146,4 @@ class Test(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
     """test"""
 
     async def callback(self) -> None:
-
         pass

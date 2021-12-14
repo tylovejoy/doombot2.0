@@ -42,6 +42,7 @@ def display_record(record):
 
 
 def check_negative(s):
+    """Check if a number is negative."""
     try:
         f = float(s)
         if f < 0:
@@ -53,6 +54,7 @@ def check_negative(s):
 
 
 def format_timedelta(td):
+    """Format time deltas if negative."""
     if datetime.timedelta(seconds=td) < datetime.timedelta(0):
         return "-" + format_timedelta(-1 * td)
     return str(td)
@@ -64,4 +66,5 @@ def preprocess_map_code(map_code):
 
 
 def case_ignore_compare(string1, string2):
+    """Compare two strings, case insensitive."""
     return string1.casefold().startswith(string2.casefold())

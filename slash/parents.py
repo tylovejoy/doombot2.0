@@ -10,12 +10,12 @@ def setup(bot):
 
 
 class SubmitParent(discord.SlashCommand, guilds=[GUILD_ID], name="submit"):
-    """Submit things."""
+    """Submit slash command parent class."""
 
 
 class EditParent(discord.SlashCommand, guilds=[GUILD_ID], name="edit"):
-    """Edit things."""
+    """Edit slash command parent class."""
 
 
 class DeleteParent(discord.SlashCommand, guilds=[GUILD_ID], name="delete"):
-    """Delete things."""
+    """Delete slash command parent class."""

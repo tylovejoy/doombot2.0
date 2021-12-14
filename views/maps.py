@@ -5,11 +5,11 @@ from views.basic import ConfirmButton
 
 
 class MapTypeSelect(discord.ui.Select):
-    def __init__(self):
+    """A select dropdown of map types."""
 
+    def __init__(self):
         options = [discord.SelectOption(label=x) for x in MapTypes.list()]
         self.value_set = False
-
         super().__init__(
             placeholder="Choose map types...",
             min_values=1,
@@ -18,10 +18,13 @@ class MapTypeSelect(discord.ui.Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
+        """Callback for map types component."""
         self.view.confirm.disabled = False
 
 
 class MapSubmitView(discord.ui.View):
+    """View for map submissions."""
+
     def __init__(self, *, timeout=None, confirm_disabled=True):
         super().__init__(timeout=timeout)
         self.select_menu = MapTypeSelect()
