@@ -1,0 +1,2 @@
+# doombot2.0
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/afc6bdae4bbc473ebf36a170f3859a90)](https://app.codacy.com/gh/tylovejoy/doombot2.0?utm_source=github.com&utm_medium=referral&utm_content=tylovejoy/doombot2.0&utm_campaign=Badge_Grade_Settings)
