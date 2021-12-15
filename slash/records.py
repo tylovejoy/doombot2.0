@@ -3,7 +3,8 @@ from typing import Dict, Union
 
 import discord
 from discord.app import AutoCompleteResponse
-from database.documents import Record, ExperiencePoints
+from database.documents import ExperiencePoints
+from database.records import Record
 from slash.parents import SubmitParent
 from utils.constants import GUILD_ID, VERIFICATION_CHANNEL_ID
 from utils.embed import create_embed, records_basic_embed_fields

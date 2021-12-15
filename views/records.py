@@ -1,5 +1,6 @@
 import discord
-from database.documents import ExperiencePoints, Record
+from database.documents import ExperiencePoints
+from database.records import Record
 from utils.enum import Emoji
 from utils.utils import display_record
 

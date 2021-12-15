@@ -2,7 +2,7 @@ from logging import getLogger
 from typing import Dict, Optional, Union
 import discord
 from discord.app import AutoCompleteResponse
-from database.documents import Map
+from database.maps import Map
 from slash.parents import SubmitParent, DeleteParent, EditParent
 from utils.embed import create_embed, maps_embed_fields, split_embeds
 from utils.constants import ROLE_WHITELIST, GUILD_ID, NEWEST_MAPS_ID

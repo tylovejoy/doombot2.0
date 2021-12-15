@@ -1,7 +1,9 @@
 from typing import Callable, List, Union
 import discord
 
-from database.documents import ExperiencePoints, Map, Record
+from database.documents import ExperiencePoints
+from database.maps import Map
+from database.records import Record
 from utils.enum import Emoji
 from utils.utils import display_record
 

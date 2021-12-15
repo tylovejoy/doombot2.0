@@ -6,8 +6,8 @@ DISCLAIMER = (
 
 def emoji_price(total_slots: int, used_slots: int) -> int:
     """Increase price as more slots are filled."""
-    avaliable = total_slots - used_slots
-    return 12 ** (1 - avaliable) + 50
+    available = total_slots - used_slots
+    return 12 ** (1 - available) + 50
 
 
 print(emoji_price(250, 0))

@@ -1,1 +1,1 @@
-"""DoomBot utilites."""
+"""DoomBot utilities."""
