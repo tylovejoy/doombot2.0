@@ -72,6 +72,8 @@ class Tournament(Document):
     hc: Optional[TournamentData]
     bo: Optional[TournamentData]
 
+    general_mission: Optional[TournamentMissions] = TournamentMissions()
+
     @staticmethod
     def get_unix_timestamp(dt: datetime) -> int:
         return int(mktime(dt.timetuple()))
@@ -102,11 +104,12 @@ class Tournament(Document):
         return missions
 
     def get_category_missions(self, category: CategoryLiteral):
-        category = getattr(self, category)
+        obj = getattr(self, category)
         missions = ""
         for difficulty in ["easy", "medium", "hard", "expert"]:
-            diff = getattr(category.missions, difficulty)
-            missions += f"{diff.type} - {diff.target}\n"
+            curr = getattr(obj.missions, difficulty)
+            missions += format_missions(curr, difficulty)
+
         return missions
 
     def get_all_missions(self):
@@ -117,8 +120,32 @@ class Tournament(Document):
             missions += self.get_category_missions(category)
         return missions
 
+    def get_general_mission(self):
+        return f"{self.general_mission.type} - {self.general_mission.target}\n"
+
     def get_unix_start(self):
         return self.get_unix_timestamp(self.schedule_start)
 
     def get_unix_end(self):
         return self.get_unix_timestamp(self.schedule_end)
+
+
+def format_missions(
+    mission: TournamentMissions, difficulty: DifficultyLiteral, is_general: bool = False
+) -> str:
+    formatted = ""
+
+    if is_general:
+        if mission.type == "xp":
+            formatted += f"Get {mission.target} XP (excluding missions)\n"
+        elif mission.type == "mission":
+            formatted += f"Complete {mission.target[0]} {mission.target[1]} missions\n"
+        elif mission.type == "top":
+            formatted += f"Get Top 3 in {mission.target} categories.\n"
+    else:
+        if mission.type == "sub":
+            formatted += f"**{difficulty.capitalize()}:** Get {mission.type} {mission.target} seconds.\n"
+        elif mission.type == "complete":
+            formatted += f"**{difficulty.capitalize()}:** Complete the level.\n"
+
+    return formatted

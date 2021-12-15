@@ -90,6 +90,7 @@ class TournamentStart(
         #             expert=TournamentMissions(type="sub", target="28"),
         #         ),
         #     ),
+        #     general_mission=TournamentMissions(type="ya", target="mama")
         # )
 
         # await tournament_document.insert()
