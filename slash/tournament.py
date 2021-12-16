@@ -24,9 +24,7 @@ def setup(bot):
 
 
 class TournamentStart(
-    discord.SlashCommand,
-    guilds=[GUILD_ID],
-    name="start",  # parent=TournamentParent
+    discord.SlashCommand, guilds=[GUILD_ID], name="start", parent=TournamentParent
 ):
 
     """Create and start a new tournament."""

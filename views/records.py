@@ -2,6 +2,7 @@ import discord
 from database.documents import ExperiencePoints
 from database.records import Record
 from utils.enum import Emoji
+from utils.records import delete_hidden
 from utils.utils import display_record
 
 from views.basic import ConfirmButton
@@ -67,13 +68,7 @@ async def verification(interaction: discord.Interaction, verified: bool):
     if await ExperiencePoints.is_alertable(search.posted_by):
         user = interaction.guild.get_member(search.posted_by)
         await user.send(data["direct_message"])
-    try:
-        hidden_msg = await interaction.guild.get_channel(
-            VERIFICATION_CHANNEL_ID
-        ).fetch_message(search.hidden_id)
-        await hidden_msg.delete()
-    except (discord.NotFound, discord.HTTPException):
-        pass
+    await delete_hidden(interaction, search)
     search.verified = data["bool"]
     await search.save()
 

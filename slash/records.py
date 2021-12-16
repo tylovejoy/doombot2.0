@@ -1,14 +1,15 @@
 from logging import getLogger
-from typing import Dict, Union
+from typing import Dict, Union, Optional
 
 import discord
 from discord.app import AutoCompleteResponse
 from database.documents import ExperiencePoints
 from database.records import Record
-from slash.parents import SubmitParent
-from utils.constants import GUILD_ID, VERIFICATION_CHANNEL_ID
+from slash.parents import SubmitParent, DeleteParent
+from utils.constants import GUILD_ID, VERIFICATION_CHANNEL_ID, ROLE_WHITELIST
 from utils.embed import create_embed, records_basic_embed_fields
 from utils.enum import Emoji
+from utils.records import delete_hidden
 from utils.utils import preprocess_map_code, time_convert
 from views.records import RecordSubmitView, VerificationView, find_orig_msg
 
@@ -17,7 +18,7 @@ logger = getLogger(__name__)
 
 def setup(bot):
     bot.application_command(SubmitRecord)
-    bot.application_command(Test)
+    bot.application_command(DeleteRecord)
 
 
 async def check_user(interaction):
@@ -32,6 +33,19 @@ async def check_user(interaction):
         await new_user.insert()
         return new_user
     return user
+
+
+async def _autocomplete(focused, options):
+    if focused == "map_level":
+        map_code = options.get("map_code")
+        map_code = map_code.upper() if map_code else "NULL"
+        levels = await Record.get_level_names(map_code)
+        return AutoCompleteResponse({k: k for k in levels[:25]})
+    if focused == "map_code":
+        response = AutoCompleteResponse(
+            {k: v for k, v in await Record.get_codes(options[focused])}
+        )
+        return response
 
 
 class SubmitRecord(
@@ -132,21 +146,59 @@ class SubmitRecord(
         self, options: Dict[str, Union[int, float, str]], focused: str
     ):
         """Autocomplete for record submissions."""
-        if focused == "map_level":
-            map_code = options.get("map_code")
-            map_code = map_code.upper() if map_code else "NULL"
-            levels = await Record.get_level_names(map_code)
-            return AutoCompleteResponse({k: k for k in levels[:25]})
-        if focused == "map_code":
-            response = AutoCompleteResponse(
-                {k: v for k, v in await Record.get_codes(options[focused])}
-            )
-            return response
+        return await _autocomplete(focused, options)
 
 
-class Test(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
+class DeleteRecord(
+    discord.SlashCommand, guilds=[GUILD_ID], name="record", parent=DeleteParent
+):
 
     """test"""
 
+    map_code: str = discord.Option(
+        description="Workshop code for this parkour record.",
+        autocomplete=True,
+    )
+    map_level: str = discord.Option(
+        description="Level name for this record. Submit exactly what is shown on the leaderboard.",
+        autocomplete=True,
+    )
+    user: Optional[discord.Member] = discord.Option(
+        description="User whose record you wish to delete. (MOD ONLY)"
+    )
+
     async def callback(self) -> None:
-        pass
+        self.map_code = preprocess_map_code(self.map_code)
+        self.map_level = self.map_level.upper()
+
+        if self.user and any(
+            role.id in ROLE_WHITELIST for role in self.interaction.user.roles
+        ):
+            user_id = self.user.id
+        else:
+            user_id = self.interaction.user.id
+
+        record_document = await Record.find_record(
+            self.map_code, self.map_level, user_id
+        )
+
+        embed = create_embed(title="Delete Record", desc="", user=self.interaction.user)
+        embed.add_field(**await records_basic_embed_fields(record_document))
+
+        view = RecordSubmitView()
+        await self.interaction.response.send_message(
+            "Do you want to delete this?", ephemeral=True, view=view, embed=embed
+        )
+        await view.wait()
+
+        if view.confirm.value:
+            view.clear_items()
+            await self.interaction.edit_original_message(content="Deleted.", view=view)
+            await delete_hidden(self.interaction, record_document)
+            await record_document.delete()
+
+    async def autocomplete(
+        self, options: Dict[str, Union[int, float, str]], focused: str
+    ):
+        """Autocomplete for record submissions."""
+        return await _autocomplete(focused, options)
