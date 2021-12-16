@@ -37,7 +37,10 @@ class ExperiencePoints(Document):
     @classmethod
     async def get_alias(cls, user_id: int) -> str:
         """Get an alias of a user."""
-        return (await cls.find_user(user_id)).alias
+        user = await cls.find_user(user_id)
+        if user:
+            return user.alias
+        return "No name"
 
     @classmethod
     async def is_alertable(cls, user_id: int) -> bool:

@@ -86,7 +86,7 @@ class MapSearch(discord.SlashCommand, guilds=[GUILD_ID], name="map_search"):
             return
 
         embed = create_embed(title="Map Search", desc="", user=self.interaction.user)
-        embeds = split_embeds(embed, search, maps_embed_fields)
+        embeds = await split_embeds(embed, search, maps_embed_fields)
 
         view = Paginator(embeds, self.interaction.user, timeout=None)
         await self.interaction.response.send_message(
@@ -343,7 +343,7 @@ class RandomMap(discord.SlashCommand, guilds=[GUILD_ID], name="random_map"):
         embed = create_embed(
             title="Map Search (Random)", desc="", user=self.interaction.user
         )
-        embeds = split_embeds(embed, search, maps_embed_fields)
+        embeds = await split_embeds(embed, search, maps_embed_fields)
 
         view = Paginator(embeds, self.interaction.user, timeout=None)
         await self.interaction.response.send_message(

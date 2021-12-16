@@ -1,4 +1,4 @@
-from typing import Callable, List, Union
+from typing import Awaitable, Callable, List, Union
 import discord
 
 from database.documents import ExperiencePoints
@@ -19,7 +19,7 @@ def create_embed(title: str, desc: str, user: discord.Member, color: hex = 0x000
     return embed
 
 
-def maps_embed_fields(m: Map, *args) -> dict:
+async def maps_embed_fields(m: Map, *args) -> dict:
     """Embed fields for a map."""
     return {
         "name": f"{m.code} - {m.map_name}",
@@ -31,10 +31,10 @@ def maps_embed_fields(m: Map, *args) -> dict:
     }
 
 
-def records_board_embed_fields(r: Record, count: int) -> dict:
+async def records_board_embed_fields(r: Record, count: int) -> dict:
     """Embed fields for a record board."""
     return {
-        "name": f"#{count} - {ExperiencePoints.get_alias(r.posted_by)}",
+        "name": f"#{count + 1} - {await ExperiencePoints.get_alias(r.posted_by)}",
         "value": (
             f"> **Record**: {display_record(r.record)}\n"
             f"> **Verified**: {Emoji.is_verified(r.verified)}"
@@ -42,7 +42,7 @@ def records_board_embed_fields(r: Record, count: int) -> dict:
     }
 
 
-async def records_basic_embed_fields(r: Record) -> dict:
+async def records_basic_embed_fields(r: Record, *args) -> dict:
     """Embed fields for record submissions."""
     return {
         "name": f"{await ExperiencePoints.get_alias(r.posted_by)}",
@@ -54,33 +54,32 @@ async def records_basic_embed_fields(r: Record) -> dict:
     }
 
 
-def records_wr_embed_fields(r: Record, *args) -> dict:
+async def records_wr_embed_fields(r: Record, *args) -> dict:
     """Embed fields for world records among multiple levels."""
     return {
-        "name": f"{r.level} - {ExperiencePoints.get_alias(r.posted_by)}",
+        "name": f"{r.id.level} - {await ExperiencePoints.get_alias(r.posted_by)}",
+        "value": f"> **Record**: {display_record(r.record)}\n",
+    }
+
+async def records_wr_user_embed_fields(r: Record, *args) -> dict:
+    """Embed fields for world records among multiple levels."""
+    return {
+        "name": f"{r.id.code} - {r.id.level} - {await ExperiencePoints.get_alias(r.posted_by)}",
         "value": f"> **Record**: {display_record(r.record)}\n",
     }
 
 
-def records_wr_level_embed_fields(r: Record, *args) -> dict:
-    """Embed fields for a single world record."""
-    return {
-        "name": f"{ExperiencePoints.get_alias(r.posted_by)}",
-        "value": f"> **Record:** {display_record(r.record)}\n",
-    }
-
-
-def split_embeds(
+async def split_embeds(
     initial_embed: discord.Embed,
     documents: List[Union[Map, Record]],
-    field_opts: Callable,
+    field_opts: Awaitable,
 ) -> List[discord.Embed]:
     """Split data into multiple embeds."""
     embed = initial_embed.copy()
     embeds = []
     count = len(documents)
     for i, doc in enumerate(documents):
-        embed.add_field(**field_opts(doc, i), inline=False)
+        embed.add_field(**await field_opts(doc, i), inline=False)
 
         if i != 0 and ((i + 1) % 10 == 0 or count - 1 == i):
             embeds.append(embed)

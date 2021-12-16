@@ -1,7 +1,7 @@
 from beanie import Document, Link
 from beanie.odm.operators.find.evaluation import RegEx
 from pydantic import BaseModel, Field
-
+from typing import List, Any
 from database.maps import MapLevels, MapCodes
 
 
@@ -79,7 +79,7 @@ class Record(Document):
         return set(str(i) for i in x)
 
     @classmethod
-    async def find_world_records(cls, user_id: int):
+    async def find_world_records_user(cls, user_id: int):
         """Find all the world records that a user has."""
         return (
             await cls.find(cls.verified == True)
@@ -94,6 +94,7 @@ class Record(Document):
                         }
                     },
                     {"$match": {"posted_by": user_id}},
+                    {"$sort": {"_id.code": 1, "_id.level": 1}}
                 ],
                 projection_model=WorldRecordsAggregate,
             )
@@ -101,11 +102,58 @@ class Record(Document):
         )
 
     @classmethod
-    async def find_record(cls, code: str, level: str, user_id: int) -> "Record":
-        """Find a specific record."""
-        return await cls.find_one(
-            cls.code == code, cls.level == level, cls.posted_by == user_id
+    async def find_world_records(cls, **filters):
+        """Find all the world records that a user has."""
+
+        map_code = filters.get("map_code")
+        verified = filters.get("verified")
+
+        search_filter = {}
+
+        if map_code:
+            search_filter.update({"code": map_code})
+        if verified:
+            search_filter.update({"verified": verified})
+
+        return (
+            await cls.find(search_filter)
+            .aggregate(
+                [
+                    {"$sort": {"record": 1}},
+                    {
+                        "$group": {
+                            "_id": {"code": "$code", "level": "$level"},
+                            "record": {"$first": "$record"},
+                            "posted_by": {"$first": "$posted_by"},
+                        }
+                    },
+                    {"$sort": {"_id.level": 1}},
+                ],
+                projection_model=WorldRecordsAggregate,
+            )
+            .to_list()
         )
+
+    @classmethod
+    async def filter_search(cls, **filters: Any) -> List["Record"]:
+        """Get all amps with a particular filter."""
+        map_code = filters.get("map_code")
+        map_level = filters.get("map_level")
+        user_id = filters.get("user_id")
+        verified = filters.get("verified")
+
+        search_filter = {}
+
+        if map_code:
+            search_filter.update({"code": map_code})
+        if map_level:
+            search_filter.update({"level": map_level})
+        if user_id:
+            search_filter.update({"posted_by": user_id})
+        if verified:
+            search_filter.update({"verified": verified})
+
+        return await cls.find(search_filter).to_list()
 
     @classmethod
     async def get_level_names(cls, map_code: str):
