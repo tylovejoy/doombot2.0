@@ -94,7 +94,7 @@ class Record(Document):
                         }
                     },
                     {"$match": {"posted_by": user_id}},
-                    {"$sort": {"_id.code": 1, "_id.level": 1}}
+                    {"$sort": {"_id.code": 1, "_id.level": 1}},
                 ],
                 projection_model=WorldRecordsAggregate,
             )
@@ -147,7 +147,7 @@ class Record(Document):
         if map_code:
             search_filter.update({"code": map_code})
         if map_level:
-            search_filter.update({"level": map_level})
+            search_filter.update(RegEx("level", f"^{map_level}$"))
         if user_id:
             search_filter.update({"posted_by": user_id})
         if verified:

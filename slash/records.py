@@ -85,8 +85,10 @@ class SubmitRecord(
         record_seconds = time_convert(self.record)
         await check_user(self.interaction)
 
-        record_document = await Record.find_record(
-            self.map_code, self.map_level, self.interaction.user.id
+        record_document = await Record.filter_search(
+            map_code=self.map_code,
+            map_level=self.map_level,
+            user_id=self.interaction.user.id,
         )
 
         # Check if new record is faster than a verified one.
