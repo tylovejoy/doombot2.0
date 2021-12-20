@@ -7,10 +7,17 @@ from database.documents import ExperiencePoints
 from database.records import Record
 from slash.parents import SubmitParent, DeleteParent
 from utils.constants import GUILD_ID, VERIFICATION_CHANNEL_ID, ROLE_WHITELIST
-from utils.embed import create_embed, records_basic_embed_fields, records_board_embed_fields, records_wr_embed_fields, records_wr_user_embed_fields, split_embeds
+from utils.embed import (
+    create_embed,
+    records_basic_embed_fields,
+    records_board_embed_fields,
+    records_wr_embed_fields,
+    records_wr_user_embed_fields,
+    split_embeds,
+)
 from utils.enum import Emoji
 from utils.records import delete_hidden
-from utils.utils import preprocess_map_code, time_convert
+from utils.utils import preprocess_map_code, time_convert, check_roles
 from views.records import RecordSubmitView, VerificationView, find_orig_msg
 from views.paginator import Paginator
 
@@ -172,9 +179,7 @@ class DeleteRecord(
         self.map_code = preprocess_map_code(self.map_code)
         self.map_level = self.map_level.upper()
 
-        if self.user and any(
-            role.id in ROLE_WHITELIST for role in self.interaction.user.roles
-        ):
+        if self.user and check_roles(self.interaction):
             user_id = self.user.id
         else:
             user_id = self.interaction.user.id
@@ -208,6 +213,7 @@ class DeleteRecord(
 class ViewRecords(discord.SlashCommand, guilds=[GUILD_ID], name="records"):
 
     """View personal records."""
+
     map_code: str = discord.Option(
         description="Workshop code to search for.",
         autocomplete=True,
@@ -219,7 +225,7 @@ class ViewRecords(discord.SlashCommand, guilds=[GUILD_ID], name="records"):
     verified: Optional[bool] = discord.Option(
         description="Show verified only? Default: True",
     )
-    
+
     async def callback(self) -> None:
         self.map_code = preprocess_map_code(self.map_code)
         if self.map_level:
@@ -227,10 +233,12 @@ class ViewRecords(discord.SlashCommand, guilds=[GUILD_ID], name="records"):
         if not self.verified:
             self.verified = True
 
-        
-        
-        embed = create_embed(title=f"Records for {self.map_code} {self.map_level}", desc="", user=self.interaction.user)
-        
+        embed = create_embed(
+            title=f"Records for {self.map_code} {self.map_level}",
+            desc="",
+            user=self.interaction.user,
+        )
+
         if self.map_code and self.map_level:
             records = await Record.filter_search(
                 map_code=self.map_code,
@@ -240,7 +248,9 @@ class ViewRecords(discord.SlashCommand, guilds=[GUILD_ID], name="records"):
             embeds = await split_embeds(embed, records, records_board_embed_fields)
 
         if self.map_code and not self.map_level:
-            records = await Record.find_world_records(map_code=self.map_code, verified=self.verified)
+            records = await Record.find_world_records(
+                map_code=self.map_code, verified=self.verified
+            )
             embeds = await split_embeds(embed, records, records_wr_embed_fields)
 
         view = Paginator(embeds, self.interaction.user, timeout=None)
@@ -255,27 +265,33 @@ class ViewRecords(discord.SlashCommand, guilds=[GUILD_ID], name="records"):
         """Autocomplete for record viewing."""
         return await _autocomplete(focused, options)
 
+
 class PersonalRecords(discord.SlashCommand, guilds=[GUILD_ID], name="personalrecords"):
 
     """View personal records."""
+
     world_records: bool = discord.Option(
         description="Show only your world records?",
     )
     verified: Optional[bool] = discord.Option(
         description="Show verified only? Default: True",
     )
-    
+
     async def callback(self) -> None:
         if not self.verified:
             self.verified = True
-  
-        embed = create_embed(title=f"Personal Bests", desc="", user=self.interaction.user)
+
+        embed = create_embed(
+            title=f"Personal Bests", desc="", user=self.interaction.user
+        )
 
         if self.world_records:
             records = await Record.find_world_records_user(self.interaction.user.id)
             embeds = await split_embeds(embed, records, records_wr_user_embed_fields)
         else:
-            records = await Record.filter_search(user_id=self.interaction.user.id, verifed=self.verified)
+            records = await Record.filter_search(
+                user_id=self.interaction.user.id, verifed=self.verified
+            )
             embeds = await split_embeds(embed, records, records_basic_embed_fields)
 
         view = Paginator(embeds, self.interaction.user, timeout=None)

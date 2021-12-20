@@ -7,7 +7,7 @@ from slash.parents import SubmitParent, DeleteParent, EditParent
 from utils.embed import create_embed, maps_embed_fields, split_embeds
 from utils.constants import ROLE_WHITELIST, GUILD_ID, NEWEST_MAPS_ID
 from utils.enum import MapNames, MapTypes
-from utils.utils import preprocess_map_code, case_ignore_compare
+from utils.utils import preprocess_map_code, case_ignore_compare, check_roles
 from views.maps import MapSubmitView
 from views.paginator import Paginator
 
@@ -208,8 +208,9 @@ class DeleteMap(
 
         map_document = await Map.find_one_map(self.map_code)
 
-        if self.interaction.user.id != map_document.user_id and not any(
-            role.id in ROLE_WHITELIST for role in self.interaction.user.roles
+        if (
+            not check_roles(self.interaction)
+            or self.interaction.user.id != map_document.user_id
         ):
             await self.interaction.response.send_message(
                 content="You do not have permission to delete this!",
@@ -277,8 +278,9 @@ class EditMap(discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=EditPa
             self.map_name = MapNames.fuzz(self.map_name)
         map_document = await Map.find_one_map(self.map_code)
 
-        if self.interaction.user.id != map_document.user_id and not any(
-            role.id in ROLE_WHITELIST for role in self.interaction.user.roles
+        if (
+            not check_roles(self.interaction)
+            or self.interaction.user.id != map_document.user_id
         ):
             await self.interaction.response.send_message(
                 content="You do not have permission to edit this!",
