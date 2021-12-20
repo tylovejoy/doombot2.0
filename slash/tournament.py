@@ -113,7 +113,7 @@ class Hardcore(
 
     """Hardcore tournament submission."""
 
-class Announcement(discord.SlashCommand, guilds=[GUILD_ID], name="announcement"):
+class Announcement(discord.SlashCommand, guilds=[GUILD_ID], name="announcement", parent=TournamentParent):
     """Send annoucement."""
 
     title: str = discord.Option(
