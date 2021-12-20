@@ -1,6 +1,9 @@
 import re
 import datetime
 
+import discord
+
+from utils.constants import ROLE_WHITELIST
 from utils.errors import InvalidTime
 
 TIME_REGEX = re.compile(
@@ -68,3 +71,8 @@ def preprocess_map_code(map_code):
 def case_ignore_compare(string1, string2):
     """Compare two strings, case insensitive."""
     return string1.casefold().startswith(string2.casefold())
+
+
+def check_roles(interaction: discord.Interaction) -> bool:
+    """Check if user has whitelisted roles."""
+    return any(role.id in ROLE_WHITELIST for role in interaction.user.roles)
