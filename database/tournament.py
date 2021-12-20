@@ -12,6 +12,13 @@ DifficultyLiteral = Literal["easy", "medium", "hard", "expert"]
 logger = getLogger(__name__)
 
 
+class Announcement(Document):
+    """Scheduled announcements."""
+    embed: dict
+    schedule: datetime
+    mentions: str
+
+
 class TournamentMaps(BaseModel):
 
     """Tournament data maps object."""
@@ -74,10 +81,6 @@ class Tournament(Document):
 
     general_mission: Optional[TournamentMissions] = TournamentMissions()
 
-    @staticmethod
-    def get_unix_timestamp(dt: datetime) -> int:
-        return int(mktime(dt.timetuple()))
-
     @classmethod
     async def find_latest(cls):
         return (await cls.find().sort("-tournament_id").limit(1).to_list())[0]
@@ -122,12 +125,6 @@ class Tournament(Document):
 
     def get_general_mission(self):
         return f"{self.general_mission.type} - {self.general_mission.target}\n"
-
-    def get_unix_start(self):
-        return self.get_unix_timestamp(self.schedule_start)
-
-    def get_unix_end(self):
-        return self.get_unix_timestamp(self.schedule_end)
 
 
 def format_missions(

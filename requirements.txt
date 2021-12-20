@@ -4,6 +4,7 @@ attrs==21.2.0
 beanie==1.8.5
 chardet==4.0.0
 click==7.1.2
+dateparser==1.1.0
 discord.py @ git+https://github.com/iDevision/enhanced-discord.py.git@e621d5288eeec2472f248efe8ce5581348dadf8a
 dnspython==2.1.0
 idna==3.3
