@@ -1,13 +1,15 @@
 from logging import getLogger
 from typing import Dict, Optional, Union
 import discord
+from discord import partial_emoji
 from discord.app import AutoCompleteResponse
-from database.maps import Map
+from database.maps import Map, MapAlias
 from slash.parents import SubmitParent, DeleteParent, EditParent
 from utils.embed import create_embed, maps_embed_fields, split_embeds
 from utils.constants import ROLE_WHITELIST, GUILD_ID, NEWEST_MAPS_ID
 from utils.enum import MapNames, MapTypes
 from utils.utils import preprocess_map_code, case_ignore_compare, check_roles
+from views.basic import ConfirmButton
 from views.maps import MapSubmitView
 from views.paginator import Paginator
 
@@ -24,6 +26,7 @@ def setup(bot):
     bot.application_command(EditMap)
     bot.application_command(RandomMap)
     bot.application_command(DeleteMap)
+    bot.application_command(SubmitMapAlias)
 
 
 def autocomplete_maps(options, focused):
@@ -352,3 +355,37 @@ class RandomMap(discord.SlashCommand, guilds=[GUILD_ID], name="random_map"):
             embed=view.formatted_pages[0], view=view, ephemeral=True
         )
         await view.wait()
+
+
+class SubmitMapAlias(discord.SlashCommand, guilds=[GUILD_ID], name="map_alias", parent=SubmitParent):
+    """Create an alias for a map code. For when multiple codes point to the same map."""
+    original_code: str = discord.Option(
+        description="Original map code you want to create an alias for."
+    )
+    alias: str = discord.Option(
+        description="Alias for the original map code."
+    )
+
+    async def callback(self) -> None:
+        self.original_code = preprocess_map_code(self.original_code)
+        self.alias = preprocess_map_code(self.alias)
+
+        document = MapAlias(alias=self.alias, original_code=self.original_code)
+        
+        view = discord.ui.View(timeout=None)
+        view.add_item(ConfirmButton())
+
+        string = (
+            f"Original code: {self.original_code}\n"
+            f"Alias: {self.alias}\n"
+            f"Example: For records submitted with {self.alias}, will truly be submitted for {self.original_code}"
+        )
+
+        await self.interaction.response.send_message(string, view=view, ephemeral=True)
+        await view.wait()
+
+        if view.children[0].value:
+            await document.insert()
+            view.clear_items()
+            await self.interaction.edit_original_message(content="Submitted.", view=view)
+        

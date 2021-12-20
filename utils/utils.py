@@ -2,6 +2,7 @@ import re
 import datetime
 
 import discord
+from database.maps import MapAlias
 
 from utils.constants import ROLE_WHITELIST
 from utils.errors import InvalidTime
@@ -66,6 +67,14 @@ def format_timedelta(td):
 def preprocess_map_code(map_code):
     """Converts map codes to acceptable format."""
     return map_code.upper().replace("O", "0")
+
+
+async def find_alt_map_code(map_code: str) -> str:
+    """Return a map code alias and a corresponding bool."""
+    search = await MapAlias.get_alias(map_code)
+    if search:
+        return search, True
+    return map_code, False
 
 
 def case_ignore_compare(string1, string2):

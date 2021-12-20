@@ -1,8 +1,17 @@
-from typing import List, Any
+from typing import List, Any, Optional
 
 from beanie import Document
 from beanie.odm.operators.find.evaluation import RegEx
 from pydantic import BaseModel
+
+
+class MapAlias(Document):
+    alias: str
+    original_code: str
+
+    @classmethod
+    async def get_alias(cls, map_code: str) -> list:
+        return (await cls.find_one(cls.map_code == map_code)).original_code
 
 
 class MapLevels(BaseModel):

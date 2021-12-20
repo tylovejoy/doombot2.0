@@ -17,7 +17,7 @@ from utils.embed import (
 )
 from utils.enum import Emoji
 from utils.records import delete_hidden
-from utils.utils import preprocess_map_code, time_convert, check_roles
+from utils.utils import find_alt_map_code, preprocess_map_code, time_convert, check_roles
 from views.records import RecordSubmitView, VerificationView, find_orig_msg
 from views.paginator import Paginator
 
@@ -78,6 +78,8 @@ class SubmitRecord(
     async def callback(self) -> None:
         """Callback for submitting records slash command."""
         self.map_code = preprocess_map_code(self.map_code)
+        self.map_code, code_changed = await find_alt_map_code(self.map_code)
+
         self.map_level = self.map_level.upper()
 
         # TODO: Attachment implementation
@@ -122,8 +124,13 @@ class SubmitRecord(
         # TODO: Add image/attachment to embed
         # TODO: Find rank using $rank aggregation mongo 5.0 only
         view = RecordSubmitView()
+
+        correct_msg = "Is this correct?"
+        if code_changed:
+            correct_msg =+ f" **MAP CODE CHANGED TO ALIAS**"
+
         await self.interaction.response.send_message(
-            "Is this correct?", ephemeral=True, view=view, embed=embed
+            correct_msg, ephemeral=True, view=view, embed=embed
         )
         await view.wait()
 
