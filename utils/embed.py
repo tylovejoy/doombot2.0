@@ -1,11 +1,9 @@
-from typing import Awaitable, Callable, List, Union
+from typing import Awaitable, List, Union
+
 import discord
 
-from database.documents import ExperiencePoints
-from database.maps import Map
-from database.records import Record
-from utils.enum import Emoji
-from utils.utils import display_record
+from database import ExperiencePoints, Map, Record
+from utils import Emoji, display_record
 
 
 def create_embed(title: str, desc: str, user: discord.Member, color: hex = 0x000001):
@@ -60,6 +58,7 @@ async def records_wr_embed_fields(r: Record, *args) -> dict:
         "name": f"{r.id.level} - {await ExperiencePoints.get_alias(r.posted_by)}",
         "value": f"> **Record**: {display_record(r.record)}\n",
     }
+
 
 async def records_wr_user_embed_fields(r: Record, *args) -> dict:
     """Embed fields for world records among multiple levels."""

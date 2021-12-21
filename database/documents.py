@@ -1,9 +1,9 @@
-from os import environ
-from beanie import Document, init_beanie
-import motor
 from logging import getLogger
-from pydantic.main import BaseModel
+from os import environ
 
+import motor
+from beanie import Document, init_beanie
+from pydantic.main import BaseModel
 from pymongo.errors import ServerSelectionTimeoutError
 
 logger = getLogger(__name__)
@@ -21,11 +21,13 @@ class StoreItems(Document):
         """Get the price of an item."""
         return (await cls.find_one(cls.item == item)).price
 
+
 class EXPRanks(BaseModel):
     ta: str = "Unranked"
     mc: str = "Unranked"
     hc: str = "Unranked"
     bo: str = "Unranked"
+
 
 class ExperiencePoints(Document):
 

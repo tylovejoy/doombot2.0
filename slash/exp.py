@@ -1,14 +1,15 @@
+import io
 from logging import getLogger
 from math import ceil
 from typing import Optional
-import discord
-from discord.guild import MISSING
-from database.documents import ExperiencePoints
-from slash.records import check_user
-from utils.constants import GUILD_ID
-from PIL import Image, ImageDraw, ImageFont
-import io
 
+import discord
+from PIL import Image, ImageDraw, ImageFont
+from discord.guild import MISSING
+
+from database import ExperiencePoints
+from slash.records import check_user
+from utils import GUILD_ID
 
 logger = getLogger(__name__)
 
@@ -63,15 +64,14 @@ class RankCard(discord.SlashCommand, guilds=[GUILD_ID], name="rank"):
             self.user = self.interaction.user
 
         search = await ExperiencePoints.find_one({"user_id": self.user.id})
-        
+
         if not search:
             search = await check_user(self.interaction)
 
-        
         user = self.user
 
         name = user.name[10:] + "#" + user.discriminator
-        
+
         if search.alias:
             name = search.alias
 
@@ -211,4 +211,6 @@ class RankCard(discord.SlashCommand, guilds=[GUILD_ID], name="rank"):
             img.save(image_binary, "PNG")
             image_binary.seek(0)
             await self.interaction.response.send_message("rankcard")
-            await self.interaction.edit_original_message(content="", file=discord.File(fp=image_binary, filename="rank_card.png"))
+            await self.interaction.edit_original_message(
+                content="", file=discord.File(fp=image_binary, filename="rank_card.png")
+            )

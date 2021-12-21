@@ -1,4 +1,4 @@
-from typing import List, Any, Optional
+from typing import List, Any
 
 from beanie import Document
 from beanie.odm.operators.find.evaluation import RegEx

@@ -1,6 +1,6 @@
 import discord
 
-from utils.constants import GUILD_ID
+from utils import GUILD_ID
 
 
 def setup(bot):

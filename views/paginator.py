@@ -1,6 +1,7 @@
-import discord
 from copy import deepcopy
 from typing import List
+
+import discord
 
 
 class Paginator(discord.ui.View):

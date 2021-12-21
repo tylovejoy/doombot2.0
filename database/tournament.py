@@ -1,7 +1,6 @@
 from datetime import datetime
 from logging import getLogger
-from time import mktime
-from typing import Optional, Union, List, Literal
+from typing import Optional, List, Literal
 
 from beanie import Document
 from pydantic import BaseModel
@@ -14,6 +13,7 @@ logger = getLogger(__name__)
 
 class Announcement(Document):
     """Scheduled announcements."""
+
     embed: dict
     schedule: datetime
     mentions: str

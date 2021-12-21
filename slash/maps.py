@@ -1,18 +1,24 @@
 from logging import getLogger
 from typing import Dict, Optional, Union
-import discord
-from discord import partial_emoji
-from discord.app import AutoCompleteResponse
-from database.maps import Map, MapAlias
-from slash.parents import SubmitParent, DeleteParent, EditParent
-from utils.embed import create_embed, maps_embed_fields, split_embeds
-from utils.constants import ROLE_WHITELIST, GUILD_ID, NEWEST_MAPS_ID
-from utils.enum import MapNames, MapTypes
-from utils.utils import preprocess_map_code, case_ignore_compare, check_roles
-from views.basic import ConfirmButton
-from views.maps import MapSubmitView
-from views.paginator import Paginator
 
+import discord
+from discord.app import AutoCompleteResponse
+
+from database import Map, MapAlias
+from slash.parents import SubmitParent, DeleteParent, EditParent
+from utils import (
+    create_embed,
+    maps_embed_fields,
+    split_embeds,
+    GUILD_ID,
+    NEWEST_MAPS_ID,
+    MapNames,
+    MapTypes,
+    preprocess_map_code,
+    case_ignore_compare,
+    check_roles,
+)
+from views import ConfirmButton, MapSubmitView, Paginator
 
 logger = getLogger(__name__)
 
@@ -357,21 +363,22 @@ class RandomMap(discord.SlashCommand, guilds=[GUILD_ID], name="random_map"):
         await view.wait()
 
 
-class SubmitMapAlias(discord.SlashCommand, guilds=[GUILD_ID], name="map_alias", parent=SubmitParent):
+class SubmitMapAlias(
+    discord.SlashCommand, guilds=[GUILD_ID], name="map_alias", parent=SubmitParent
+):
     """Create an alias for a map code. For when multiple codes point to the same map."""
+
     original_code: str = discord.Option(
         description="Original map code you want to create an alias for."
     )
-    alias: str = discord.Option(
-        description="Alias for the original map code."
-    )
+    alias: str = discord.Option(description="Alias for the original map code.")
 
     async def callback(self) -> None:
         self.original_code = preprocess_map_code(self.original_code)
         self.alias = preprocess_map_code(self.alias)
 
         document = MapAlias(alias=self.alias, original_code=self.original_code)
-        
+
         view = discord.ui.View(timeout=None)
         view.add_item(ConfirmButton())
 
@@ -387,5 +394,6 @@ class SubmitMapAlias(discord.SlashCommand, guilds=[GUILD_ID], name="map_alias", 
         if view.children[0].value:
             await document.insert()
             view.clear_items()
-            await self.interaction.edit_original_message(content="Submitted.", view=view)
-        
+            await self.interaction.edit_original_message(
+                content="Submitted.", view=view
+            )

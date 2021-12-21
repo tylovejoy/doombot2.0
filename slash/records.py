@@ -3,23 +3,26 @@ from typing import Dict, Union, Optional
 
 import discord
 from discord.app import AutoCompleteResponse
-from database.documents import ExperiencePoints
-from database.records import Record
+
+from database import ExperiencePoints, Record
 from slash.parents import SubmitParent, DeleteParent
-from utils.constants import GUILD_ID, VERIFICATION_CHANNEL_ID, ROLE_WHITELIST
-from utils.embed import (
+from utils import (
+    GUILD_ID,
+    VERIFICATION_CHANNEL_ID,
     create_embed,
     records_basic_embed_fields,
     records_board_embed_fields,
     records_wr_embed_fields,
     records_wr_user_embed_fields,
     split_embeds,
+    Emoji,
+    delete_hidden,
+    find_alt_map_code,
+    preprocess_map_code,
+    time_convert,
+    check_roles,
 )
-from utils.enum import Emoji
-from utils.records import delete_hidden
-from utils.utils import find_alt_map_code, preprocess_map_code, time_convert, check_roles
-from views.records import RecordSubmitView, VerificationView, find_orig_msg
-from views.paginator import Paginator
+from views import RecordSubmitView, VerificationView, find_orig_msg, Paginator
 
 logger = getLogger(__name__)
 
@@ -127,7 +130,7 @@ class SubmitRecord(
 
         correct_msg = "Is this correct?"
         if code_changed:
-            correct_msg =+ f" **MAP CODE CHANGED TO ALIAS**"
+            correct_msg = +f" **MAP CODE CHANGED TO ALIAS**"
 
         await self.interaction.response.send_message(
             correct_msg, ephemeral=True, view=view, embed=embed

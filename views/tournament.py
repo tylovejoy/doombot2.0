@@ -1,6 +1,7 @@
 import discord
 
-from views.basic import ConfirmButton
+from views import ConfirmButton
+
 
 class TournamentCategorySelect(discord.ui.View):
     def __init__(self):
@@ -29,6 +30,7 @@ class TournamentCategorySelect(discord.ui.View):
         self.confirm.disabled = False
         await interaction.edit_original_message(view=self)
 
+
 class TournamentCategories(discord.ui.Select):
     def __init__(self):
         super().__init__(
@@ -44,6 +46,7 @@ class TournamentCategories(discord.ui.Select):
                 discord.SelectOption(label="Bracket", value="br"),
             ],
         )
+
     async def callback(self, interaction: discord.Interaction):
         """Callback for map types component."""
         self.view.confirm.disabled = False

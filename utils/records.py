@@ -1,6 +1,6 @@
 import discord
 
-from utils.constants import VERIFICATION_CHANNEL_ID
+from utils import VERIFICATION_CHANNEL_ID
 
 
 async def delete_hidden(interaction, record_document):

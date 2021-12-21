@@ -1,7 +1,8 @@
-from os import environ
 import logging
-from slash import maps, records, parents, tournament, exp
+from os import environ
+
 from doombot import DoomBot
+from slash import maps, records, parents, tournament, exp
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

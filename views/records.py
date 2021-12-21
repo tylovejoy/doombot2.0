@@ -1,18 +1,13 @@
 import discord
-from database.documents import ExperiencePoints
-from database.records import Record
-from utils.enum import Emoji
-from utils.records import delete_hidden
-from utils.utils import display_record
 
-from views.basic import ConfirmButton
-from utils.constants import (
-    GUILD_ID,
+from database import ExperiencePoints, Record
+from utils import Emoji, delete_hidden, display_record
+from utils import (
     NON_SPR_RECORDS_ID,
     ROLE_WHITELIST,
     SPR_RECORDS_ID,
-    VERIFICATION_CHANNEL_ID,
 )
+from views import ConfirmButton
 
 
 class RecordSubmitView(discord.ui.View):
