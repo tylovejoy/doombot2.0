@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import List, Any
 
 from beanie import Document, Link
@@ -28,7 +29,7 @@ class UniquePlayers(BaseModel):
     name: str
     posted_by: int
 
-    def __str__(self):
+    def __str__(self) -> None:
         """String representation."""
         return f"{self.name}, {self.posted_by}"
 
@@ -52,7 +53,7 @@ class Record(Document):
     hidden_id: int
 
     @classmethod
-    async def find_current_rank(cls, map_code: str, map_level: str, user_id: int):
+    async def find_current_rank(cls, map_code: str, map_level: str, user_id: int) -> List[CurrentRecordPlacement]:
         """Find the current rank placement of a record."""
         return (
             await cls.find(cls.code == map_code, cls.level == map_level)
@@ -70,13 +71,13 @@ class Record(Document):
         )
 
     @classmethod
-    async def find_unique_players(cls):
+    async def find_unique_players(cls) -> List[UniquePlayers]:
         """Find unique players."""
         x = await cls.find().project(projection_model=UniquePlayers).to_list()
         return set(str(i) for i in x)
 
     @classmethod
-    async def find_world_records_user(cls, user_id: int):
+    async def find_world_records_user(cls, user_id: int) -> List[WorldRecordsAggregate]:
         """Find all the world records that a user has."""
         return (
             await cls.find(cls.verified == True)
@@ -99,7 +100,7 @@ class Record(Document):
         )
 
     @classmethod
-    async def find_world_records(cls, **filters):
+    async def find_world_records(cls, **filters) -> WorldRecordsAggregate:
         """Find all the world records that a user has."""
 
         map_code = filters.get("map_code")
@@ -132,7 +133,7 @@ class Record(Document):
         )
 
     @classmethod
-    async def filter_search(cls, **filters: Any) -> List["Record"]:
+    async def filter_search(cls, **filters: Any) -> List[Record]:
         """Get all amps with a particular filter."""
         map_code = filters.get("map_code")
         map_level = filters.get("map_level")
@@ -153,7 +154,7 @@ class Record(Document):
         return await cls.find(search_filter).to_list()
 
     @classmethod
-    async def get_level_names(cls, map_code: str):
+    async def get_level_names(cls, map_code: str) -> List[MapLevels]:
         """Get the names of levels in a map code."""
         all_levels = (
             await cls.find(cls.code == map_code)
@@ -166,7 +167,7 @@ class Record(Document):
         return [str(x) for x in all_levels]
 
     @classmethod
-    async def get_codes(cls, starts_with):
+    async def get_codes(cls, starts_with) -> List[MapCodes]:
         """Get map codes that start with a specific string."""
         all_codes = (
             await cls.find(RegEx("code", "^" + starts_with, "i"))

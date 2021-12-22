@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import List, Any
 
 from beanie import Document
@@ -12,7 +13,7 @@ class MapAlias(Document):
     original_code: str
 
     @classmethod
-    async def get_alias(cls, map_code: str) -> list:
+    async def get_alias(cls, map_code: str) -> str:
         return (await cls.find_one(cls.map_code == map_code)).original_code
 
 
@@ -21,7 +22,7 @@ class MapLevels(BaseModel):
 
     level: str
 
-    def __str__(self):
+    def __str__(self) -> None:
         """String representation."""
         return self.level
 
@@ -32,11 +33,11 @@ class MapCodes(BaseModel):
     code: str
     map_data: list
 
-    def __str__(self):
+    def __str__(self) -> None:
         """String representation."""
         return self.code
 
-    def get_data(self):
+    def get_data(self) -> str:
         """Get the code and creator/map name if submitted to the database."""
         if self.map_data:
             return f"{self.code} -- ({self.map_data[0]['map_name']} by {self.map_data[0]['creator']})"
@@ -54,7 +55,7 @@ class Map(Document):
     description: str
 
     @classmethod
-    async def find_one_map(cls, map_code: str) -> "Map":
+    async def find_one_map(cls, map_code: str) -> Map:
         """Find a single map using its workshop code."""
         return await cls.find_one(cls.code == map_code)
 
@@ -64,12 +65,12 @@ class Map(Document):
         return await cls.find_one(cls.code == map_code).exists()
 
     @classmethod
-    async def get_all_maps(cls, map_name: str) -> List["Map"]:
+    async def get_all_maps(cls, map_name: str) -> List[Map]:
         """Get all maps with a particular map name."""
         return await cls.find(cls.map_name == map_name).to_list()
 
     @classmethod
-    async def filter_search(cls, **filters: Any) -> List["Map"]:
+    async def filter_search(cls, **filters: Any) -> List[Map]:
         """Get all amps with a particular filter."""
         map_name = filters.get("map_name")
         map_type = filters.get("map_type")
@@ -87,7 +88,7 @@ class Map(Document):
         return await cls.find(search_filter).to_list()
 
     @classmethod
-    async def random(cls, amount: int):
+    async def random(cls, amount: int) -> List[Map]:
         """Find {amount} random maps."""
         return (
             await cls.find()

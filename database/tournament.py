@@ -1,3 +1,4 @@
+from __future__ import annotations
 from datetime import datetime
 from logging import getLogger
 from typing import Optional, List, Literal
@@ -79,7 +80,7 @@ class Tournament(Document):
     general_mission: Optional[TournamentMissions] = TournamentMissions()
 
     @classmethod
-    async def find_latest(cls):
+    async def find_latest(cls) -> Tournament:
         return (await cls.find().sort("-tournament_id").limit(1).to_list())[0]
 
     def get_map_str(self, category: CategoryLiteral) -> str:
@@ -96,14 +97,14 @@ class Tournament(Document):
         category = getattr(self, category)
         return category.records
 
-    def get_difficulty_missions(self, difficulty: DifficultyLiteral):
+    def get_difficulty_missions(self, difficulty: DifficultyLiteral) -> str:
         missions = ""
         for cat in ["ta", "mc", "hc", "bo"]:
             category = getattr(getattr(self, cat).missions, difficulty)
             missions += f"{category.type} - {category.target}\n"
         return missions
 
-    def get_category_missions(self, category: CategoryLiteral):
+    def get_category_missions(self, category: CategoryLiteral) -> str:
         obj = getattr(self, category)
         missions = ""
         for difficulty in ["easy", "medium", "hard", "expert"]:
@@ -112,7 +113,7 @@ class Tournament(Document):
 
         return missions
 
-    def get_all_missions(self):
+    def get_all_missions(self) -> str:
         missions = ""
         map_ = {"ta": "Time Attack", "mc": "Mildcore", "hc": "Hardcore", "bo": "Bonus"}
         for category in map_.keys():
@@ -120,7 +121,7 @@ class Tournament(Document):
             missions += self.get_category_missions(category)
         return missions
 
-    def get_general_mission(self):
+    def get_general_mission(self) -> str:
         return f"{self.general_mission.type} - {self.general_mission.target}\n"
 
 

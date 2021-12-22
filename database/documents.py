@@ -1,3 +1,4 @@
+from __future__ import annotations
 from logging import getLogger
 from os import environ
 
@@ -40,7 +41,7 @@ class ExperiencePoints(Document):
     xp: int = 0
 
     @classmethod
-    async def find_user(cls, user_id):
+    async def find_user(cls, user_id) -> ExperiencePoints:
         """Find a user."""
         return await cls.find_one(cls.user_id == user_id)
 
