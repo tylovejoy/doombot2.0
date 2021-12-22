@@ -4,21 +4,30 @@ from typing import Dict, Optional, Union
 import discord
 from discord.app import AutoCompleteResponse
 
-from database import Map, MapAlias
+from database.maps import Map, MapAlias
 from slash.parents import SubmitParent, DeleteParent, EditParent
-from utils import (
+from utils.embed import (
     create_embed,
     maps_embed_fields,
     split_embeds,
+)
+from utils.constants import (
     GUILD_ID,
     NEWEST_MAPS_ID,
-    MapNames,
-    MapTypes,
+)
+from utils.utilities import (
     preprocess_map_code,
     case_ignore_compare,
     check_roles,
 )
-from views import ConfirmButton, MapSubmitView, Paginator
+from utils.enums import (
+    MapNames,
+    MapTypes,
+)
+
+from views.basic import ConfirmButton
+from views.maps import MapSubmitView
+from views.paginator import Paginator
 
 logger = getLogger(__name__)
 

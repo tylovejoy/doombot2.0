@@ -4,7 +4,7 @@ from beanie import Document, Link
 from beanie.odm.operators.find.evaluation import RegEx
 from pydantic import BaseModel, Field
 
-from database import MapLevels, MapCodes
+from database.maps import MapLevels, MapCodes
 
 
 class WorldRecordsSubAggregate(Document):

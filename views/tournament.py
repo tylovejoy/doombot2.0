@@ -1,6 +1,6 @@
 import discord
 
-from views import ConfirmButton
+from views.basic import ConfirmButton
 
 
 class TournamentCategoryView(discord.ui.View):

@@ -4,9 +4,8 @@ import re
 import discord
 
 from database.maps import MapAlias
-from utils import (
+from utils.constants import (
     ROLE_WHITELIST,
-    InvalidTime,
     TA_ROLE_ID,
     MC_ROLE_ID,
     HC_ROLE_ID,
@@ -14,6 +13,7 @@ from utils import (
     BRACKET_TOURNAMENT_ROLE_ID,
     TRIFECTA_ROLE_ID,
 )
+from utils.errors import InvalidTime
 
 TIME_REGEX = re.compile(
     r"(?<!.)(\d{1,2})?:?(\d{1,2})?:?(?<!\d)(\d{1,2})\.?\d{1,4}?(?!.)"

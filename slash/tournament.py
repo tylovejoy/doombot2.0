@@ -5,18 +5,19 @@ import dateparser
 import discord
 from discord.utils import format_dt
 
-from database import (
+from database.tournament import (
     Announcement,
     Tournament,
 )
 from slash.parents import TournamentParent, TournamentSubmitParent
-from utils import (
+from utils.constants import (
     GUILD_ID,
     TOURNAMENT_INFO_ID,
-    create_embed,
-    get_mention,
 )
-from views import TournamentCategoryView
+from utils.embed import create_embed
+from utils.utilities import get_mention
+
+from views.tournament import TournamentCategoryView
 
 logger = getLogger(__name__)
 

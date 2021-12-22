@@ -4,25 +4,31 @@ from typing import Dict, Union, Optional
 import discord
 from discord.app import AutoCompleteResponse
 
-from database import ExperiencePoints, Record
+from database.documents import ExperiencePoints
+from database.records import Record
 from slash.parents import SubmitParent, DeleteParent
-from utils import (
+from utils.constants import (
     GUILD_ID,
     VERIFICATION_CHANNEL_ID,
+)
+from utils.embed import (
     create_embed,
     records_basic_embed_fields,
     records_board_embed_fields,
     records_wr_embed_fields,
     records_wr_user_embed_fields,
     split_embeds,
-    Emoji,
-    delete_hidden,
+)
+from utils.enums import Emoji
+from utils.records import delete_hidden
+from utils.utilities import (
     find_alt_map_code,
     preprocess_map_code,
     time_convert,
     check_roles,
 )
-from views import RecordSubmitView, VerificationView, find_orig_msg, Paginator
+from views.records import RecordSubmitView, VerificationView, find_orig_msg
+from views.paginator import Paginator
 
 logger = getLogger(__name__)
 

@@ -2,8 +2,11 @@ from typing import Awaitable, List, Union
 
 import discord
 
-from database import ExperiencePoints, Map, Record
-from utils import Emoji, display_record
+from database.documents import ExperiencePoints
+from database.maps import Map
+from database.records import Record
+from utils.enums import Emoji
+from utils.utilities import display_record
 
 
 def create_embed(title: str, desc: str, user: discord.Member, color: hex = 0x000001):

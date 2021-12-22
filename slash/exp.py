@@ -7,9 +7,9 @@ import discord
 from PIL import Image, ImageDraw, ImageFont
 from discord.guild import MISSING
 
-from database import ExperiencePoints
+from database.documents import ExperiencePoints
 from slash.records import check_user
-from utils import GUILD_ID
+from utils.constants import GUILD_ID
 
 logger = getLogger(__name__)
 

@@ -1,7 +1,7 @@
 import discord
 
-from utils import MapTypes
-from views import ConfirmButton
+from utils.enums import MapTypes
+from views.basic import ConfirmButton
 
 
 class MapTypeSelect(discord.ui.Select):
