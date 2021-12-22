@@ -5,7 +5,6 @@ from thefuzz import fuzz
 
 
 class ExtendedEnum(Enum):
-
     """Base class for enums."""
 
     def __str__(self) -> str:
@@ -28,7 +27,6 @@ class ExtendedEnum(Enum):
 
 
 class MapNames(ExtendedEnum):
-
     """An enum of Overwatch map names."""
 
     AYUTTHAYA = "Ayutthaya"
@@ -69,7 +67,6 @@ class MapNames(ExtendedEnum):
 
 
 class MapTypes(ExtendedEnum):
-
     """An enum of map types."""
 
     SINGLE = "Single"
@@ -91,7 +88,6 @@ class MapTypes(ExtendedEnum):
 
 
 class Emoji(Enum):
-
     """An enum of emojis."""
 
     VERIFIED = "✅"

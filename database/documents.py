@@ -10,7 +10,6 @@ logger = getLogger(__name__)
 
 
 class StoreItems(Document):
-
     """Collection of items to be bought."""
 
     item: str
@@ -23,6 +22,8 @@ class StoreItems(Document):
 
 
 class EXPRanks(BaseModel):
+    """Per user ranks."""
+
     ta: str = "Unranked"
     mc: str = "Unranked"
     hc: str = "Unranked"
@@ -30,7 +31,6 @@ class EXPRanks(BaseModel):
 
 
 class ExperiencePoints(Document):
-
     """Collection of user data."""
 
     user_id: int

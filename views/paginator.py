@@ -5,7 +5,6 @@ import discord
 
 
 class Paginator(discord.ui.View):
-
     """ "A view for paginating multiple embeds."""
 
     def __init__(

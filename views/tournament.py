@@ -3,17 +3,21 @@ import discord
 from views import ConfirmButton
 
 
-class TournamentCategorySelect(discord.ui.View):
+class TournamentCategoryView(discord.ui.View):
+    """View for selecting tournament mentions."""
+
     def __init__(self):
         super().__init__()
         self.mentions = []
-        self.select = TournamentCategories()
+        self.select = TournamentCategoriesSelect()
         self.add_item(self.select)
         self.confirm = ConfirmButton(row=1, disabled=True)
         self.add_item(self.confirm)
 
 
-class TournamentCategories(discord.ui.Select):
+class TournamentCategoriesSelect(discord.ui.Select):
+    """Tournament categories."""
+
     def __init__(self):
         super().__init__(
             placeholder="Choose which roles to be mentioned...",
@@ -30,7 +34,7 @@ class TournamentCategories(discord.ui.Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
-        """Callback for map types component."""
+        """Callback for tournament categories dropdown."""
         self.view.mentions = self.values
         self.confirm.disabled = False
         await interaction.edit_original_message(view=self.view)

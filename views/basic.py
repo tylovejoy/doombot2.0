@@ -3,7 +3,6 @@ from discord import Interaction
 
 
 class ConfirmButton(discord.ui.Button):
-
     """Confirmation button."""
 
     def __init__(self, row=0, disabled=False):

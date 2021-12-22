@@ -20,7 +20,6 @@ class Announcement(Document):
 
 
 class TournamentMaps(BaseModel):
-
     """Tournament data maps object."""
 
     code: str
@@ -54,7 +53,6 @@ class TournamentMissionsCategories(BaseModel):
 
 
 class TournamentData(BaseModel):
-
     """Base models for tournament categories."""
 
     map_data: TournamentMaps
@@ -63,7 +61,6 @@ class TournamentData(BaseModel):
 
 
 class Tournament(Document):
-
     """Collection of Tournament data."""
 
     tournament_id: int
@@ -130,6 +127,7 @@ class Tournament(Document):
 def format_missions(
     mission: TournamentMissions, difficulty: DifficultyLiteral, is_general: bool = False
 ) -> str:
+    """Format missions into user friendly strings."""
     formatted = ""
 
     if is_general:

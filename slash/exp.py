@@ -19,6 +19,7 @@ def setup(bot):
 
 
 def format_xp(xp):
+    """Truncate/format numbers over 1000 to 1k format."""
     if 1000000 > xp > 999:
         xp = str(float(xp) / 1000)[:-2] + "k"
     elif xp > 1000000:
@@ -28,6 +29,7 @@ def format_xp(xp):
 
 
 def find_level(player_xp):
+    """Find a player's level from their XP amount."""
     total = 0
     for level in range(101):
         total += 5 * (level ** 2) + (50 * level) + 100
@@ -36,6 +38,7 @@ def find_level(player_xp):
 
 
 def find_portrait(level) -> str:
+    """Find which portrait to use."""
     number = str(ceil(level % 20 / 4) + 1)
     if level <= 20:
         filename = "bronze" + number + ".png"

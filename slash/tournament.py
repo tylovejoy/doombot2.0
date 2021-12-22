@@ -1,5 +1,4 @@
 from logging import getLogger
-from logging import getLogger
 from typing import Optional
 
 import dateparser
@@ -12,17 +11,12 @@ from database import (
 )
 from slash.parents import TournamentParent, TournamentSubmitParent
 from utils import (
-    BONUS_ROLE_ID,
-    BRACKET_TOURNAMENT_ROLE_ID,
     GUILD_ID,
-    HC_ROLE_ID,
-    MC_ROLE_ID,
-    TA_ROLE_ID,
     TOURNAMENT_INFO_ID,
-    TRIFECTA_ROLE_ID,
     create_embed,
+    get_mention,
 )
-from views import TournamentCategorySelect
+from views import TournamentCategoryView
 
 logger = getLogger(__name__)
 
@@ -36,7 +30,6 @@ def setup(bot):
 class TournamentStart(
     discord.SlashCommand, guilds=[GUILD_ID], name="start", parent=TournamentParent
 ):
-
     """Create and start a new tournament."""
 
     async def callback(self) -> None:
@@ -114,7 +107,6 @@ class Hardcore(
     name="hardcore",
     parent=TournamentSubmitParent,
 ):
-
     """Hardcore tournament submission."""
 
 
@@ -135,7 +127,7 @@ class Announcement(
     )
 
     async def callback(self) -> None:
-        view = TournamentCategorySelect()
+        view = TournamentCategoryView()
         embed = create_embed(title="Announcement", desc="", user=self.interaction.user)
         embed.add_field(name=self.title, value=self.content, inline=False)
 
@@ -165,9 +157,7 @@ class Announcement(
 
         await view.wait()
 
-        mentions = "".join(
-            [self.get_mention(m, self.interaction) for m in view.mentions]
-        )
+        mentions = "".join([get_mention(m, self.interaction) for m in view.mentions])
 
         if not view.confirm.value:
             return
@@ -187,20 +177,3 @@ class Announcement(
         await self.interaction.guild.get_channel(TOURNAMENT_INFO_ID).send(
             f"{mentions}", embed=embed
         )
-
-    def get_mention(self, category, interaction: discord.Interaction):
-        """Get a role mention for each category selected."""
-        if category == "ta":
-            role_id = TA_ROLE_ID
-        elif category == "mc":
-            role_id = MC_ROLE_ID
-        elif category == "hc":
-            role_id = HC_ROLE_ID
-        elif category == "bo":
-            role_id = BONUS_ROLE_ID
-        elif category == "br":
-            role_id = BRACKET_TOURNAMENT_ROLE_ID
-        elif category == "tr":
-            role_id = TRIFECTA_ROLE_ID
-
-        return interaction.guild.get_role(role_id).mention

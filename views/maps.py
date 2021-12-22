@@ -5,7 +5,6 @@ from views import ConfirmButton
 
 
 class MapTypeSelect(discord.ui.Select):
-
     """A select dropdown of map types."""
 
     def __init__(self):
@@ -25,7 +24,6 @@ class MapTypeSelect(discord.ui.Select):
 
 
 class MapSubmitView(discord.ui.View):
-
     """View for map submissions."""
 
     def __init__(self, *, timeout=None, confirm_disabled=True):

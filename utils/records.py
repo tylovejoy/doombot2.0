@@ -4,6 +4,7 @@ from utils import VERIFICATION_CHANNEL_ID
 
 
 async def delete_hidden(interaction, record_document):
+    """Try to delete hidden verification message."""
     try:
         hidden_msg = await interaction.guild.get_channel(
             VERIFICATION_CHANNEL_ID

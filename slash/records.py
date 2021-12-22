@@ -49,6 +49,7 @@ async def check_user(interaction):
 
 
 async def _autocomplete(focused, options):
+    """Basic Autocomplete for Record slash commands."""
     if focused == "map_level":
         map_code = options.get("map_code")
         map_code = map_code.upper() if map_code else "NULL"
@@ -223,7 +224,6 @@ class DeleteRecord(
 
 
 class ViewRecords(discord.SlashCommand, guilds=[GUILD_ID], name="records"):
-
     """View personal records."""
 
     map_code: str = discord.Option(
@@ -279,7 +279,6 @@ class ViewRecords(discord.SlashCommand, guilds=[GUILD_ID], name="records"):
 
 
 class PersonalRecords(discord.SlashCommand, guilds=[GUILD_ID], name="personalrecords"):
-
     """View personal records."""
 
     world_records: bool = discord.Option(

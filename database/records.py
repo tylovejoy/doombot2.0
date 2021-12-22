@@ -8,7 +8,6 @@ from database import MapLevels, MapCodes
 
 
 class WorldRecordsSubAggregate(Document):
-
     """Projection model for World Records aggregation."""
 
     code: str
@@ -16,7 +15,6 @@ class WorldRecordsSubAggregate(Document):
 
 
 class WorldRecordsAggregate(BaseModel):
-
     """Projection model for World Records aggregation."""
 
     id: Link[WorldRecordsSubAggregate] = Field(None, alias="_id")
@@ -25,7 +23,6 @@ class WorldRecordsAggregate(BaseModel):
 
 
 class UniquePlayers(BaseModel):
-
     """Projection model for unique players in a Record aggregation."""
 
     name: str
@@ -37,7 +34,6 @@ class UniquePlayers(BaseModel):
 
 
 class CurrentRecordPlacement(BaseModel):
-
     """Projection model for $rank mongo aggregation."""
 
     posted_by: int
@@ -45,7 +41,6 @@ class CurrentRecordPlacement(BaseModel):
 
 
 class Record(Document):
-
     """Collection of personal best records."""
 
     posted_by: int  # TODO: user_id

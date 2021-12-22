@@ -11,7 +11,6 @@ from views import ConfirmButton
 
 
 class RecordSubmitView(discord.ui.View):
-
     """View for record submissions."""
 
     def __init__(self, *, timeout=None, confirm_disabled=False):
@@ -23,7 +22,6 @@ class RecordSubmitView(discord.ui.View):
 
 
 class VerificationView(discord.ui.View):
-
     """View for verification notifications."""
 
     def __init__(self):

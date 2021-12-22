@@ -6,6 +6,8 @@ from pydantic import BaseModel
 
 
 class MapAlias(Document):
+    """Aliases for Map codes."""
+
     alias: str
     original_code: str
 
@@ -15,7 +17,6 @@ class MapAlias(Document):
 
 
 class MapLevels(BaseModel):
-
     """Projection model for Map aggregation."""
 
     level: str
@@ -26,7 +27,6 @@ class MapLevels(BaseModel):
 
 
 class MapCodes(BaseModel):
-
     """Project model for Map aggregation."""
 
     code: str
@@ -44,7 +44,6 @@ class MapCodes(BaseModel):
 
 
 class Map(Document):
-
     """Collection of Maps."""
 
     user_id: int
