@@ -66,7 +66,8 @@ class Tournament(Document):
 
     tournament_id: int
     name: str
-    active: bool
+    embed: Optional[dict]
+    mentions: str
     schedule_start: datetime
     schedule_end: datetime
 
@@ -80,6 +81,10 @@ class Tournament(Document):
     @classmethod
     async def find_latest(cls) -> Tournament:
         return (await cls.find().sort("-tournament_id").limit(1).to_list())[0]
+
+    def is_active(self) -> bool:
+        if self.schedule_end > datetime.now():
+            return True
 
     def get_categories(self) -> Generator[str]:
         for cat in ["ta", "mc", "hc", "bo"]:
