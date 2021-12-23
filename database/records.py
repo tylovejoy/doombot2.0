@@ -53,7 +53,9 @@ class Record(Document):
     hidden_id: int
 
     @classmethod
-    async def find_current_rank(cls, map_code: str, map_level: str, user_id: int) -> List[CurrentRecordPlacement]:
+    async def find_current_rank(
+        cls, map_code: str, map_level: str, user_id: int
+    ) -> List[CurrentRecordPlacement]:
         """Find the current rank placement of a record."""
         return (
             await cls.find(cls.code == map_code, cls.level == map_level)

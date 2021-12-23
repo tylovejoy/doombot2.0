@@ -2,7 +2,9 @@ from logging import getLogger
 from typing import Dict, Union, Optional
 
 import discord
+from discord import InteractionResponse
 from discord.app import AutoCompleteResponse
+from discord.utils import MISSING
 
 from database.documents import ExperiencePoints
 from database.records import Record
@@ -18,6 +20,7 @@ from utils.embed import (
     records_wr_embed_fields,
     records_wr_user_embed_fields,
     split_embeds,
+    records_basic_embed_fields_verification,
 )
 from utils.enums import Emoji
 from utils.records import delete_hidden
@@ -38,6 +41,7 @@ def setup(bot):
     bot.application_command(DeleteRecord)
     bot.application_command(ViewRecords)
     bot.application_command(PersonalRecords)
+    bot.application_command(PersonalRecordsUserCommand)
 
 
 async def check_user(interaction):
@@ -295,7 +299,7 @@ class PersonalRecords(discord.SlashCommand, guilds=[GUILD_ID], name="personalrec
     )
 
     async def callback(self) -> None:
-        if not self.verified:
+        if self.verified is MISSING:
             self.verified = True
 
         embed = create_embed(
@@ -314,5 +318,27 @@ class PersonalRecords(discord.SlashCommand, guilds=[GUILD_ID], name="personalrec
         view = Paginator(embeds, self.interaction.user, timeout=None)
         await self.interaction.response.send_message(
             embed=view.formatted_pages[0], view=view, ephemeral=True
+        )
+        await view.wait()
+
+
+class PersonalRecordsUserCommand(
+    discord.UserCommand, guilds=[GUILD_ID], name="personalbest"
+):
+    """Get personal bests of a specific user."""
+
+    async def callback(self) -> None:
+        await self.interaction.response.defer(ephemeral=True)
+        embed = create_embed(title=f"Personal Bests", desc="", user=self.target)
+
+        records = await Record.filter_search(user_id=self.target.id, verifed=False)
+        embeds = await split_embeds(
+            embed, records, records_basic_embed_fields_verification
+        )
+
+        view = Paginator(embeds, self.interaction.user, timeout=None)
+        await self.interaction.edit_original_message(
+            embed=view.formatted_pages[0],
+            view=view,
         )
         await view.wait()

@@ -55,6 +55,19 @@ async def records_basic_embed_fields(r: Record, *args) -> dict:
     }
 
 
+async def records_basic_embed_fields_verification(r: Record, *args) -> dict:
+    """Embed fields for record submissions."""
+    return {
+        "name": f"{await ExperiencePoints.get_alias(r.posted_by)}",
+        "value": (
+            f"> **Map Code:** {r.code}\n"
+            f"> **Level name:** {r.level}\n"
+            f"> **Record:** {display_record(r.record)}\n"
+            f"> **Verified**: {Emoji.is_verified(r.verified)}\n"
+        ),
+    }
+
+
 async def records_wr_embed_fields(r: Record, *args) -> dict:
     """Embed fields for world records among multiple levels."""
     return {
