@@ -125,7 +125,7 @@ class Tournament(Document):
         missions = ""
         map_ = {"ta": "Time Attack", "mc": "Mildcore", "hc": "Hardcore", "bo": "Bonus"}
         for category in map_.keys():
-            if category in self.get_categories()
+            if category in self.get_categories():
                 missions += f"**{map_[category]}:**\n"
                 missions += self.get_category_missions(category)
         return missions
