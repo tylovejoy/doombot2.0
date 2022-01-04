@@ -244,16 +244,12 @@ class ViewRecords(discord.SlashCommand, guilds=[GUILD_ID], name="records"):
         description="Level name to search for. Leave blank if you want to view world records for a specific map code.",
         autocomplete=True,
     )
-    verified: Optional[bool] = discord.Option(
-        description="Show verified only? Default: True",
-    )
 
     async def callback(self) -> None:
+        await self.interaction.response.defer(ephemeral=True)
         self.map_code = preprocess_map_code(self.map_code)
         if self.map_level:
             self.map_level = self.map_level.upper()
-        if not self.verified:
-            self.verified = True
 
         embed = create_embed(
             title=f"Records for {self.map_code} {self.map_level}",
@@ -265,7 +261,7 @@ class ViewRecords(discord.SlashCommand, guilds=[GUILD_ID], name="records"):
             records = await Record.filter_search(
                 map_code=self.map_code,
                 map_level=self.map_level,
-                verified=self.verified,
+                verified=True,
             )
             embeds = await split_embeds(embed, records, records_board_embed_fields)
 
@@ -276,8 +272,15 @@ class ViewRecords(discord.SlashCommand, guilds=[GUILD_ID], name="records"):
             embeds = await split_embeds(embed, records, records_wr_embed_fields)
 
         view = Paginator(embeds, self.interaction.user, timeout=None)
-        await self.interaction.response.send_message(
-            embed=view.formatted_pages[0], view=view, ephemeral=True
+
+        if not view.formatted_pages:
+            await self.interaction.edit_original_message(
+                content="No records found."
+            )
+            return
+
+        await self.interaction.edit_original_message(
+            embed=view.formatted_pages[0], view=view
         )
         await view.wait()
 
@@ -294,13 +297,8 @@ class PersonalRecords(discord.SlashCommand, guilds=[GUILD_ID], name="personalrec
     world_records: bool = discord.Option(
         description="Show only your world records?",
     )
-    verified: Optional[bool] = discord.Option(
-        description="Show verified only? Default: True",
-    )
 
     async def callback(self) -> None:
-        if self.verified is MISSING:
-            self.verified = True
 
         embed = create_embed(
             title=f"Personal Bests", desc="", user=self.interaction.user
@@ -311,7 +309,7 @@ class PersonalRecords(discord.SlashCommand, guilds=[GUILD_ID], name="personalrec
             embeds = await split_embeds(embed, records, records_wr_user_embed_fields)
         else:
             records = await Record.filter_search(
-                user_id=self.interaction.user.id, verifed=self.verified
+                user_id=self.interaction.user.id, verifed=True
             )
             embeds = await split_embeds(embed, records, records_basic_embed_fields)
 

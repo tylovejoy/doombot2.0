@@ -111,3 +111,13 @@ def get_mention(category, interaction: discord.Interaction):
         role_id = TRIFECTA_ROLE_ID
 
     return interaction.guild.get_role(role_id).mention
+
+def star_emoji(stars):
+    if 10 > stars >= 0:
+        return "<:upper:787788134620332063>"
+    elif 15 > stars >= 10:
+        return "<:ds2:873791529876082758>"
+    elif 20 > stars >= 15:
+        return "<:ds3:873791529926414336>"
+    else:
+        return "<:ds4:873791530018701312>"
