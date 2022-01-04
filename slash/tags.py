@@ -6,6 +6,7 @@ from discord.app import AutoCompleteResponse
 from utils.utilities import case_ignore_compare
 from utils.constants import GUILD_ID
 from utils.embed import create_embed
+
 logger = getLogger(__name__)
 
 
@@ -17,9 +18,7 @@ def setup(bot):
 class Tags(discord.SlashCommand, guilds=[GUILD_ID], name="tag"):
     """Display answers for commonly asked questions."""
 
-    name: str = discord.Option(
-        description="Which tag to display?"
-    )
+    name: str = discord.Option(description="Which tag to display?")
 
     async def callback(self) -> None:
         pass
@@ -28,13 +27,9 @@ class Tags(discord.SlashCommand, guilds=[GUILD_ID], name="tag"):
 class WorkshopHelp(discord.SlashCommand, guilds=[GUILD_ID], name="workshop"):
     """Display answers for commonly asked questions."""
 
-    search: str = discord.Option(
-        description="What to search?",
-        autocomplete=True
-    )
+    search: str = discord.Option(description="What to search?", autocomplete=True)
     hidden: Optional[bool] = discord.Option(
-        "Should this be visible to everyone? Default: True.",
-        default=True
+        "Should this be visible to everyone? Default: True.", default=True
     )
 
     async def callback(self) -> None:
@@ -50,15 +45,19 @@ class WorkshopHelp(discord.SlashCommand, guilds=[GUILD_ID], name="workshop"):
                     self.interaction.user,
                 )
 
-                await self.interaction.response.send_message(embed=embed, ephemeral=self.hidden)
-    
+                await self.interaction.response.send_message(
+                    embed=embed, ephemeral=self.hidden
+                )
+
     async def autocomplete(self, options, focused):
+        if options[focused] == "":
+            return AutoCompleteResponse({k: k for k in self.client.ws_list[:25]})
         if focused == "search":
-            return AutoCompleteResponse(
-                {
-                    k: k
-                    for k in self.client.ws_list[:25]
-                    if case_ignore_compare(k, options[focused])
-                }
-            )
- 
+            count = 0
+            autocomplete_ = {}
+            for k in self.client.ws_list:
+                if case_ignore_compare(k, options[focused]) and count < 25:
+                    autocomplete_[k] = k
+                    count += 1
+
+            return AutoCompleteResponse(autocomplete_)
