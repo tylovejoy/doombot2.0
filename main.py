@@ -2,7 +2,7 @@ import logging
 from os import environ
 
 from doombot import DoomBot
-from slash import maps, records, parents, tournament, exp
+from slash import maps, records, parents, tournament, exp, tags
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -27,6 +27,7 @@ def load_all_extensions():
     records.setup(bot)
     tournament.setup(bot)
     exp.setup(bot)
+    tags.setup(bot)
     logger.info("Slash loaded.")
 
 

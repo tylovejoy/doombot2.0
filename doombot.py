@@ -1,4 +1,5 @@
 from logging import getLogger
+import aiohttp
 
 import discord
 from discord.ext import commands
@@ -60,6 +61,9 @@ class DoomBot(discord.Client):
             NON_SPR_RECORDS_ID: self.other_record_channel,
             SUGGESTIONS_ID: self.suggestion_channel,
         }
+        self.ws_list = None
+
+        
 
     async def on_ready(self):
         """Display bot info on ready event."""
@@ -71,6 +75,11 @@ class DoomBot(discord.Client):
             f"Owner: {app_info.owner}\n"
         )
         await database_init()
+        async with aiohttp.ClientSession() as session:
+
+            url = 'https://workshop.codes/wiki/dictionary'
+            async with session.get(url) as resp:
+                self.ws_list = (await resp.text()).lstrip("[").rstrip("]").replace("\"", "").split(",")
 
     async def on_message(self, message: discord.Message):
         # Suggestions
