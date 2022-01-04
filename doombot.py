@@ -3,7 +3,7 @@ from logging import getLogger
 import discord
 from discord.ext import commands
 
-from database.documents import Starboard, Suggestions, TopRecords, database_init
+from database.documents import Starboard, database_init
 from database.records import Record
 from utils.constants import (
     BOT_ID,
@@ -73,8 +73,6 @@ class DoomBot(discord.Client):
         await database_init()
 
     async def on_message(self, message: discord.Message):
-        await self.process_commands(message)
-
         # Suggestions
         if message.channel.id == SUGGESTIONS_ID:
             await message.add_reaction(emoji="<:upper:787788134620332063>")
