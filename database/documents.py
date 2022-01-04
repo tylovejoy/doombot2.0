@@ -1,6 +1,7 @@
 from __future__ import annotations
 from logging import getLogger
 from os import environ
+from typing import List
 
 import motor
 from beanie import Document, init_beanie
@@ -8,6 +9,20 @@ from pydantic.main import BaseModel
 from pymongo.errors import ServerSelectionTimeoutError
 
 logger = getLogger(__name__)
+
+
+class Starboard(Document):
+    """Collection of suggestions."""
+
+    stars: int = 0
+    jump: str
+    message_id: int
+    starboard_id: int = 0
+    reacted: List[int] = []
+
+    @classmethod
+    async def search(cls, id_):
+        return await cls.find_one(message_id=id_)
 
 
 class StoreItems(Document):
