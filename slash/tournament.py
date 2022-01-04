@@ -17,7 +17,7 @@ from utils.constants import (
 from utils.embed import create_embed
 from utils.utilities import get_mention
 
-from views.tournament import TournamentCategoryView
+from views.tournament import TournamentCategoryView, TournamentStartView
 
 logger = getLogger(__name__)
 
@@ -106,9 +106,18 @@ class Hardcore(
     discord.SlashCommand,
     guilds=[GUILD_ID],
     name="hardcore",
-    parent=TournamentSubmitParent,
+    # parent=TournamentSubmitParent,
 ):
     """Hardcore tournament submission."""
+
+    async def callback(self) -> None:
+        view = TournamentStartView(self.interaction)
+        embed = create_embed(
+            "Tournament Start Wizard",
+            "Click on the buttons to add necessary information.",
+            self.interaction.user,
+        )
+        await self.interaction.response.send_message(embed=embed, view=view)
 
 
 class Announcement(
