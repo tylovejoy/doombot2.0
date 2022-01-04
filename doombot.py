@@ -42,7 +42,6 @@ class DoomBot(discord.Client):
         self.suggestion_channel = self.get_channel(SUGGESTIONS_ID)
         self.starboard_channel = self.get_channel(TOP_SUGGESTIONS_ID)
 
-
     async def on_ready(self):
         """Display bot info on ready event."""
         app_info = await self.application_info()

@@ -274,9 +274,7 @@ class ViewRecords(discord.SlashCommand, guilds=[GUILD_ID], name="records"):
         view = Paginator(embeds, self.interaction.user, timeout=None)
 
         if not view.formatted_pages:
-            await self.interaction.edit_original_message(
-                content="No records found."
-            )
+            await self.interaction.edit_original_message(content="No records found.")
             return
 
         await self.interaction.edit_original_message(

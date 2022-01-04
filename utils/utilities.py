@@ -112,6 +112,7 @@ def get_mention(category, interaction: discord.Interaction):
 
     return interaction.guild.get_role(role_id).mention
 
+
 def star_emoji(stars):
     if 10 > stars >= 0:
         return "<:upper:787788134620332063>"
