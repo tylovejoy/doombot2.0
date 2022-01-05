@@ -34,7 +34,7 @@ class TournamentStartView(discord.ui.View):
     async def bo(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Bonus button."""
         await self.enable_accept_button()
-            
+
     async def enable_accept_button(self):
         """Enable confirm button when other buttons are pressed."""
         if len(self.children) != 5:

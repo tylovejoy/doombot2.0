@@ -38,7 +38,9 @@ class TagsCommand(discord.SlashCommand, guilds=[GUILD_ID], name="tag"):
     name: str = discord.Option(description="Which tag to display?", autocomplete=True)
 
     async def callback(self) -> None:
-        await Tags(name="test", content="kjdsfkjsdfhksj").save()
+        tag = await Tags.find_one(Tags.name == self.name)
+        formatted_string = f"**{tag.name}**\n\n{tag.content}"
+        await self.interaction.response.send_message(formatted_string)
 
     async def autocomplete(self, options, focused):
         tag_names = await Tags.find_all_tag_names()

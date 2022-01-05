@@ -63,8 +63,6 @@ class DoomBot(discord.Client):
         }
         self.ws_list = None
 
-        
-
     async def on_ready(self):
         """Display bot info on ready event."""
         app_info = await self.application_info()
@@ -77,9 +75,15 @@ class DoomBot(discord.Client):
         await database_init()
         async with aiohttp.ClientSession() as session:
 
-            url = 'https://workshop.codes/wiki/dictionary'
+            url = "https://workshop.codes/wiki/dictionary"
             async with session.get(url) as resp:
-                self.ws_list = (await resp.text()).lstrip("[").rstrip("]").replace("\"", "").split(",")
+                self.ws_list = (
+                    (await resp.text())
+                    .lstrip("[")
+                    .rstrip("]")
+                    .replace('"', "")
+                    .split(",")
+                )
 
     async def on_message(self, message: discord.Message):
         # Suggestions

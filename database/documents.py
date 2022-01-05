@@ -22,7 +22,7 @@ class Tags(Document):
     content: str
 
     @classmethod
-    async def find_all_tag_names(cls):
+    async def find_all_tag_names(cls) -> List[str]:
         tags = await cls.find().project(TagNamesProjection).to_list()
         return [x.name for x in tags]
 
@@ -38,7 +38,7 @@ class Starboard(Document):
 
     @classmethod
     async def search(cls, id_):
-        return await cls.find_one(message_id=id_)
+        return await cls.find_one(cls.message_id == id_)
 
 
 class StoreItems(Document):
