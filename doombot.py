@@ -1,10 +1,11 @@
 from logging import getLogger
+from os import name
 import aiohttp
 
 import discord
 from discord.ext import commands
 
-from database.documents import Starboard, database_init
+from database.documents import EXPRanks, ExperiencePoints, Starboard, database_init
 from database.records import Record
 from utils.constants import (
     BOT_ID,
@@ -84,6 +85,15 @@ class DoomBot(discord.Client):
                     .replace('"', "")
                     .split(",")
                 )
+
+    async def on_member_join(member: discord.Member):
+        new_user = ExperiencePoints(
+            user_id=member.id,
+            alias=member.name,
+            alerts_enabled=True,
+        )
+        await new_user.save()
+        logger.info(f"Adding new user: {new_user.alias} {new_user.user_id}")
 
     async def on_message(self, message: discord.Message):
         # Suggestions
