@@ -3,6 +3,8 @@ from typing import Optional
 import aiohttp
 import discord
 from discord.app import AutoCompleteResponse
+
+from database.documents import Tags
 from utils.utilities import case_ignore_compare
 from utils.constants import GUILD_ID
 from utils.embed import create_embed
@@ -11,21 +13,40 @@ logger = getLogger(__name__)
 
 
 def setup(bot):
-    bot.application_command(Tags)
+    bot.application_command(TagsCommand)
     bot.application_command(WorkshopHelp)
 
 
-class Tags(discord.SlashCommand, guilds=[GUILD_ID], name="tag"):
+async def _autocomplete(options, focused, list_obj):
+    if options[focused] == "":
+        return AutoCompleteResponse({k: k for k in list_obj[:25]})
+
+    if focused == "name":
+        count = 0
+        autocomplete_ = {}
+        for k in list_obj:
+            if case_ignore_compare(k, options[focused]) and count < 25:
+                autocomplete_[k] = k
+                count += 1
+
+        return AutoCompleteResponse(autocomplete_)
+
+
+class TagsCommand(discord.SlashCommand, guilds=[GUILD_ID], name="tag"):
     """Display answers for commonly asked questions."""
 
-    name: str = discord.Option(description="Which tag to display?")
+    name: str = discord.Option(description="Which tag to display?", autocomplete=True)
 
     async def callback(self) -> None:
-        pass
+        await Tags(name="test", content="kjdsfkjsdfhksj").save()
+
+    async def autocomplete(self, options, focused):
+        tag_names = await Tags.find_all_tag_names()
+        return await _autocomplete(options, focused, tag_names)
 
 
 class WorkshopHelp(discord.SlashCommand, guilds=[GUILD_ID], name="workshop"):
-    """Display answers for commonly asked questions."""
+    """Display Overwatch Workshop information."""
 
     search: str = discord.Option(description="What to search?", autocomplete=True)
     hidden: Optional[bool] = discord.Option(
@@ -50,14 +71,4 @@ class WorkshopHelp(discord.SlashCommand, guilds=[GUILD_ID], name="workshop"):
                 )
 
     async def autocomplete(self, options, focused):
-        if options[focused] == "":
-            return AutoCompleteResponse({k: k for k in self.client.ws_list[:25]})
-        if focused == "search":
-            count = 0
-            autocomplete_ = {}
-            for k in self.client.ws_list:
-                if case_ignore_compare(k, options[focused]) and count < 25:
-                    autocomplete_[k] = k
-                    count += 1
-
-            return AutoCompleteResponse(autocomplete_)
+        return await _autocomplete(options, focused, self.client.ws_list)

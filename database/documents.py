@@ -11,6 +11,22 @@ from pymongo.errors import ServerSelectionTimeoutError
 logger = getLogger(__name__)
 
 
+class TagNamesProjection(BaseModel):
+    name: str
+
+
+class Tags(Document):
+    """Collection of Tags."""
+
+    name: str
+    content: str
+
+    @classmethod
+    async def find_all_tag_names(cls):
+        tags = await cls.find().project(TagNamesProjection).to_list()
+        return [x.name for x in tags]
+
+
 class Starboard(Document):
     """Collection of suggestions."""
 
