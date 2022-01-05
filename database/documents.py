@@ -2,6 +2,7 @@ from __future__ import annotations
 from logging import getLogger
 from os import environ
 from typing import List
+from beanie.odm.fields import Indexed
 
 import motor
 from beanie import Document, init_beanie
@@ -18,7 +19,7 @@ class TagNamesProjection(BaseModel):
 class Tags(Document):
     """Collection of Tags."""
 
-    name: str
+    name: Indexed(str, unique=True)
     content: str
 
     @classmethod
@@ -32,7 +33,7 @@ class Starboard(Document):
 
     stars: int = 0
     jump: str
-    message_id: int
+    message_id: Indexed(int, unique=True)
     starboard_id: int = 0
     reacted: List[int] = []
 
@@ -65,7 +66,7 @@ class EXPRanks(BaseModel):
 class ExperiencePoints(Document):
     """Collection of user data."""
 
-    user_id: int
+    user_id: Indexed(str, unique=True)
     alias: str
     alerts_enabled: bool
     rank: EXPRanks = EXPRanks()
