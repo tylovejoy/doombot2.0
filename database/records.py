@@ -153,7 +153,7 @@ class Record(Document):
         if verified:
             search_filter.update({"verified": verified})
 
-        return await cls.find(search_filter).to_list()
+        return await cls.find(search_filter).sort("+code", "+level").to_list()
 
     @classmethod
     async def get_level_names(cls, map_code: str) -> List[MapLevels]:

@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import List, Any
 
 from beanie import Document
+from beanie.odm.fields import Indexed
 from beanie.odm.operators.find.evaluation import RegEx
 from pydantic import BaseModel
 
@@ -48,7 +49,7 @@ class Map(Document):
     """Collection of Maps."""
 
     user_id: int
-    code: str
+    code: Indexed(str, unique=True)
     creator: str
     map_name: str
     map_type: List[str]

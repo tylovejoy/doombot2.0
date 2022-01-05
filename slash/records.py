@@ -267,7 +267,7 @@ class ViewRecords(discord.SlashCommand, guilds=[GUILD_ID], name="records"):
 
         if self.map_code and not self.map_level:
             records = await Record.find_world_records(
-                map_code=self.map_code, verified=self.verified
+                map_code=self.map_code, verified=True
             )
             embeds = await split_embeds(embed, records, records_wr_embed_fields)
 
@@ -297,7 +297,7 @@ class PersonalRecords(discord.SlashCommand, guilds=[GUILD_ID], name="personalrec
     )
 
     async def callback(self) -> None:
-
+        await self.interaction.response.defer(ephemeral=True)
         embed = create_embed(
             title=f"Personal Bests", desc="", user=self.interaction.user
         )
@@ -312,8 +312,8 @@ class PersonalRecords(discord.SlashCommand, guilds=[GUILD_ID], name="personalrec
             embeds = await split_embeds(embed, records, records_basic_embed_fields)
 
         view = Paginator(embeds, self.interaction.user, timeout=None)
-        await self.interaction.response.send_message(
-            embed=view.formatted_pages[0], view=view, ephemeral=True
+        await self.interaction.edit_original_message(
+            embed=view.formatted_pages[0], view=view
         )
         await view.wait()
 
