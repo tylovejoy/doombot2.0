@@ -17,3 +17,12 @@ class ConfirmButton(discord.ui.Button):
         self.value = True
         self.view.clear_items()
         self.view.stop()
+
+
+class ConfirmView(discord.ui.View):
+    """View for a confirmation button."""
+
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.confirm = ConfirmButton()
+        self.add_item(self.confirm)

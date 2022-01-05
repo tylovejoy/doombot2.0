@@ -5,9 +5,11 @@ import discord
 from discord.app import AutoCompleteResponse
 
 from database.documents import Tags
-from utils.utilities import case_ignore_compare
-from utils.constants import GUILD_ID
+from slash.parents import CreateParent, DeleteParent
+from utils.utilities import case_ignore_compare, check_roles
+from utils.constants import GUILD_ID, ROLE_WHITELIST
 from utils.embed import create_embed
+from views.basic import ConfirmView
 
 logger = getLogger(__name__)
 
@@ -21,7 +23,7 @@ async def _autocomplete(options, focused, list_obj):
     if options[focused] == "":
         return AutoCompleteResponse({k: k for k in list_obj[:25]})
 
-    if focused == "name":
+    if focused in ["name", "search"]:
         count = 0
         autocomplete_ = {}
         for k in list_obj:
@@ -32,15 +34,81 @@ async def _autocomplete(options, focused, list_obj):
         return AutoCompleteResponse(autocomplete_)
 
 
+class DeleteTag(
+    discord.SlashCommand, guilds=[GUILD_ID], name="tag", parent=DeleteParent
+):
+    """Delete a tag."""
+
+    name: str = discord.Option(
+        description="Which tag should be deleted?", autocomplete=True
+    )
+
+    async def callback(self) -> None:
+        await self.interaction.response.defer(ephemeral=True)
+        if not check_roles(self.interaction):
+            return
+
+        tag = Tags.find_one(Tags.name == self.name)
+
+        if not tag:
+            await self.interaction.edit_original_message(content="Tag does not exist.")
+            return
+
+        view = ConfirmView()
+        await self.interaction.edit_original_message(
+            content=f"**{tag.name}**\n\n{tag.content}\n\nDo you want to create this tag?",
+            view=view,
+        )
+        await view.wait()
+        if view.confirm.value:
+            await self.interaction.edit_original_message(
+                content=f"**{tag.name}** has been deleted.", view=view
+            )
+            await tag.delete()
+
+    async def autocomplete(self, options, focused):
+        tag_names = await Tags.find_all_tag_names()
+        return await _autocomplete(options, focused, tag_names)
+
+
+class CreateTag(
+    discord.SlashCommand, guilds=[GUILD_ID], name="tag", parent=CreateParent
+):
+    """Create a tag."""
+
+    name: str = discord.Option(description="What should the tag be called?")
+    content: str = discord.Option(description="What should the content of the tag be?")
+
+    async def callback(self) -> None:
+        if not check_roles(self.interaction):
+            return
+
+        view = ConfirmView()
+        tag = Tags(name=self.name, content=self.content)
+        await self.interaction.response.send_message(
+            f"**{tag.name}**\n\n{tag.content}\n\nDo you want to create this tag?",
+            view=view,
+            ephemeral=True,
+        )
+        await view.wait()
+        if view.confirm.value:
+            await self.interaction.edit_original_message(
+                content=f"**{tag.name}** has been added as a new tag.", view=view
+            )
+            await tag.save()
+
+
 class TagsCommand(discord.SlashCommand, guilds=[GUILD_ID], name="tag"):
     """Display answers for commonly asked questions."""
 
     name: str = discord.Option(description="Which tag to display?", autocomplete=True)
 
     async def callback(self) -> None:
+        await self.interaction.response.defer()
         tag = await Tags.find_one(Tags.name == self.name)
-        formatted_string = f"**{tag.name}**\n\n{tag.content}"
-        await self.interaction.response.send_message(formatted_string)
+        await self.interaction.edit_original_message(
+            content=f"**{tag.name}**\n\n{tag.content}"
+        )
 
     async def autocomplete(self, options, focused):
         tag_names = await Tags.find_all_tag_names()
@@ -56,6 +124,7 @@ class WorkshopHelp(discord.SlashCommand, guilds=[GUILD_ID], name="workshop"):
     )
 
     async def callback(self) -> None:
+        await self.interaction.response.defer(ephemeral=self.hidden)
         self.search = self.search.replace(" ", "-")
         async with aiohttp.ClientSession() as session:
 
@@ -68,9 +137,7 @@ class WorkshopHelp(discord.SlashCommand, guilds=[GUILD_ID], name="workshop"):
                     self.interaction.user,
                 )
 
-                await self.interaction.response.send_message(
-                    embed=embed, ephemeral=self.hidden
-                )
+                await self.interaction.edit_original_message(embed=embed)
 
     async def autocomplete(self, options, focused):
         return await _autocomplete(options, focused, self.client.ws_list)

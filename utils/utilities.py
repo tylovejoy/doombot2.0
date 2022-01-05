@@ -122,3 +122,11 @@ def star_emoji(stars):
         return "<:ds3:873791529926414336>"
     else:
         return "<:ds4:873791530018701312>"
+
+
+async def check_roles(interaction: discord.Interaction):
+    if bool(set([x.id for x in interaction.user.roles]).intersection(ROLE_WHITELIST)):
+        await interaction.response.send_message(
+            "You do not have permission to use this command.", ephemeral=True
+        )
+        return True
