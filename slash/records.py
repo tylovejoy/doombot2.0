@@ -1,8 +1,10 @@
 from logging import getLogger
+import re
 from typing import Dict, Union, Optional
 
 import discord
 from discord import InteractionResponse
+from discord import user
 from discord.app import AutoCompleteResponse
 from discord.utils import MISSING
 
@@ -25,6 +27,7 @@ from utils.embed import (
 from utils.enums import Emoji
 from utils.records import delete_hidden
 from utils.utilities import (
+    display_record,
     find_alt_map_code,
     preprocess_map_code,
     time_convert,
@@ -42,6 +45,8 @@ def setup(bot):
     bot.application_command(ViewRecords)
     bot.application_command(PersonalRecords)
     bot.application_command(PersonalRecordsUserCommand)
+    bot.application_command(WorldRecords)
+    bot.application_command(WorldRecordsUserCommand)
 
 
 async def check_user(interaction):
@@ -289,52 +294,120 @@ class ViewRecords(discord.SlashCommand, guilds=[GUILD_ID], name="leaderboard"):
         return await _autocomplete(focused, options)
 
 
-class PersonalRecords(discord.SlashCommand, guilds=[GUILD_ID], name="personalrecords"):
-    """View personal records."""
+class WorldRecords(discord.SlashCommand, guilds=[GUILD_ID], name="worldrecords"):
+    """View a specific users world records."""
 
-    world_records: bool = discord.Option(
-        description="Show only your world records?",
+    user: discord.Member = discord.Option(
+        description="Who's world records do you want to see?",
     )
 
     async def callback(self) -> None:
-        await self.interaction.response.defer(ephemeral=True)
-        embed = create_embed(
-            title=f"Personal Bests", desc="", user=self.interaction.user
-        )
+        await world_records(self.interaction, self.user)
 
-        if self.world_records:
-            records = await Record.find_world_records_user(self.interaction.user.id)
-            embeds = await split_embeds(embed, records, records_wr_user_embed_fields)
-        else:
-            records = await Record.filter_search(
-                user_id=self.interaction.user.id, verifed=True
-            )
-            embeds = await split_embeds(embed, records, records_basic_embed_fields)
 
-        view = Paginator(embeds, self.interaction.user, timeout=None)
-        await self.interaction.edit_original_message(
-            embed=view.formatted_pages[0], view=view
-        )
-        await view.wait()
+class WorldRecordsUserCommand(discord.UserCommand, guilds=[GUILD_ID], name="worldrecords"):
+    """View a specific users world records."""
+
+    async def callback(self) -> None:
+        await world_records(self.interaction, self.target)
+
+
+class PersonalRecords(discord.SlashCommand, guilds=[GUILD_ID], name="personalrecords"):
+    """View a specific users personal records."""
+
+    user: discord.Member = discord.Option(
+        description="Who's personal best do you want to see?",
+    )
+
+    async def callback(self) -> None:
+        await personal_best(self.interaction, self.user)
 
 
 class PersonalRecordsUserCommand(
-    discord.UserCommand, guilds=[GUILD_ID], name="personalbest"
+    discord.UserCommand, guilds=[GUILD_ID], name="personalrecords"
 ):
-    """Get personal bests of a specific user."""
+    """View a specific users personal records."""
 
     async def callback(self) -> None:
-        await self.interaction.response.defer(ephemeral=True)
-        embed = create_embed(title=f"Personal Bests", desc="", user=self.target)
+        await personal_best(self.interaction, self.target)
 
-        records = await Record.filter_search(user_id=self.target.id, verifed=False)
-        embeds = await split_embeds(
-            embed, records, records_basic_embed_fields_verification
-        )
 
-        view = Paginator(embeds, self.interaction.user, timeout=None)
-        await self.interaction.edit_original_message(
-            embed=view.formatted_pages[0],
-            view=view,
+async def world_records(interaction, target):
+    await interaction.response.defer(ephemeral=True)
+
+    embed = create_embed(title=f"World Records", desc="", user=target)
+    records = await Record.find_world_records_user(target.id)
+    embeds = await split_embeds(embed, records, records_wr_user_embed_fields)
+
+    view = Paginator(embeds, interaction.user, timeout=None)
+    await interaction.edit_original_message(
+        embed=view.formatted_pages[0],
+        view=view,
+    )
+    await view.wait()
+
+async def personal_best(interaction, target):
+    await interaction.response.defer(ephemeral=True)
+    records = await Record.find_rec_map_info(user_id=target.id)
+    embed = create_embed(title=f"Personal Bests", desc="", user=target)
+    embed_dict = {}
+    cur_map = None
+
+    for r in records:
+        if r.code != cur_map:
+            cur_map = r.code
+            creator = getattr(getattr(r, "map_data", None), "creator", None)
+            map_name = getattr(getattr(r, "map_data", None), "map_name", None)
+
+            if creator is None or map_name is None:
+                creator = map_name = "N/A"
+        
+        if embed_dict.get(str(r.code), None) is None:
+            embed_dict[str(r.code)] = {
+                "title": f"{r.code} - {map_name} by {creator}\n",
+                "value": "",
+            }
+        embed_dict[str(r.code)]["value"] += (
+            f"> **{r.level}**\n"
+            f"> Record: {display_record(r.record)}\n"
+            f"> Verified: {Emoji.is_verified(r.verified)}\n"
+            f"━━━━━━━━━━━━\n"
         )
-        await view.wait()
+    
+    embeds = []
+
+    if len(embed_dict) > 0:
+        for i, map_pbs in enumerate(embed_dict.values()):
+            if len(map_pbs["value"]) > 1024:
+                # if over 1024 char limit
+                # split pbs dict value into list of individual pbs
+                # and divide in half.. Add two fields instead of just one.
+                delimiter_regex = r">.*\n>.*\n>.*\n━━━━━━━━━━━━\n"
+                pb_split = re.findall(delimiter_regex, map_pbs["value"])
+                #pb_split = natsorted(pb_split)
+                pb_split_1 = pb_split[: len(pb_split) // 2]
+                pb_split_2 = pb_split[len(pb_split) // 2 :]
+                embed.add_field(
+                    name=f"{map_pbs['title']} (1)",
+                    value="".join(pb_split_1),
+                    inline=False,
+                )
+                embed.add_field(
+                    name=f"{map_pbs['title']} (2)",
+                    value="".join(pb_split_2),
+                    inline=False,
+                )
+            else:
+                embed.add_field(
+                    name=map_pbs["title"], value=map_pbs["value"], inline=False
+                )
+            if (i + 1) % 3 == 0 or (i + 1) == len(embed_dict):
+                embeds.append(embed)
+                embed = discord.Embed(title=target.name)
+
+    view = Paginator(embeds, interaction.user, timeout=None)
+    await interaction.edit_original_message(
+        embed=view.formatted_pages[0],
+        view=view,
+    )
+    await view.wait()

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Any
+from typing import List, Any, Optional
 
 from beanie import Document, Link
 from beanie.odm.operators.find.evaluation import RegEx
@@ -41,6 +41,20 @@ class CurrentRecordPlacement(BaseModel):
     rank: int
 
 
+class MapDataLookup(BaseModel):
+    creator: str
+    map_name: str
+
+
+class RecordMapLookup(BaseModel):
+    posted_by: int
+    code: str
+    level: str
+    record: float
+    verified: str
+    map_data: Optional[MapDataLookup]
+
+
 class Record(Document):
     """Collection of personal best records."""
 
@@ -51,6 +65,39 @@ class Record(Document):
     verified: bool
     message_id: int
     hidden_id: int
+
+    @classmethod
+    async def find_rec_map_info(cls, user_id):
+        return (
+            await cls.find(cls.posted_by == user_id)
+            .aggregate(
+                [
+                    {
+                        "$lookup": {
+                            "from": "Map",
+                            "localField": "code",
+                            "foreignField": "code",
+                            "as": "map_data",
+                        }
+                    },
+                    {"$unwind": {"path": "$map_data", 'preserveNullAndEmptyArrays': True}},
+                    {
+                        "$project": {
+                            "posted_by": 1,
+                            "code": 1,
+                            "level": 1,
+                            "record": 1,
+                            "verified": 1,
+                            "map_data.creator": 1,
+                            "map_data.map_name": 1,
+                        }
+                    },
+                    {"$sort": {"code": 1, "level": 1}},
+                ],
+                projection_model=RecordMapLookup,
+            )
+            .to_list()
+        )
 
     @classmethod
     async def find_current_rank(
