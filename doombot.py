@@ -86,7 +86,7 @@ class DoomBot(discord.Client):
                     .split(",")
                 )
 
-    async def on_member_join(member: discord.Member):
+    async def on_member_join(self, member: discord.Member):
         new_user = ExperiencePoints(
             user_id=member.id,
             alias=member.name,
