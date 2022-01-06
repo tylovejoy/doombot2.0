@@ -87,7 +87,7 @@ async def records_wr_user_embed_fields(r: Record, *args) -> dict:
 async def split_embeds(
     initial_embed: discord.Embed,
     documents: List[Union[Map, Record]],
-    field_opts: Awaitable,
+    field_opts,
 ) -> List[discord.Embed]:
     """Split data into multiple embeds."""
     embed = initial_embed.copy()
@@ -98,7 +98,7 @@ async def split_embeds(
 
         if i != 0 and ((i + 1) % 10 == 0 or count - 1 == i):
             embeds.append(embed)
-            embed = initial_embed
+            embed = initial_embed.copy()
 
         if count == 1:
             embeds.append(embed)
