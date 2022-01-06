@@ -233,8 +233,8 @@ class DeleteRecord(
         return await _autocomplete(focused, options)
 
 
-class ViewRecords(discord.SlashCommand, guilds=[GUILD_ID], name="records"):
-    """View personal records."""
+class ViewRecords(discord.SlashCommand, guilds=[GUILD_ID], name="leaderboard"):
+    """View leaderboard for a particular map code and/or map level."""
 
     map_code: str = discord.Option(
         description="Workshop code to search for.",
