@@ -25,7 +25,7 @@ logger = getLogger(__name__)
 def setup(bot):
     bot.application_command(TournamentStart)
     bot.application_command(Hardcore)
-    bot.application_command(Announcement)
+    bot.application_command(TournamentAnnouncement)
 
 
 class TournamentStart(
@@ -120,7 +120,7 @@ class Hardcore(
         await self.interaction.response.send_message(embed=embed, view=view)
 
 
-class Announcement(
+class TournamentAnnouncement(
     discord.SlashCommand,
     guilds=[GUILD_ID],
     name="announcement",
