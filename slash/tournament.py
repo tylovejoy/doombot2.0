@@ -137,7 +137,7 @@ class TournamentAnnouncement(
     )
 
     async def callback(self) -> None:
-        view = TournamentCategoryView()
+        view = TournamentCategoryView(self.interaction)
         embed = create_embed(title="Announcement", desc="", user=self.interaction.user)
         embed.add_field(name=self.title, value=self.content, inline=False)
 
@@ -157,13 +157,6 @@ class TournamentAnnouncement(
             view=view,
             ephemeral=True,
         )
-        # await self.client.wait_for("interaction")
-
-        # for x in view.options:
-        #     if x.label in view.select_menu.values:
-        #         x.default = True
-
-        # await self.interaction.edit_original_message(view=view)
 
         await view.wait()
 

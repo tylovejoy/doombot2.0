@@ -1,6 +1,7 @@
 import discord
 from discord.enums import ButtonStyle
 from discord.interactions import Interaction
+from utils.utilities import select_button_enable
 
 from views.basic import ConfirmButton
 
@@ -58,7 +59,7 @@ class TournamentCategoriesSelect(discord.ui.Select):
     def __init__(self):
         super().__init__(
             placeholder="Choose which roles to be mentioned...",
-            min_values=1,
+            min_values=0,
             max_values=6,
             options=[
                 discord.SelectOption(label="Time Attack", value="ta"),
@@ -73,5 +74,4 @@ class TournamentCategoriesSelect(discord.ui.Select):
     async def callback(self, interaction: discord.Interaction):
         """Callback for tournament categories dropdown."""
         self.view.mentions = self.values
-        self.confirm.disabled = False
-        await interaction.edit_original_message(view=self.view)
+        await select_button_enable(self.view, self)

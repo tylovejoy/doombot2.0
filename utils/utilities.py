@@ -130,3 +130,16 @@ async def check_roles(interaction: discord.Interaction):
             "You do not have permission to use this command.", ephemeral=True
         )
         return True
+
+
+async def select_button_enable(view, select):
+    if len(select.values):
+        view.confirm.disabled = False
+    else:
+        view.confirm.disabled = True
+    for x in select.options:
+        if x.label in select.values:
+            x.default = True
+        else:
+            x.default = False
+    await view.interaction.edit_original_message(view=select.view)

@@ -159,11 +159,7 @@ class SubmitMap(
         await self.interaction.response.send_message(
             content=preview, ephemeral=True, view=view
         )
-        # await self.client.wait_for("interaction")
 
-        
-
-        # await self.interaction.edit_original_message(view=view)
         await view.wait()
         if view.confirm.value:
             view.clear_items()
