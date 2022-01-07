@@ -47,13 +47,12 @@ def time_convert(time_input: str) -> float:
 
 def display_record(record: float) -> str:
     """Display record in HH:MM:SS.SS format."""
-    negative = check_negative(record)
-    if negative:
-       record = -record
-    str_dt = str(datetime.timedelta(seconds=record))
+    negative = "-" if check_negative(record) else ""
+    str_dt = str(datetime.timedelta(seconds=abs(record)))
+
     if str_dt.count(".") == 1:
-        return f"{'-' if negative else ''}" + str_dt[: -4 or None]
-    return f"{'-' if negative else ''}" + str_dt + ".00"
+        return negative + str_dt[: -4 or None]
+    return negative + str_dt + ".00"
 
 
 def check_negative(s: Union[float, int]) -> bool:
