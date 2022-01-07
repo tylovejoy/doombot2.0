@@ -98,9 +98,9 @@ class RankCard(discord.SlashCommand, guilds=[GUILD_ID], name="rank"):
         old_y = 66
         x = 1165
         y = 348
-        y_offset = 10
+        # y_offset = 10
         x_offset = 10
-        inner_box = (0, 0, x, y)
+        # inner_box = (0, 0, x, y)
 
         img = Image.new("RGBA", (x, y), color=(0, 0, 0, 0))
         d = ImageDraw.Draw(img, "RGBA")
@@ -154,8 +154,8 @@ class RankCard(discord.SlashCommand, guilds=[GUILD_ID], name="rank"):
         )
 
         # Highest Position
-        xp_circle_r_pad = 100
-        xp_circle_dia = 160
+        # xp_circle_r_pad = 100
+        # xp_circle_dia = 160
 
         place = 0
         all_users = await ExperiencePoints.find().sort("+xp").to_list()

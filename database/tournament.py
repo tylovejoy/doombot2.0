@@ -1,7 +1,7 @@
 from __future__ import annotations
 from datetime import datetime
 from logging import getLogger
-from typing import Generator, Optional, List, Literal, Tuple
+from typing import Generator, Optional, List, Literal
 
 from beanie import Document
 from pydantic import BaseModel

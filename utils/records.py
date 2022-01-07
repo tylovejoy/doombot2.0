@@ -24,7 +24,7 @@ async def delete_hidden(interaction, record_document):
 async def world_records(interaction, target):
     await interaction.response.defer(ephemeral=True)
 
-    embed = create_embed(title=f"World Records", desc="", user=target)
+    embed = create_embed(title="World Records", desc="", user=target)
     records = await Record.find_world_records_user(target.id)
     embeds = await split_embeds(embed, records, records_wr_user_embed_fields)
 
@@ -39,7 +39,7 @@ async def world_records(interaction, target):
 async def personal_best(interaction, target):
     await interaction.response.defer(ephemeral=True)
     records = await Record.find_rec_map_info(user_id=target.id)
-    embed = create_embed(title=f"Personal Bests", desc="", user=target)
+    embed = create_embed(title="Personal Bests", desc="", user=target)
     embed_dict = {}
     cur_map = None
 

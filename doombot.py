@@ -1,11 +1,10 @@
 from logging import getLogger
-from os import name
 import aiohttp
 
 import discord
 from discord.ext import commands
 
-from database.documents import EXPRanks, ExperiencePoints, Starboard, database_init
+from database.documents import ExperiencePoints, Starboard, database_init
 from database.records import Record
 from utils.constants import (
     BOT_ID,

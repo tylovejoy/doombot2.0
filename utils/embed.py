@@ -1,4 +1,4 @@
-from typing import Awaitable, List, Union
+from typing import List, Union
 
 import discord
 

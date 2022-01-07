@@ -1,8 +1,6 @@
-from logging import disable
 import discord
 from discord.enums import ButtonStyle
 from discord.interactions import Interaction
-from discord.partial_emoji import PartialEmoji
 
 from views.basic import ConfirmButton
 

@@ -9,7 +9,7 @@ from database.tournament import (
     Announcement,
     Tournament,
 )
-from slash.parents import TournamentParent, TournamentSubmitParent
+from slash.parents import TournamentParent
 from utils.constants import (
     GUILD_ID,
     TOURNAMENT_INFO_ID,
