@@ -15,7 +15,8 @@ class MapAlias(Document):
 
     @classmethod
     async def get_alias(cls, map_code: str) -> str:
-        return (await cls.find_one(cls.map_code == map_code)).original_code
+        
+        return getattr(await cls.find_one(cls.alias == map_code), "original_code", None)
 
 
 class MapLevels(BaseModel):

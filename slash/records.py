@@ -127,6 +127,7 @@ class SubmitRecord(
                 verified=False,
                 message_id=0,
                 hidden_id=0,
+                record=0.0,
             )
 
         record_document.record = record_seconds

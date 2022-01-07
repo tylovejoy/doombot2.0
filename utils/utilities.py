@@ -46,11 +46,13 @@ def time_convert(time_input):
 
 def display_record(record):
     """Display record in HH:MM:SS.SS format."""
-    if check_negative(record):
-        return format_timedelta(record)
-    if str(datetime.timedelta(seconds=record)).count(".") == 1:
-        return str(datetime.timedelta(seconds=record))[: -4 or None]
-    return str(datetime.timedelta(seconds=record)) + ".00"
+    negative = check_negative(record)
+    if negative:
+       record = -record
+    str_dt = str(datetime.timedelta(seconds=record))
+    if str_dt.count(".") == 1:
+        return f"{'-' if negative else ''}" + str_dt[: -4 or None]
+    return f"{'-' if negative else ''}" + str_dt + ".00"
 
 
 def check_negative(s):
@@ -68,8 +70,8 @@ def check_negative(s):
 def format_timedelta(td):
     """Format time deltas if negative."""
     if datetime.timedelta(seconds=td) < datetime.timedelta(0):
-        return "-" + format_timedelta(-1 * td)
-    return str(td)
+        return "-" + str(datetime.timedelta(seconds=-1 * td))
+    
 
 
 def preprocess_map_code(map_code):
