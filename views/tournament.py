@@ -44,9 +44,10 @@ class TournamentStartView(discord.ui.View):
 class TournamentCategoryView(discord.ui.View):
     """View for selecting tournament mentions."""
 
-    def __init__(self):
+    def __init__(self, interaction: discord.Interaction):
         super().__init__()
         self.mentions = []
+        self.interaction = interaction
         self.select = TournamentCategoriesSelect()
         self.add_item(self.select)
         self.confirm = ConfirmButton(row=1, disabled=True)
