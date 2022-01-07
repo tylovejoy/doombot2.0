@@ -155,17 +155,15 @@ class SubmitMap(
             f"**Description:** {self.description}\n"
         )
 
-        view = MapSubmitView()
+        view = MapSubmitView(self.interaction)
         await self.interaction.response.send_message(
             content=preview, ephemeral=True, view=view
         )
-        await self.client.wait_for("interaction")
+        # await self.client.wait_for("interaction")
 
-        for x in view.select_menu.options:
-            if x.label in view.select_menu.values:
-                x.default = True
+        
 
-        await self.interaction.edit_original_message(view=view)
+        # await self.interaction.edit_original_message(view=view)
         await view.wait()
         if view.confirm.value:
             view.clear_items()
@@ -189,7 +187,7 @@ class SubmitMap(
             new_maps_channel = self.interaction.guild.get_channel(NEWEST_MAPS_ID)
 
             embed = create_embed(title="New Map!", desc="", user=self.interaction.user)
-            embed.add_field(**maps_embed_fields(submission), inline=False)
+            embed.add_field(**await maps_embed_fields(submission), inline=False)
 
             new_map = await new_maps_channel.send(embed=embed)
             await new_map.create_thread(name=f"Discuss {self.map_code} here.")
@@ -241,7 +239,7 @@ class DeleteMap(
             f"**Map Types:** {', '.join(map_document.map_type)}\n"
         )
 
-        view = MapSubmitView(confirm_disabled=False)
+        view = MapSubmitView(self.interaction, confirm_disabled=False)
         view.remove_item(view.select_menu)
 
         await self.interaction.response.send_message(
