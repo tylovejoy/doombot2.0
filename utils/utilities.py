@@ -67,13 +67,6 @@ def check_negative(s):
         return False
 
 
-def format_timedelta(td):
-    """Format time deltas if negative."""
-    if datetime.timedelta(seconds=td) < datetime.timedelta(0):
-        return "-" + str(datetime.timedelta(seconds=-1 * td))
-    
-
-
 def preprocess_map_code(map_code):
     """Converts map codes to acceptable format."""
     return map_code.upper().replace("O", "0")
