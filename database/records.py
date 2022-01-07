@@ -80,7 +80,12 @@ class Record(Document):
                             "as": "map_data",
                         }
                     },
-                    {"$unwind": {"path": "$map_data", 'preserveNullAndEmptyArrays': True}},
+                    {
+                        "$unwind": {
+                            "path": "$map_data",
+                            "preserveNullAndEmptyArrays": True,
+                        }
+                    },
                     {
                         "$project": {
                             "posted_by": 1,
@@ -238,5 +243,4 @@ class Record(Document):
             )
             .to_list()
         )
-        print(list((str(x), x.get_data()) for x in all_codes))
         return ((x.get_data(), str(x)) for x in all_codes)
