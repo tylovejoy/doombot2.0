@@ -1,5 +1,6 @@
 import datetime
 import re
+from typing import Union
 
 import discord
 
@@ -20,12 +21,12 @@ TIME_REGEX = re.compile(
 )
 
 
-def is_time_format(s):
+def is_time_format(s: str) -> bool:
     """Check if string is in HH:MM:SS.SS format or a legal variation."""
     return bool(TIME_REGEX.match(s))
 
 
-def time_convert(time_input):
+def time_convert(time_input: str) -> float:
     """Convert time (str) into seconds (float)."""
     try:
         neg_time = -1 if time_input[0] == "-" else 1
@@ -44,7 +45,7 @@ def time_convert(time_input):
         raise InvalidTime("Record is not in the correct format! HH:MM:SS.ss")
 
 
-def display_record(record):
+def display_record(record: float) -> str:
     """Display record in HH:MM:SS.SS format."""
     negative = check_negative(record)
     if negative:
@@ -55,7 +56,7 @@ def display_record(record):
     return f"{'-' if negative else ''}" + str_dt + ".00"
 
 
-def check_negative(s):
+def check_negative(s: Union[float, int]) -> bool:
     """Check if a number is negative."""
     try:
         f = float(s)
@@ -67,7 +68,7 @@ def check_negative(s):
         return False
 
 
-def preprocess_map_code(map_code):
+def preprocess_map_code(map_code: str) -> str:
     """Converts map codes to acceptable format."""
     return map_code.upper().replace("O", "0")
 
@@ -80,7 +81,7 @@ async def find_alt_map_code(map_code: str) -> str:
     return map_code, False
 
 
-def case_ignore_compare(string1, string2):
+def case_ignore_compare(string1: str, string2: str) -> bool:
     """Compare two strings, case insensitive."""
     return string1.casefold().startswith(string2.casefold())
 
@@ -90,7 +91,7 @@ def check_roles(interaction: discord.Interaction) -> bool:
     return any(role.id in ROLE_WHITELIST for role in interaction.user.roles)
 
 
-def get_mention(category, interaction: discord.Interaction):
+def get_mention(category: str, interaction: discord.Interaction) -> str:
     """Get a role mention for each category selected."""
     if category == "ta":
         role_id = TA_ROLE_ID
@@ -108,7 +109,7 @@ def get_mention(category, interaction: discord.Interaction):
     return interaction.guild.get_role(role_id).mention
 
 
-def star_emoji(stars):
+def star_emoji(stars: int) -> str:
     if 10 > stars >= 0:
         return "<:upper:787788134620332063>"
     elif 15 > stars >= 10:
@@ -119,7 +120,7 @@ def star_emoji(stars):
         return "<:ds4:873791530018701312>"
 
 
-async def check_roles(interaction: discord.Interaction):
+async def check_roles(interaction: discord.Interaction) -> bool:
     if bool(set([x.id for x in interaction.user.roles]).intersection(ROLE_WHITELIST)):
         await interaction.response.send_message(
             "You do not have permission to use this command.", ephemeral=True
@@ -127,7 +128,7 @@ async def check_roles(interaction: discord.Interaction):
         return True
 
 
-async def select_button_enable(view, select):
+async def select_button_enable(view: discord.ui.View, select: discord.ui.Select) -> None:
     if len(select.values):
         view.confirm.disabled = False
     else:
