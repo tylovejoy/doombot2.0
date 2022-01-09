@@ -66,7 +66,7 @@ class EXPRanks(BaseModel):
 class ExperiencePoints(Document):
     """Collection of user data."""
 
-    user_id: Indexed(str, unique=True)
+    user_id: Indexed(int, unique=True)
     alias: str
     alerts_enabled: bool
     rank: EXPRanks = EXPRanks()

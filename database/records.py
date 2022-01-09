@@ -194,13 +194,21 @@ class Record(Document):
     @classmethod
     async def filter_search(cls, **filters: Any) -> List[Record]:
         """Get all amps with a particular filter."""
+        search_filter = await cls.filter_search_(filters)
+        return await cls.find(search_filter).sort("+code", "+level").to_list()
+
+    @classmethod
+    async def filter_search_single(cls, **filters: Any) -> Record:
+        search_filter = await cls.filter_search_(filters)
+        return await cls.find_one(search_filter)
+
+    @classmethod
+    async def filter_search_(cls, filters):
         map_code = filters.get("map_code")
         map_level = filters.get("map_level")
         user_id = filters.get("user_id")
         verified = filters.get("verified")
-
         search_filter = {}
-
         if map_code:
             search_filter.update({"code": map_code})
         if map_level:
@@ -209,8 +217,7 @@ class Record(Document):
             search_filter.update({"posted_by": user_id})
         if verified:
             search_filter.update({"verified": verified})
-
-        return await cls.find(search_filter).sort("+code", "+level").to_list()
+        return search_filter
 
     @classmethod
     async def get_level_names(cls, map_code: str) -> List[str]:

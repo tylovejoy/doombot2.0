@@ -40,13 +40,13 @@ class VerificationView(discord.ui.View):
     @discord.ui.button(label="Verify", style=discord.ButtonStyle.green)
     async def verify(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Button component for verification acceptance."""
-        await self.verification(interaction, True)
+        await verification(interaction, True)
         self.stop()
 
     @discord.ui.button(label="Reject", style=discord.ButtonStyle.red)
     async def reject(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Button component for verification rejection."""
-        await self.verification(interaction, False)
+        await verification(interaction, False)
         self.stop()
 
 
@@ -90,9 +90,11 @@ async def find_orig_msg(interaction, search: Record):
 def accepted(interaction: discord.Interaction, search: Record) -> dict:
     """Data for verified records."""
     return {
-        "edit": f"{Emoji.VERIFIED} Verified!",
+        "edit": f"{Emoji.VERIFIED} Verified by {interaction.user.mention}!",
         "direct_message": (
-            f"**Map Code:** {search.code}\n**Level name:** {search.level}\n**Record:** {display_record(search.record)}\n"
+            f"**Map Code:** {search.code}\n"
+            f"**Level name:** {search.level}\n"
+            f"**Record:** {display_record(search.record)}\n"
             f"Your record got {Emoji.VERIFIED} verified by {interaction.user.mention}!\n\n"
             + ALERT
         ),
@@ -103,9 +105,11 @@ def accepted(interaction: discord.Interaction, search: Record) -> dict:
 def rejected(interaction: discord.Interaction, search: Record) -> dict:
     """Data for rejected records."""
     return {
-        "edit": f"{Emoji.NOT_VERIFIED} Rejected!",
+        "edit": f"{Emoji.NOT_VERIFIED} Rejected by {interaction.user.mention}!",
         "direct_message": (
-            f"**Map Code:** {search.code}\n**Level name:** {search.level}\n**Record:** {display_record(search.record)}\n"
+            f"**Map Code:** {search.code}\n"
+            f"**Level name:** {search.level}\n"
+            f"**Record:** {display_record(search.record)}\n"
             f"Your record got {Emoji.NOT_VERIFIED} rejected by {interaction.user.mention}!\n"
             "Usually, this happens when the level, record, or code was input incorrectly. Try again!\n\n"
             + ALERT

@@ -10,6 +10,8 @@ from slash.parents import SubmitParent, DeleteParent
 from utils.constants import (
     GUILD_ID,
     VERIFICATION_CHANNEL_ID,
+    SPR_RECORDS_ID,
+    NON_SPR_RECORDS_ID,
 )
 from utils.embed import (
     create_embed,
@@ -89,7 +91,11 @@ class SubmitRecord(
 
     async def callback(self) -> None:
         """Callback for submitting records slash command."""
-        # TODO: Check if in correct channels.
+        if self.interaction.channel_id not in [SPR_RECORDS_ID, NON_SPR_RECORDS_ID]:
+            await self.interaction.response.send_message(
+                "You can't submit records in this channel.", ephemeral=True
+            )
+            return
 
         self.map_code = preprocess_map_code(self.map_code)
         self.map_code, code_changed = await find_alt_map_code(self.map_code)
@@ -101,7 +107,7 @@ class SubmitRecord(
         record_seconds = time_convert(self.record)
         await check_user(self.interaction)
 
-        record_document = await Record.filter_search(
+        record_document = await Record.filter_search_single(
             map_code=self.map_code,
             map_level=self.map_level,
             user_id=self.interaction.user.id,
@@ -158,7 +164,12 @@ class SubmitRecord(
             try:
                 original = await find_orig_msg(self.interaction, record_document)
                 await original.delete()
-            except (discord.NotFound, discord.HTTPException):
+            except (discord.NotFound, discord.HTTPException, AttributeError):
+                pass
+            # Delete old verification
+            try:
+                await delete_hidden(self.interaction, record_document)
+            except (discord.NotFound, discord.HTTPException, AttributeError):
                 pass
 
             message = await self.interaction.channel.send(

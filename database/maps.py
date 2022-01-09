@@ -50,7 +50,7 @@ class Map(Document):
     """Collection of Maps."""
 
     user_id: int
-    code: Indexed(str, unique=True)
+    code: Indexed(int, unique=True)
     creator: str
     map_name: str
     map_type: List[str]

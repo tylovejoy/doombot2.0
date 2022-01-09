@@ -16,6 +16,7 @@ logger = getLogger(__name__)
 
 def setup(bot):
     bot.application_command(RankCard)
+    bot.application_command(Alerts)
 
 
 def format_xp(xp):
@@ -217,3 +218,25 @@ class RankCard(discord.SlashCommand, guilds=[GUILD_ID], name="rank"):
             await self.interaction.edit_original_message(
                 content="", file=discord.File(fp=image_binary, filename="rank_card.png")
             )
+
+
+class Alerts(discord.SlashCommand, guilds=[GUILD_ID], name="alerts"):
+    """Enable/disable verification alerts."""
+
+    value: bool = discord.Option(
+        description="Turn alerts on or off.",
+    )
+
+    async def callback(self) -> None:
+        await self.interaction.response.defer(ephemeral=True)
+        user = await ExperiencePoints.find_user(self.interaction.user.id)
+
+        if self.value:
+            user.alerts_enabled = True
+        else:
+            user.alerts_enabled = False
+
+        await self.interaction.edit_original_message(
+            content=f"Alerts turned {'on' if self.value else 'off'}."
+        )
+        await user.save()

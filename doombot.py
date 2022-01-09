@@ -97,14 +97,14 @@ class DoomBot(discord.Client):
     async def on_message(self, message: discord.Message):
         # Suggestions
         if message.channel.id == SUGGESTIONS_ID:
-            await message.add_reaction(emoji="<:upper:787788134620332063>")
+            await message.add_reaction(emoji="<:upper:929871697555914752>")
 
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         if payload.user_id == BOT_ID:
             return
 
         if payload.emoji != discord.PartialEmoji.from_str(
-            "<:upper:787788134620332063>"
+            "<:upper:929871697555914752>"
         ):
             return
         if payload.channel_id not in [

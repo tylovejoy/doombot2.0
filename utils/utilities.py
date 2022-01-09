@@ -110,7 +110,7 @@ def get_mention(category: str, interaction: discord.Interaction) -> str:
 
 def star_emoji(stars: int) -> str:
     if 10 > stars >= 0:
-        return "<:upper:787788134620332063>"
+        return "<:upper:929871697555914752>"
     elif 15 > stars >= 10:
         return "<:ds2:873791529876082758>"
     elif 20 > stars >= 15:
