@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Any, Optional
+from typing import List, Any, Optional, Set, Generator
 
 from beanie import Document, Link
 from beanie.odm.operators.find.evaluation import RegEx
@@ -29,7 +29,7 @@ class UniquePlayers(BaseModel):
     name: str
     posted_by: int
 
-    def __str__(self) -> None:
+    def __str__(self) -> str:
         """String representation."""
         return f"{self.name}, {self.posted_by}"
 
@@ -42,11 +42,15 @@ class CurrentRecordPlacement(BaseModel):
 
 
 class MapDataLookup(BaseModel):
+    """Projection model for $lookup with RecordMapLookup."""
+
     creator: str
     map_name: str
 
 
 class RecordMapLookup(BaseModel):
+    """Projection model for Record and Map data."""
+
     posted_by: int
     code: str
     level: str
@@ -68,6 +72,7 @@ class Record(Document):
 
     @classmethod
     async def find_rec_map_info(cls, user_id):
+        """Find record data as well as corresponding map data."""
         return (
             await cls.find(cls.posted_by == user_id)
             .aggregate(
@@ -125,7 +130,7 @@ class Record(Document):
         )
 
     @classmethod
-    async def find_unique_players(cls) -> List[UniquePlayers]:
+    async def find_unique_players(cls) -> Set[str]:
         """Find unique players."""
         x = await cls.find().project(projection_model=UniquePlayers).to_list()
         return set(str(i) for i in x)
@@ -208,7 +213,7 @@ class Record(Document):
         return await cls.find(search_filter).sort("+code", "+level").to_list()
 
     @classmethod
-    async def get_level_names(cls, map_code: str) -> List[MapLevels]:
+    async def get_level_names(cls, map_code: str) -> List[str]:
         """Get the names of levels in a map code."""
         all_levels = (
             await cls.find(cls.code == map_code)
@@ -221,7 +226,7 @@ class Record(Document):
         return [str(x) for x in all_levels]
 
     @classmethod
-    async def get_codes(cls, starts_with) -> List[MapCodes]:
+    async def get_codes(cls, starts_with) -> Generator[tuple[Any, str], Any, None]:
         """Get map codes that start with a specific string."""
         all_codes = (
             await cls.find(RegEx("code", "^" + starts_with, "i"))

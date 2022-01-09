@@ -11,7 +11,7 @@ from utils.utilities import display_record
 from views.paginator import Paginator
 
 
-async def delete_hidden(interaction, record_document):
+async def delete_hidden(interaction: discord.Interaction, record_document: Record):
     """Try to delete hidden verification message."""
     try:
         hidden_msg = await interaction.guild.get_channel(
@@ -22,7 +22,8 @@ async def delete_hidden(interaction, record_document):
         pass
 
 
-async def world_records(interaction, target):
+async def world_records(interaction: discord.Interaction, target: discord.Member):
+    """Find and display world records of a specific member."""
     await interaction.response.defer(ephemeral=True)
 
     embed = create_embed(title="World Records", desc="", user=target)
@@ -37,7 +38,8 @@ async def world_records(interaction, target):
     await view.wait()
 
 
-async def personal_best(interaction, target):
+async def personal_best(interaction: discord.Interaction, target: discord.Member):
+    """Find and display personal bests of a specific member."""
     await interaction.response.defer(ephemeral=True)
     records = await Record.find_rec_map_info(user_id=target.id)
     embed = create_embed(title="Personal Bests", desc="", user=target)

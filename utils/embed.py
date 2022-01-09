@@ -4,7 +4,7 @@ import discord
 
 from database.documents import ExperiencePoints
 from database.maps import Map
-from database.records import Record
+from database.records import Record, WorldRecordsAggregate
 from utils.enums import Emoji
 from utils.utilities import display_record
 
@@ -86,7 +86,7 @@ async def records_wr_user_embed_fields(r: Record, *args) -> dict:
 
 async def split_embeds(
     initial_embed: discord.Embed,
-    documents: List[Union[Map, Record]],
+    documents: List[Union[Map, Record, WorldRecordsAggregate]],
     field_opts,
 ) -> List[discord.Embed]:
     """Split data into multiple embeds."""

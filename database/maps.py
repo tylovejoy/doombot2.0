@@ -24,7 +24,7 @@ class MapLevels(BaseModel):
 
     level: str
 
-    def __str__(self) -> None:
+    def __str__(self) -> str:
         """String representation."""
         return self.level
 
@@ -35,7 +35,7 @@ class MapCodes(BaseModel):
     code: str
     map_data: list
 
-    def __str__(self) -> None:
+    def __str__(self) -> str:
         """String representation."""
         return self.code
 
