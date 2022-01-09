@@ -127,7 +127,9 @@ async def check_roles(interaction: discord.Interaction) -> bool:
         return True
 
 
-async def select_button_enable(view: discord.ui.View, select: discord.ui.Select) -> None:
+async def select_button_enable(
+    view: discord.ui.View, select: discord.ui.Select
+) -> None:
     if len(select.values):
         view.confirm.disabled = False
     else:

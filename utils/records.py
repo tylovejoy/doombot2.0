@@ -1,3 +1,4 @@
+import math
 import re
 
 import discord
@@ -46,18 +47,15 @@ async def personal_best(interaction, target):
     for r in records:
         if r.code != cur_map:
             cur_map = r.code
-            creator = getattr(getattr(r, "map_data", None), "creator", None)
-            map_name = getattr(getattr(r, "map_data", None), "map_name", None)
+            creator = getattr(getattr(r, "map_data", None), "creator", "N/A")
+            map_name = getattr(getattr(r, "map_data", None), "map_name", "N/A")
 
-            if creator is None or map_name is None:
-                creator = map_name = "N/A"
-
-        if embed_dict.get(str(r.code), None) is None:
-            embed_dict[str(r.code)] = {
+        if embed_dict.get(r.code) is None:
+            embed_dict[r.code] = {
                 "title": f"{r.code} - {map_name} by {creator}\n",
                 "value": "",
             }
-        embed_dict[str(r.code)]["value"] += (
+        embed_dict[r.code]["value"] += (
             f"> **{r.level}**\n"
             f"> Record: {display_record(r.record)}\n"
             f"> Verified: {Emoji.is_verified(r.verified)}\n"
@@ -66,31 +64,31 @@ async def personal_best(interaction, target):
 
     embeds = []
 
+    # if over 1024 char limit
+    # split pbs dict value into list of individual pbs
+    # and divide in half.. Add two fields instead of just one.
     if len(embed_dict) > 0:
+
+        delimiter_regex = r">.*\n>.*\n>.*\n━━━━━━━━━━━━\n"
+
         for i, map_pbs in enumerate(embed_dict.values()):
-            if len(map_pbs["value"]) > 1024:
-                # if over 1024 char limit
-                # split pbs dict value into list of individual pbs
-                # and divide in half.. Add two fields instead of just one.
-                delimiter_regex = r">.*\n>.*\n>.*\n━━━━━━━━━━━━\n"
-                pb_split = re.findall(delimiter_regex, map_pbs["value"])
-                # pb_split = natsorted(pb_split)
-                pb_split_1 = pb_split[: len(pb_split) // 2]
-                pb_split_2 = pb_split[len(pb_split) // 2 :]
-                embed.add_field(
-                    name=f"{map_pbs['title']} (1)",
-                    value="".join(pb_split_1),
-                    inline=False,
-                )
-                embed.add_field(
-                    name=f"{map_pbs['title']} (2)",
-                    value="".join(pb_split_2),
-                    inline=False,
-                )
-            else:
-                embed.add_field(
-                    name=map_pbs["title"], value=map_pbs["value"], inline=False
-                )
+            pb_split = re.findall(delimiter_regex, map_pbs["value"])
+            splits_amount = (len(map_pbs["value"]) // 1024) + 1
+            splits_length = math.ceil(len(pb_split) / splits_amount)
+
+            chunks = [
+                pb_split[splits_length * x : splits_length * (x + 1)]
+                for x in range(int(len(pb_split) / splits_length + 1))
+            ]
+
+            for chunk in chunks:
+                if len(chunk) > 0:
+                    embed.add_field(
+                        name=f"{map_pbs['title']}",
+                        value="".join(chunk),
+                        inline=False,
+                    )
+
             if (i + 1) % 3 == 0 or (i + 1) == len(embed_dict):
                 embeds.append(embed)
                 embed = discord.Embed(title=target.name)

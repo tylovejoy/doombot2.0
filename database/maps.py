@@ -15,7 +15,7 @@ class MapAlias(Document):
 
     @classmethod
     async def get_alias(cls, map_code: str) -> str:
-        
+
         return getattr(await cls.find_one(cls.alias == map_code), "original_code", None)
 
 
