@@ -47,21 +47,15 @@ def time_convert(time_input: str) -> float:
 
 def display_record(record: float) -> str:
     """Display record in HH:MM:SS.ss format."""
-    negative = "-" if check_negative(record) else ""
+    negative = "-" if is_negative(record) else ""
     dt = datetime.datetime.min + datetime.timedelta(seconds=abs(record))
     return negative + dt.strftime(f"%H:%M:%S.%f")[:-4]
 
 
-def check_negative(s: Union[float, int]) -> bool:
+def is_negative(s: Union[float, int]) -> bool:
     """Check if a number is negative."""
-    try:
-        f = float(s)
-        if f < 0:
-            return True
-        # Otherwise return false
-        return False
-    except ValueError:
-        return False
+    if s < 0:
+        return True
 
 
 def preprocess_map_code(map_code: str) -> str:
@@ -116,14 +110,6 @@ def star_emoji(stars: int) -> str:
         return "<:ds4:873791530018701312>"
 
 
-async def check_roles(interaction: discord.Interaction) -> bool:
-    if bool(set([x.id for x in interaction.user.roles]).intersection(ROLE_WHITELIST)):
-        await interaction.response.send_message(
-            "You do not have permission to use this command.", ephemeral=True
-        )
-        return True
-
-
 async def select_button_enable(
     view: discord.ui.View, select: discord.ui.Select
 ) -> None:
@@ -137,3 +123,7 @@ async def select_button_enable(
         else:
             x.default = False
     await view.interaction.edit_original_message(view=select.view)
+
+
+async def no_perms_warning(interaction: discord.Interaction):
+    await interaction.response.send_message("You do not have permission to use this command.", ephemeral=True)

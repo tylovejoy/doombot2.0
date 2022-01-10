@@ -15,7 +15,7 @@ from utils.constants import (
     TOURNAMENT_INFO_ID,
 )
 from utils.embed import create_embed
-from utils.utilities import get_mention
+from utils.utilities import check_roles, get_mention, no_perms_warning
 
 from views.tournament import TournamentCategoryView, TournamentStartView
 
@@ -35,6 +35,10 @@ class TournamentStart(
 
     async def callback(self) -> None:
         """Callback for submitting records slash command."""
+        if not check_roles(self.interaction):
+            await no_perms_warning(self.interaction)
+            return
+        
         last_tournament = await Tournament.find_latest()
         if last_tournament:
             last_id = last_tournament.tournament_id
@@ -137,6 +141,10 @@ class TournamentAnnouncement(
     )
 
     async def callback(self) -> None:
+        if not check_roles(self.interaction):
+            await no_perms_warning(self.interaction)
+            return
+
         view = TournamentCategoryView(self.interaction)
         embed = create_embed(title="Announcement", desc="", user=self.interaction.user)
         embed.add_field(name=self.title, value=self.content, inline=False)

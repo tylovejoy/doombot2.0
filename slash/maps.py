@@ -16,6 +16,7 @@ from utils.constants import (
     NEWEST_MAPS_ID,
 )
 from utils.utilities import (
+    no_perms_warning,
     preprocess_map_code,
     case_ignore_compare,
     check_roles,
@@ -221,10 +222,7 @@ class DeleteMap(
             not check_roles(self.interaction)
             or self.interaction.user.id != map_document.user_id
         ):
-            await self.interaction.response.send_message(
-                content="You do not have permission to delete this!",
-                ephemeral=True,
-            )
+            await no_perms_warning(self.interaction)
             return
 
         preview = (

@@ -6,7 +6,7 @@ from discord.app import AutoCompleteResponse
 
 from database.documents import Tags
 from slash.parents import CreateParent, DeleteParent
-from utils.utilities import case_ignore_compare, check_roles
+from utils.utilities import case_ignore_compare, check_roles, no_perms_warning
 from utils.constants import GUILD_ID
 from utils.embed import create_embed
 from views.basic import ConfirmView
@@ -46,6 +46,7 @@ class DeleteTag(
     async def callback(self) -> None:
         await self.interaction.response.defer(ephemeral=True)
         if not check_roles(self.interaction):
+            await no_perms_warning(self.interaction)
             return
 
         tag = Tags.find_one(Tags.name == self.name)
@@ -81,6 +82,7 @@ class CreateTag(
 
     async def callback(self) -> None:
         if not check_roles(self.interaction):
+            await no_perms_warning()
             return
 
         view = ConfirmView()

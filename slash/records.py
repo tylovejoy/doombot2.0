@@ -24,6 +24,7 @@ from utils.enums import Emoji
 from utils.records import delete_hidden, world_records, personal_best
 from utils.utilities import (
     find_alt_map_code,
+    no_perms_warning,
     preprocess_map_code,
     time_convert,
     check_roles,
@@ -214,7 +215,10 @@ class DeleteRecord(
         self.map_code = preprocess_map_code(self.map_code)
         self.map_level = self.map_level.upper()
 
-        if self.user and check_roles(self.interaction):
+        if self.user:
+            if not check_roles(self.interaction):
+                await no_perms_warning(self.interaction)
+                return
             user_id = self.user.id
         else:
             user_id = self.interaction.user.id
