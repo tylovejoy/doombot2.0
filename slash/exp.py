@@ -17,6 +17,7 @@ logger = getLogger(__name__)
 def setup(bot):
     bot.application_command(RankCard)
     bot.application_command(Alerts)
+    bot.application_command(ChangeName)
 
 
 def format_xp(xp):
@@ -239,4 +240,18 @@ class Alerts(discord.SlashCommand, guilds=[GUILD_ID], name="alerts"):
         await self.interaction.edit_original_message(
             content=f"Alerts turned {'on' if self.value else 'off'}."
         )
+        await user.save()
+
+class ChangeName(discord.SlashCommand, guilds=[GUILD_ID], name="changename"):
+    """Change your display name for DoomBot commands."""
+
+    name: str = discord.Option(
+        description="What should your display name be?",
+    )
+
+    async def callback(self) -> None:
+        await self.interaction.response.defer(ephemeral=True)
+        user = await ExperiencePoints.find_user(self.interaction.user.id)
+        user.alias = self.name
+        await self.interaction.edit_original_message(content=f"Name changed to {self.name}.")
         await user.save()
