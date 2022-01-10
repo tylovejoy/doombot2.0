@@ -67,7 +67,7 @@ class Tournament(Document):
     tournament_id: int
     name: str
     embed: Optional[dict]
-    mentions: str
+    mentions: Optional[str]
     schedule_start: datetime
     schedule_end: datetime
 

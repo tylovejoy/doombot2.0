@@ -3,12 +3,11 @@ import discord
 from utils.constants import GUILD_ID
 
 
-def setup(bot):
+def setup(bot: discord.Client):
     bot.application_command(SubmitParent)
     bot.application_command(EditParent)
     bot.application_command(DeleteParent)
     bot.application_command(TournamentParent)
-    bot.application_command(TournamentSubmitParent)
     bot.application_command(CreateParent)
 
 
@@ -28,7 +27,7 @@ class DeleteParent(discord.SlashCommand, guilds=[GUILD_ID], name="delete"):
     """Delete slash command parent class."""
 
 
-class TournamentParent(discord.SlashCommand, guilds=[GUILD_ID], name="tournament"):
+class TournamentParent(discord.SlashCommand, guilds=[GUILD_ID], name="tourney"):
     """Tournament slash command parent class."""
 
 

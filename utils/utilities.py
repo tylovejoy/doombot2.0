@@ -126,4 +126,6 @@ async def select_button_enable(
 
 
 async def no_perms_warning(interaction: discord.Interaction):
-    await interaction.response.send_message("You do not have permission to use this command.", ephemeral=True)
+    await interaction.response.send_message(
+        "You do not have permission to use this command.", ephemeral=True
+    )

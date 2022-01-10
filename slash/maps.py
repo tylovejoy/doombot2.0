@@ -38,11 +38,6 @@ MAP_TYPES_AUTOCOMPLETE = {k: k for k in MapTypes.list()}
 
 def setup(bot):
     bot.application_command(MapSearch)
-    bot.application_command(SubmitMap)
-    bot.application_command(EditMap)
-    bot.application_command(RandomMap)
-    bot.application_command(DeleteMap)
-    bot.application_command(SubmitMapAlias)
 
 
 def autocomplete_maps(options, focused):

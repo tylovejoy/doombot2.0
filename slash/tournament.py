@@ -1,3 +1,4 @@
+import datetime
 from logging import getLogger
 from typing import Optional
 
@@ -8,8 +9,12 @@ from discord.utils import format_dt
 from database.tournament import (
     Announcement,
     Tournament,
+    TournamentData,
+    TournamentMaps,
+    TournamentMissions,
+    TournamentMissionsCategories,
 )
-from slash.parents import TournamentParent
+from slash.parents import TournamentParent, TournamentSubmitParent
 from utils.constants import (
     GUILD_ID,
     TOURNAMENT_INFO_ID,
@@ -23,9 +28,16 @@ logger = getLogger(__name__)
 
 
 def setup(bot):
-    bot.application_command(TournamentStart)
-    bot.application_command(Hardcore)
-    bot.application_command(TournamentAnnouncement)
+    bot.application_command(Test)
+
+
+class Test(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
+    option: bool = discord.Option()
+
+    async def callback(self) -> None:
+        print(TournamentParent._children_)
+        for x in TournamentParent._children_:
+            print(type(x))
 
 
 class TournamentStart(
@@ -33,84 +45,94 @@ class TournamentStart(
 ):
     """Create and start a new tournament."""
 
+    schedule_start: str = discord.Option(
+        description="When should the tournament start?",
+    )
+    schedule_end: str = discord.Option(
+        description="When should the tournament end?",
+    )
+    time_attack: Optional[str] = discord.Option(
+        description="CODE - LEVEL NAME - CREATOR",
+    )
+    mildcore: Optional[str] = discord.Option(
+        description="CODE - LEVEL NAME - CREATOR",
+    )
+    hardcore: Optional[str] = discord.Option(
+        description="CODE - LEVEL NAME - CREATOR",
+    )
+    bonus: Optional[str] = discord.Option(
+        description="CODE - LEVEL NAME - CREATOR",
+    )
+
     async def callback(self) -> None:
         """Callback for submitting records slash command."""
         if not check_roles(self.interaction):
             await no_perms_warning(self.interaction)
             return
-        
+        await self.interaction.response.defer(ephemeral=True)
+        # TODO: Check for active tournaments
+
         last_tournament = await Tournament.find_latest()
         if last_tournament:
             last_id = last_tournament.tournament_id
         else:
             last_id = 0
 
-        # tournament_document = Tournament(
-        #     tournament_id=last_id + 1,
-        #     name="Tournament Test",
-        #     active=True,
-        #     bracket=False,
-        #     schedule_start=datetime(1, 1, 1),
-        #     schedule_end=datetime(1, 2, 1),
-        #     ta=TournamentData(
-        #         map_data=TournamentMaps(
-        #             code="code1", creator="creator", map_name="Hanamura", level="bing"
-        #         ),
-        #         missions=TournamentMissionsCategories(
-        #             easy=TournamentMissions(type="sub", target="10"),
-        #             medium=TournamentMissions(type="sub", target="15"),
-        #             hard=TournamentMissions(type="sub", target="20"),
-        #             expert=TournamentMissions(type="sub", target="25"),
-        #         ),
-        #     ),
-        #     mc=TournamentData(
-        #         map_data=TournamentMaps(
-        #             code="code1", creator="creator", map_name="Hanamura", level="bing"
-        #         ),
-        #         missions=TournamentMissionsCategories(
-        #             easy=TournamentMissions(type="sub", target="11"),
-        #             medium=TournamentMissions(type="sub", target="16"),
-        #             hard=TournamentMissions(type="sub", target="21"),
-        #             expert=TournamentMissions(type="sub", target="26"),
-        #         ),
-        #     ),
-        #     hc=TournamentData(
-        #         map_data=TournamentMaps(
-        #             code="code1", creator="creator", map_name="Hanamura", level="bing"
-        #         ),
-        #         missions=TournamentMissionsCategories(
-        #             easy=TournamentMissions(type="sub", target="12"),
-        #             medium=TournamentMissions(type="sub", target="17"),
-        #             hard=TournamentMissions(type="sub", target="22"),
-        #             expert=TournamentMissions(type="sub", target="27"),
-        #         ),
-        #     ),
-        #     bo=TournamentData(
-        #         map_data=TournamentMaps(
-        #             code="code1", creator="creator", map_name="Hanamura", level="bing"
-        #         ),
-        #         missions=TournamentMissionsCategories(
-        #             easy=TournamentMissions(type="sub", target="13"),
-        #             medium=TournamentMissions(type="sub", target="18"),
-        #             hard=TournamentMissions(type="sub", target="23"),
-        #             expert=TournamentMissions(type="sub", target="28"),
-        #         ),
-        #     ),
-        #     general_mission=TournamentMissions(type="ya", target="mama")
-        # )
+        self.schedule_start = dateparser.parse(
+            self.schedule_start, settings={"PREFER_DATES_FROM": "future"}
+        )
+        self.schedule_end = (
+            dateparser.parse(
+                self.schedule_end, settings={"PREFER_DATES_FROM": "future"}
+            )
+            - datetime.datetime.now()
+            + self.schedule_start
+        )
+        print(type(self.schedule_end))
 
-        # await tournament_document.insert()
+        tournament_document = Tournament(
+            tournament_id=last_id + 1,
+            name="Doomfist Parkour Tournament",
+            active=True,
+            bracket=False,
+            mentions="kdjfgkjdsfg",
+            schedule_start=self.schedule_start,
+            schedule_end=self.schedule_end,
+            ta=TournamentData(
+                map_data=TournamentMaps(
+                    code="code1", creator="creator", map_name="Hanamura", level="bing"
+                ),
+                missions=TournamentMissionsCategories(),
+            ),
+            mc=TournamentData(
+                map_data=TournamentMaps(
+                    code="code1", creator="creator", map_name="Hanamura", level="bing"
+                ),
+                missions=TournamentMissionsCategories(),
+            ),
+            hc=TournamentData(
+                map_data=TournamentMaps(
+                    code="code1", creator="creator", map_name="Hanamura", level="bing"
+                ),
+                missions=TournamentMissionsCategories(),
+            ),
+            bo=TournamentData(
+                map_data=TournamentMaps(
+                    code="code1", creator="creator", map_name="Hanamura", level="bing"
+                ),
+                missions=TournamentMissionsCategories(),
+            ),
+        )
 
-        x = last_tournament.get_all_missions()
-
-        await self.interaction.response.send_message(f"{x}", ephemeral=True)
+        await tournament_document.insert()
+        await self.interaction.edit_original_message(content=f"{tournament_document}")
 
 
 class Hardcore(
     discord.SlashCommand,
     guilds=[GUILD_ID],
     name="hardcore",
-    # parent=TournamentSubmitParent,
+    parent=TournamentSubmitParent,
 ):
     """Hardcore tournament submission."""
 

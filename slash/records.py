@@ -35,9 +35,9 @@ from views.paginator import Paginator
 logger = getLogger(__name__)
 
 
-def setup(bot):
-    bot.application_command(SubmitRecord)
-    bot.application_command(DeleteRecord)
+def setup(bot: discord.Client):
+    # bot.application_command(SubmitRecord)
+    # bot.application_command(DeleteRecord)
     bot.application_command(ViewRecords)
     bot.application_command(PersonalRecords)
     bot.application_command(PersonalRecordsUserCommand)
