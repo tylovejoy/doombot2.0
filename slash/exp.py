@@ -242,7 +242,7 @@ class Alerts(discord.SlashCommand, guilds=[GUILD_ID], name="alerts"):
         )
         await user.save()
 
-class ChangeName(discord.SlashCommand, guilds=[GUILD_ID], name="changename"):
+class ChangeName(discord.SlashCommand, guilds=[GUILD_ID], name="name"):
     """Change your display name for DoomBot commands."""
 
     name: str = discord.Option(
