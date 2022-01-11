@@ -36,8 +36,7 @@ logger = getLogger(__name__)
 
 
 def setup(bot: discord.Client):
-    # bot.application_command(SubmitRecord)
-    # bot.application_command(DeleteRecord)
+    logger.info("Loading Records commands...")
     bot.application_command(ViewRecords)
     bot.application_command(PersonalRecords)
     bot.application_command(PersonalRecordsUserCommand)

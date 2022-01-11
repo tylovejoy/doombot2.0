@@ -15,6 +15,7 @@ logger = getLogger(__name__)
 
 
 def setup(bot):
+    logger.info("Loading Tags commands...")
     bot.application_command(TagsCommand)
     bot.application_command(WorkshopHelp)
 

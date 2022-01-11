@@ -15,6 +15,7 @@ logger = getLogger(__name__)
 
 
 def setup(bot):
+    logger.info("Loading EXP commands...")
     bot.application_command(RankCard)
     bot.application_command(Alerts)
     bot.application_command(ChangeName)

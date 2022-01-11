@@ -37,6 +37,7 @@ MAP_TYPES_AUTOCOMPLETE = {k: k for k in MapTypes.list()}
 
 
 def setup(bot):
+    logger.info("Loading Map commands...")
     bot.application_command(MapSearch)
 
 

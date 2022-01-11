@@ -28,6 +28,7 @@ logger = getLogger(__name__)
 
 
 def setup(bot):
+    logger.info("Loading Tournament commands...")
     bot.application_command(Test)
 
 

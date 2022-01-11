@@ -4,6 +4,7 @@ from utils.constants import GUILD_ID
 
 
 def setup(bot: discord.Client):
+    logger.info("Loading Slash Parents...")
     bot.application_command(SubmitParent)
     bot.application_command(EditParent)
     bot.application_command(DeleteParent)
