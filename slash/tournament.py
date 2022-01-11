@@ -20,7 +20,7 @@ from utils.constants import (
     TOURNAMENT_INFO_ID,
 )
 from utils.embed import create_embed
-from utils.utilities import check_roles, get_mention, no_perms_warning
+from utils.utilities import check_roles, get_mention, no_perms_warning, tournament_category_map
 
 from views.tournament import TournamentCategoryView, TournamentStartView
 
@@ -101,32 +101,49 @@ class TournamentStart(
             schedule_end=self.schedule_end,
             ta=TournamentData(
                 map_data=TournamentMaps(
-                    code="code1", creator="creator", map_name="Hanamura", level="bing"
+                    code="ASSE9", creator="Sven", level="LEVEL 1"
                 ),
                 missions=TournamentMissionsCategories(),
             ),
             mc=TournamentData(
                 map_data=TournamentMaps(
-                    code="code1", creator="creator", map_name="Hanamura", level="bing"
+                    code="29Y0P", creator="Sky", level="LEVEL 6"
                 ),
                 missions=TournamentMissionsCategories(),
             ),
             hc=TournamentData(
                 map_data=TournamentMaps(
-                    code="code1", creator="creator", map_name="Hanamura", level="bing"
+                    code="5EMMA", creator="Opare", level="LEVEL 9"
                 ),
                 missions=TournamentMissionsCategories(),
             ),
-            bo=TournamentData(
-                map_data=TournamentMaps(
-                    code="code1", creator="creator", map_name="Hanamura", level="bing"
-                ),
-                missions=TournamentMissionsCategories(),
+            # bo=TournamentData(
+            #     map_data=TournamentMaps(
+            #         code="code1", creator="creator", level="bing"
+            #     ),
+            #     missions=TournamentMissionsCategories(),
+            # ),
+        )
+        embed = create_embed(
+            tournament_document.name, 
+            (
+                f"Start: {format_dt(self.schedule_start, style='R')} - {format_dt(self.schedule_start, style='F')}\n"
+                f"End: {format_dt(self.schedule_end, style='R')} - {format_dt(self.schedule_end, style='F')}\n"
             ),
+            self.interaction.user
         )
 
-        await tournament_document.insert()
-        await self.interaction.edit_original_message(content=f"{tournament_document}")
+        for category in ["ta", "mc", "hc", "bo"]:
+            data = getattr(getattr(tournament_document, category, None), "map_data", None)
+            if getattr(data, "code", None):
+                embed.add_field(
+                name=f"{tournament_category_map(category)} ({data.code})",
+                value=f"***{data.level}*** by {data.creator}",
+                inline=False,
+            )
+
+        #await tournament_document.insert()
+        await self.interaction.edit_original_message(embed=embed)
 
 
 class Hardcore(
@@ -138,13 +155,7 @@ class Hardcore(
     """Hardcore tournament submission."""
 
     async def callback(self) -> None:
-        view = TournamentStartView(self.interaction)
-        embed = create_embed(
-            "Tournament Start Wizard",
-            "Click on the buttons to add necessary information.",
-            self.interaction.user,
-        )
-        await self.interaction.response.send_message(embed=embed, view=view)
+        pass
 
 
 class TournamentAnnouncement(
