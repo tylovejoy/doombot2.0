@@ -25,7 +25,6 @@ class TournamentMaps(BaseModel):
 
     code: str
     creator: str
-    map_name: str
     level: str
 
 
