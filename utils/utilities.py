@@ -129,3 +129,11 @@ async def no_perms_warning(interaction: discord.Interaction):
     await interaction.response.send_message(
         "You do not have permission to use this command.", ephemeral=True
     )
+
+def tournament_category_map(category: str) -> str:
+    return {
+        "ta": "Time Attack",
+        "mc": "Mildcore",
+        "hc": "Hardcore",
+        "bo": "Bonus"
+    }.get(category, None)

@@ -158,32 +158,34 @@ class SubmitMap(
         )
 
         await view.wait()
-        if view.confirm.value:
-            view.clear_items()
-            preview += (
-                f"**Map Types:** {', '.join(view.select_menu.values)}\n"
-                f"{'―' * 15}\n"
-                "**__SUBMISSION CONFIRMED__** and submitted to the database!"
-            )
+        if not view.confirm.value:
+            return
 
-            submission = Map(
-                user_id=self.interaction.user.id,
-                code=self.map_code,
-                creator=self.creator,
-                description=self.description,
-                map_name=self.map_name,
-                map_type=view.select_menu.values,
-            )
-            await submission.insert()
-            await self.interaction.edit_original_message(content=preview, view=view)
+        view.clear_items()
+        preview += (
+            f"**Map Types:** {', '.join(view.select_menu.values)}\n"
+            f"{'―' * 15}\n"
+            "**__SUBMISSION CONFIRMED__** and submitted to the database!"
+        )
 
-            new_maps_channel = self.interaction.guild.get_channel(NEWEST_MAPS_ID)
+        submission = Map(
+            user_id=self.interaction.user.id,
+            code=self.map_code,
+            creator=self.creator,
+            description=self.description,
+            map_name=self.map_name,
+            map_type=view.select_menu.values,
+        )
+        await submission.insert()
+        await self.interaction.edit_original_message(content=preview, view=view)
 
-            embed = create_embed(title="New Map!", desc="", user=self.interaction.user)
-            embed.add_field(**await maps_embed_fields(submission), inline=False)
+        new_maps_channel = self.interaction.guild.get_channel(NEWEST_MAPS_ID)
 
-            new_map = await new_maps_channel.send(embed=embed)
-            await new_map.create_thread(name=f"Discuss {self.map_code} here.")
+        embed = create_embed(title="New Map!", desc="", user=self.interaction.user)
+        embed.add_field(**await maps_embed_fields(submission), inline=False)
+
+        new_map = await new_maps_channel.send(embed=embed)
+        await new_map.create_thread(name=f"Discuss {self.map_code} here.")
 
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
@@ -237,11 +239,13 @@ class DeleteMap(
         )
 
         await view.wait()
-        if view.confirm.value:
-            view.clear_items()
-            preview += f"{'―' * 15}\n" "**__MAP DELETED__** from the database!"
-            await map_document.delete()
-            await self.interaction.edit_original_message(content=preview, view=view)
+        if not view.confirm.value:
+            return
+
+        view.clear_items()
+        preview += f"{'―' * 15}\n" "**__MAP DELETED__** from the database!"
+        await map_document.delete()
+        await self.interaction.edit_original_message(content=preview, view=view)
 
 
 class EditMap(discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=EditParent):
@@ -315,15 +319,17 @@ class EditMap(discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=EditPa
 
         map_document.map_type = view.select_menu.values or map_document.map_type
 
-        if view.confirm.value:
-            view.clear_items()
-            preview += (
-                f"**Map Types:** {', '.join(view.select_menu.values)}\n"
-                f"{'―' * 15}\n"
-                "**__SUBMISSION CONFIRMED__** and submitted to the database!"
-            )
-            await map_document.save()
-            await self.interaction.edit_original_message(content=preview, view=view)
+        if not view.confirm.value:
+            return
+
+        view.clear_items()
+        preview += (
+            f"**Map Types:** {', '.join(view.select_menu.values)}\n"
+            f"{'―' * 15}\n"
+            "**__SUBMISSION CONFIRMED__** and submitted to the database!"
+        )
+        await map_document.save()
+        await self.interaction.edit_original_message(content=preview, view=view)
 
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
@@ -383,9 +389,11 @@ class SubmitMapAlias(
         await self.interaction.response.send_message(string, view=view, ephemeral=True)
         await view.wait()
 
-        if view.children[0].value:
-            await document.insert()
-            view.clear_items()
-            await self.interaction.edit_original_message(
-                content="Submitted.", view=view
-            )
+        if not view.children[0].value:
+            return
+            
+        await document.insert()
+        view.clear_items()
+        await self.interaction.edit_original_message(
+            content="Submitted.", view=view
+        )

@@ -1,7 +1,8 @@
 import discord
-
+from logging import getLogger
 from utils.constants import GUILD_ID
 
+logger = getLogger(__name__)
 
 def setup(bot: discord.Client):
     logger.info("Loading Slash Parents...")

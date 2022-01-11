@@ -62,11 +62,13 @@ class DeleteTag(
             view=view,
         )
         await view.wait()
-        if view.confirm.value:
-            await self.interaction.edit_original_message(
-                content=f"**{tag.name}** has been deleted.", view=view
-            )
-            await tag.delete()
+        if not view.confirm.value:
+            return
+
+        await self.interaction.edit_original_message(
+            content=f"**{tag.name}** has been deleted.", view=view
+        )
+        await tag.delete()
 
     async def autocomplete(self, options, focused):
         tag_names = await Tags.find_all_tag_names()
@@ -94,11 +96,13 @@ class CreateTag(
             ephemeral=True,
         )
         await view.wait()
-        if view.confirm.value:
-            await self.interaction.edit_original_message(
-                content=f"**{tag.name}** has been added as a new tag.", view=view
-            )
-            await tag.save()
+        if not view.confirm.value:
+            return
+
+        await self.interaction.edit_original_message(
+            content=f"**{tag.name}** has been added as a new tag.", view=view
+        )
+        await tag.save()
 
 
 class TagsCommand(discord.SlashCommand, guilds=[GUILD_ID], name="tag"):
@@ -129,9 +133,8 @@ class WorkshopHelp(discord.SlashCommand, guilds=[GUILD_ID], name="workshop"):
     async def callback(self) -> None:
         await self.interaction.response.defer(ephemeral=self.hidden)
         self.search = self.search.replace(" ", "-")
+        url = f"https://workshop.codes/wiki/search/{self.search}.json"
         async with aiohttp.ClientSession() as session:
-
-            url = f"https://workshop.codes/wiki/search/{self.search}.json"
             async with session.get(url) as resp:
                 data = list(await resp.json())[0]
                 embed = create_embed(

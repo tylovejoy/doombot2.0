@@ -155,36 +155,38 @@ class SubmitRecord(
         )
         await view.wait()
 
-        if view.confirm.value:
-            view.clear_items()
-            await self.interaction.edit_original_message(
-                content="Submitted.", view=view
-            )
-            # Delete old submission
-            try:
-                original = await find_orig_msg(self.interaction, record_document)
-                await original.delete()
-            except (discord.NotFound, discord.HTTPException, AttributeError):
-                pass
-            # Delete old verification
-            try:
-                await delete_hidden(self.interaction, record_document)
-            except (discord.NotFound, discord.HTTPException, AttributeError):
-                pass
+        if not view.confirm.value:
+            return 
 
-            message = await self.interaction.channel.send(
-                content=f"{Emoji.TIME} Waiting for verification...", embed=embed
-            )
-            record_document.message_id = message.id
+        view.clear_items()
+        await self.interaction.edit_original_message(
+            content="Submitted.", view=view
+        )
+        # Delete old submission
+        try:
+            original = await find_orig_msg(self.interaction, record_document)
+            await original.delete()
+        except (discord.NotFound, discord.HTTPException, AttributeError):
+            pass
+        # Delete old verification
+        try:
+            await delete_hidden(self.interaction, record_document)
+        except (discord.NotFound, discord.HTTPException, AttributeError):
+            pass
 
-            # Send verification notification.
-            verification_channel = self.interaction.guild.get_channel(
-                VERIFICATION_CHANNEL_ID
-            )
-            verify_view = VerificationView()
-            hidden_msg = await verification_channel.send(embed=embed, view=verify_view)
-            record_document.hidden_id = hidden_msg.id
-            await record_document.save()
+        message = await self.interaction.channel.send(
+            content=f"{Emoji.TIME} Waiting for verification...", embed=embed
+        )
+        record_document.message_id = message.id
+
+        # Send verification notification.
+        verification_channel = self.interaction.guild.get_channel(
+            VERIFICATION_CHANNEL_ID
+        )
+        verify_view = VerificationView()
+        hidden_msg = await verification_channel.send(embed=embed, view=verify_view)
+        record_document.hidden_id = hidden_msg.id
+        await record_document.save()
 
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
@@ -235,11 +237,13 @@ class DeleteRecord(
         )
         await view.wait()
 
-        if view.confirm.value:
-            view.clear_items()
-            await self.interaction.edit_original_message(content="Deleted.", view=view)
-            await delete_hidden(self.interaction, record_document)
-            await record_document.delete()
+        if not view.confirm.value:
+            return
+            
+        view.clear_items()
+        await self.interaction.edit_original_message(content="Deleted.", view=view)
+        await delete_hidden(self.interaction, record_document)
+        await record_document.delete()
 
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
