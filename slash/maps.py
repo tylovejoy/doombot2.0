@@ -391,7 +391,7 @@ class SubmitMapAlias(
 
         if not view.children[0].value:
             return
-            
+
         await document.insert()
         view.clear_items()
         await self.interaction.edit_original_message(

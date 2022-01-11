@@ -239,7 +239,7 @@ class DeleteRecord(
 
         if not view.confirm.value:
             return
-            
+
         view.clear_items()
         await self.interaction.edit_original_message(content="Deleted.", view=view)
         await delete_hidden(self.interaction, record_document)

@@ -1,20 +1,22 @@
 import datetime
 from logging import getLogger
-from typing import Optional
+from typing import Dict, Optional, Union
 
 import dateparser
 import discord
+from discord.app import AutoCompleteResponse
 from discord.utils import format_dt
 
 from database.tournament import (
     Announcement,
+    DifficultyLiteral,
     Tournament,
     TournamentData,
     TournamentMaps,
     TournamentMissions,
     TournamentMissionsCategories,
 )
-from slash.parents import TournamentParent, TournamentSubmitParent
+from slash.parents import TournamentMissionsParent, TournamentParent, TournamentSubmitParent
 from utils.constants import (
     GUILD_ID,
     TOURNAMENT_INFO_ID,
@@ -155,7 +157,7 @@ class Hardcore(
     """Hardcore tournament submission."""
 
     async def callback(self) -> None:
-        pass
+        await self.interaction.response.send_message("PONG")
 
 
 class TournamentAnnouncement(
@@ -222,3 +224,60 @@ class TournamentAnnouncement(
         await self.interaction.guild.get_channel(TOURNAMENT_INFO_ID).send(
             f"{mentions}", embed=embed
         )
+
+
+class TournamentAddMissions(
+    discord.SlashCommand,
+    guilds=[GUILD_ID],
+    name="add",
+    parent=TournamentMissionsParent,
+):
+    """Add missions."""
+
+    category: str = discord.Option(description="Which tournament category?", autocomplete=True)
+    difficulty: str = discord.Option(
+        description="Which difficulty?", autocomplete=True
+    )
+    type: str = discord.Option(description="Which type of mission?", autocomplete=True)
+    target: str = discord.Option(
+        description="Target value of mission."
+    )
+
+    async def callback(self) -> None:
+        if not check_roles(self.interaction):
+            await no_perms_warning(self.interaction)
+            return
+        await self.interaction.response.defer(ephemeral=True)
+        await self.interaction.edit_original_message(content="Pong")
+
+    async def autocomplete(
+        self, options: Dict[str, Union[int, float, str]], focused: str
+    ):
+        if focused == "category":
+            return AutoCompleteResponse({
+                "Time Attack": "ta",
+                "Mildcore": "mc",
+                "Hardcore": "hc",
+                "Bonus": "bo",
+            })
+        if focused == "difficulty":
+            return AutoCompleteResponse({
+                "Easy": "easy",
+                "Medium": "medium",
+                "Hard": "hard",
+                "Expert": "expert",
+                "General": "general",
+            })
+        if focused == "type":
+            diff = options.get("difficulty")
+            if diff == "general":
+                return AutoCompleteResponse({
+                    "XP Threshold": "xp",
+                    "Mission Threshold": "missions",
+                    "Top Placement": "top",
+                })
+            if diff != "general":
+                return AutoCompleteResponse({
+                    "Sub x time": "sub",
+                    "Complete entire level": "complete",
+                })

@@ -11,6 +11,7 @@ def setup(bot: discord.Client):
     bot.application_command(DeleteParent)
     bot.application_command(TournamentParent)
     bot.application_command(CreateParent)
+    bot.application_command(TournamentMissionsParent)
 
 
 class CreateParent(discord.SlashCommand, guilds=[GUILD_ID], name="create"):
@@ -33,7 +34,11 @@ class TournamentParent(discord.SlashCommand, guilds=[GUILD_ID], name="tournament
     """Tournament slash command parent class."""
 
 
+class TournamentMissionsParent(discord.SlashCommand, guilds=[GUILD_ID], name="missions"):
+    """Tournament missions slash command parent class."""
+
+
 class TournamentSubmitParent(
-    discord.SlashCommand, guilds=[GUILD_ID], name="tournament", parent=SubmitParent
+    discord.SlashCommand, guilds=[GUILD_ID], name="submit", parent=TournamentParent
 ):
     """Tournament slash command parent class."""
