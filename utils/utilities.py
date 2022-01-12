@@ -122,8 +122,8 @@ async def select_button_enable(
             x.default = True
         else:
             x.default = False
-    await view.interaction.edit_original_message(view=select.view)
-
+    
+    await view.interaction.edit_original_message(view=view)
 
 async def no_perms_warning(interaction: discord.Interaction):
     await interaction.response.send_message(
@@ -136,4 +136,14 @@ def tournament_category_map(category: str) -> str:
         "mc": "Mildcore",
         "hc": "Hardcore",
         "bo": "Bonus"
+    }.get(category, None)
+
+def tournament_category_map_reverse(category: str) -> str:
+    return {
+        "Time Attack": "ta",
+        "Mildcore": "mc",
+        "Hardcore": "hc",
+        "Bonus": "bo",
+        "Trifecta": "tr",
+        "Bracket": "br",
     }.get(category, None)

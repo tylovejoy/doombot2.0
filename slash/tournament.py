@@ -22,7 +22,7 @@ from utils.constants import (
     TOURNAMENT_INFO_ID,
 )
 from utils.embed import create_embed
-from utils.utilities import check_roles, get_mention, no_perms_warning, tournament_category_map
+from utils.utilities import check_roles, get_mention, no_perms_warning, tournament_category_map, tournament_category_map_reverse
 
 from views.tournament import TournamentCategoryView, TournamentStartView
 
@@ -181,7 +181,7 @@ class TournamentAnnouncement(
             await no_perms_warning(self.interaction)
             return
 
-        view = TournamentCategoryView(self.interaction)
+        await self.interaction.response.defer(ephemeral=True)
         embed = create_embed(title="Announcement", desc="", user=self.interaction.user)
         embed.add_field(name=self.title, value=self.content, inline=False)
 
@@ -195,32 +195,38 @@ class TournamentAnnouncement(
                 inline=False,
             )
 
-        await self.interaction.response.send_message(
-            "Select any mentions and confirm announcement is correct.",
+        view = TournamentCategoryView(self.interaction)
+        await self.interaction.edit_original_message(
+            content="Select any mentions and confirm announcement is correct.",
             embed=embed,
             view=view,
-            ephemeral=True,
         )
 
         await view.wait()
 
-        mentions = "".join([get_mention(m, self.interaction) for m in view.mentions])
-
+        mentions = "".join([get_mention(tournament_category_map_reverse(m), self.interaction) for m in view.mentions])
         if not view.confirm.value:
             return
 
+        view.clear_items()
+
         if self.scheduled_start:
+            
+            await self.interaction.edit_original_message(
+                content="Scheduled.", embed=embed, view=view
+            )
             embed.remove_field(-1)
 
             document = Announcement(
                 embed=embed.to_dict(), schedule=self.scheduled_start, mentions=mentions
             )
             await document.insert()
+            
             return
             
-        view.clear_items()
+        
         await self.interaction.edit_original_message(
-            content="Done.", embed=None, view=view
+            content="Done.", view=view
         )
         await self.interaction.guild.get_channel(TOURNAMENT_INFO_ID).send(
             f"{mentions}", embed=embed

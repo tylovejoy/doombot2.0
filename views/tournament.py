@@ -45,14 +45,15 @@ class TournamentCategoryView(discord.ui.View):
     """View for selecting tournament mentions."""
 
     def __init__(self, interaction: discord.Interaction):
-        super().__init__()
+        super().__init__(timeout=None)
         self.mentions = []
         self.interaction = interaction
         self.select = TournamentCategoriesSelect()
         self.add_item(self.select)
+
         self.confirm = ConfirmButton(row=1, disabled=True)
         self.add_item(self.confirm)
-
+        
 
 class TournamentCategoriesSelect(discord.ui.Select):
     """Tournament categories."""
@@ -63,12 +64,12 @@ class TournamentCategoriesSelect(discord.ui.Select):
             min_values=0,
             max_values=6,
             options=[
-                discord.SelectOption(label="Time Attack", value="ta"),
-                discord.SelectOption(label="Mildcore", value="mc"),
-                discord.SelectOption(label="Hardcore", value="hc"),
-                discord.SelectOption(label="Bonus", value="bo"),
-                discord.SelectOption(label="Trifecta", value="tr"),
-                discord.SelectOption(label="Bracket", value="br"),
+                discord.SelectOption(label="Time Attack", value="Time Attack"),
+                discord.SelectOption(label="Mildcore", value="Mildcore"),
+                discord.SelectOption(label="Hardcore", value="Hardcore"),
+                discord.SelectOption(label="Bonus", value="Bonus"),
+                discord.SelectOption(label="Trifecta", value="Trifecta"),
+                discord.SelectOption(label="Bracket", value="Bracket"),
             ],
         )
 
