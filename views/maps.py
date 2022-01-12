@@ -11,7 +11,6 @@ class MapTypeSelect(discord.ui.Select):
     def __init__(self):
         """Init dropdown component."""
         options = [discord.SelectOption(label=x) for x in MapTypes.list()]
-        self.value_set = False
         super().__init__(
             placeholder="Choose map types...",
             min_values=0,

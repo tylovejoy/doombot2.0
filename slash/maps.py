@@ -144,7 +144,13 @@ class SubmitMap(
             return
 
         self.map_name = MapNames.fuzz(self.map_name)
-
+        if self.map_name not in MapNames.list():
+            await self.interaction.response.send_message(
+                content="Invalid map name!",
+                ephemeral=True,
+            )
+            return
+        
         preview = (
             f"**Map Code:** {self.map_code}\n"
             f"**Map Name:** {self.map_name}\n"
