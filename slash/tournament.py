@@ -31,7 +31,6 @@ from utils.utilities import (
     format_missions,
     get_mention,
     no_perms_warning,
-    pretty_mission_types,
     tournament_category_map,
     tournament_category_map_reverse,
 )

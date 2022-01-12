@@ -150,18 +150,6 @@ def tournament_category_map_reverse(category: str) -> str:
     }.get(category, None)
 
 
-def pretty_mission_types(type_: str, target: str) -> str:
-    return (
-        {
-            "xp": f"Reach XP Threshold of {target}",
-            "sub": f"Get sub {target}",
-            "missions": f"Complete {target} missions.",
-            "top": f"Get in the top 3 of {target} categories.",
-            "complete": "Complete the level.",
-        }
-    ).get(type_)
-
-
 def format_missions(type_: str, target: str) -> str:
     """Format missions into user friendly strings."""
     formatted = ""
@@ -175,6 +163,6 @@ def format_missions(type_: str, target: str) -> str:
     if type_ == "sub":
         formatted += f"Get {type_} {target} seconds.\n"
     elif type_ == "complete":
-        formatted += f"Complete the level.\n"
+        formatted += "Complete the level.\n"
 
     return formatted
