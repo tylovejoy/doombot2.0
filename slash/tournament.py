@@ -22,7 +22,8 @@ from utils.constants import (
     TOURNAMENT_INFO_ID,
 )
 from utils.embed import create_embed
-from utils.utilities import check_roles, get_mention, no_perms_warning, tournament_category_map, tournament_category_map_reverse
+from utils.utilities import check_roles, get_mention, no_perms_warning, pretty_mission_types, tournament_category_map, tournament_category_map_reverse
+from views.basic import ConfirmView
 
 from views.tournament import TournamentCategoryView, TournamentStartView
 
@@ -255,7 +256,48 @@ class TournamentAddMissions(
             await no_perms_warning(self.interaction)
             return
         await self.interaction.response.defer(ephemeral=True)
-        await self.interaction.edit_original_message(content="Pong")
+
+        tournament = await Tournament.find_active()
+        if not tournament:
+            await self.interaction.edit_original_message(content="No active tournament.")
+            return
+
+        category = getattr(tournament, self.category)
+        if self.category == "general":
+            category.type = self.type
+            category.target = self.target
+        else:
+            category = category.missions
+            difficulty = getattr(category, self.difficulty)
+            difficulty.type = self.type
+            difficulty.target = self.target
+            
+        embed = create_embed(
+            "Add missions",
+            (
+                f"**{tournament_category_map(self.category)}/{self.difficulty.capitalize()}**\n"
+                f"{pretty_mission_types(self.type, self.target)}"
+            ),
+            self.interaction.user
+        )
+        view = ConfirmView()
+        await self.interaction.edit_original_message(
+            content="Is this correct?",
+            embed=embed,
+            view=view,
+        )
+        await view.wait()
+
+        if not view.confirm.value:
+            return
+        
+        await self.interaction.edit_original_message(
+            content="Added.",
+            embed=embed,
+            view=view,
+        )
+        await tournament.save()
+
 
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
@@ -266,6 +308,7 @@ class TournamentAddMissions(
                 "Mildcore": "mc",
                 "Hardcore": "hc",
                 "Bonus": "bo",
+                "General": "general",
             })
         if focused == "difficulty":
             return AutoCompleteResponse({

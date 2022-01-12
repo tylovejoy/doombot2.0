@@ -65,6 +65,7 @@ class Tournament(Document):
 
     tournament_id: int
     name: str
+    active: bool
     embed: Optional[dict]
     mentions: Optional[str]
     schedule_start: datetime
@@ -75,15 +76,15 @@ class Tournament(Document):
     hc: Optional[TournamentData]
     bo: Optional[TournamentData]
 
-    general_mission: TournamentMissions = TournamentMissions()
+    general: TournamentMissions = TournamentMissions()
+
+    @classmethod
+    async def find_active(cls) -> Tournament:
+        return await cls.find_one(cls.active == True)
 
     @classmethod
     async def find_latest(cls) -> Tournament:
         return (await cls.find().sort("-tournament_id").limit(1).to_list())[0]
-
-    def is_active(self) -> bool:
-        if self.schedule_end > datetime.now():
-            return True
 
     def get_categories(self) -> Generator[str]:
         for cat in ["ta", "mc", "hc", "bo"]:
@@ -129,8 +130,8 @@ class Tournament(Document):
                 missions += self.get_category_missions(category)
         return missions
 
-    def get_general_mission(self) -> str:
-        return f"{self.general_mission.type} - {self.general_mission.target}\n"
+    def get_general(self) -> str:
+        return f"{self.general.type} - {self.general.target}\n"
 
 
 def format_missions(

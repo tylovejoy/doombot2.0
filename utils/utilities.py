@@ -147,3 +147,13 @@ def tournament_category_map_reverse(category: str) -> str:
         "Trifecta": "tr",
         "Bracket": "br",
     }.get(category, None)
+
+
+def pretty_mission_types(type_: str, target: str) -> str:
+    return ({
+        "xp": f"Reach XP Threshold of {target}",
+        "sub": f"Get sub {target}",
+        "missions": f"Complete {target} missions.",
+        "top": f"Get in the top 3 of {target} categories.",
+        "complete": "Complete the level.",
+    }).get(type_)
