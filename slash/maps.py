@@ -150,7 +150,7 @@ class SubmitMap(
                 ephemeral=True,
             )
             return
-        
+
         preview = (
             f"**Map Code:** {self.map_code}\n"
             f"**Map Name:** {self.map_name}\n"
@@ -400,6 +400,4 @@ class SubmitMapAlias(
 
         await document.insert()
         view.clear_items()
-        await self.interaction.edit_original_message(
-            content="Submitted.", view=view
-        )
+        await self.interaction.edit_original_message(content="Submitted.", view=view)

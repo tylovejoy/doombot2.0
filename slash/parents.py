@@ -4,6 +4,7 @@ from utils.constants import GUILD_ID
 
 logger = getLogger(__name__)
 
+
 def setup(bot: discord.Client):
     logger.info("Loading Slash Parents...")
     bot.application_command(SubmitParent)
@@ -34,7 +35,9 @@ class TournamentParent(discord.SlashCommand, guilds=[GUILD_ID], name="tournament
     """Tournament slash command parent class."""
 
 
-class TournamentMissionsParent(discord.SlashCommand, guilds=[GUILD_ID], name="missions"):
+class TournamentMissionsParent(
+    discord.SlashCommand, guilds=[GUILD_ID], name="missions"
+):
     """Tournament missions slash command parent class."""
 
 

@@ -76,7 +76,7 @@ class DoomBot(discord.Client):
             f"Using discord.py version: {discord.__version__}\n"
             f"Owner: {app_info.owner}\n"
         )
-    
+
         logger.info("Starting announcement_checker task...")
         self.annoucement_checker.start()
         async with aiohttp.ClientSession() as session:
@@ -90,7 +90,7 @@ class DoomBot(discord.Client):
                     .replace('"', "")
                     .split(",")
                 )
-    
+
     @tasks.loop(seconds=30)
     async def annoucement_checker(self):
         announcements = await Announcement.find().to_list()

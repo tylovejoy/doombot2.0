@@ -156,12 +156,10 @@ class SubmitRecord(
         await view.wait()
 
         if not view.confirm.value:
-            return 
+            return
 
         view.clear_items()
-        await self.interaction.edit_original_message(
-            content="Submitted.", view=view
-        )
+        await self.interaction.edit_original_message(content="Submitted.", view=view)
         # Delete old submission
         try:
             original = await find_orig_msg(self.interaction, record_document)

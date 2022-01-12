@@ -16,13 +16,25 @@ from database.tournament import (
     TournamentMissions,
     TournamentMissionsCategories,
 )
-from slash.parents import TournamentMissionsParent, TournamentParent, TournamentSubmitParent
+from slash.parents import (
+    TournamentMissionsParent,
+    TournamentParent,
+    TournamentSubmitParent,
+)
 from utils.constants import (
     GUILD_ID,
     TOURNAMENT_INFO_ID,
 )
 from utils.embed import create_embed
-from utils.utilities import check_roles, get_mention, no_perms_warning, pretty_mission_types, tournament_category_map, tournament_category_map_reverse
+from utils.utilities import (
+    check_roles,
+    format_missions,
+    get_mention,
+    no_perms_warning,
+    pretty_mission_types,
+    tournament_category_map,
+    tournament_category_map_reverse,
+)
 from views.basic import ConfirmView
 
 from views.tournament import TournamentCategoryView, TournamentStartView
@@ -103,21 +115,15 @@ class TournamentStart(
             schedule_start=self.schedule_start,
             schedule_end=self.schedule_end,
             ta=TournamentData(
-                map_data=TournamentMaps(
-                    code="ASSE9", creator="Sven", level="LEVEL 1"
-                ),
+                map_data=TournamentMaps(code="ASSE9", creator="Sven", level="LEVEL 1"),
                 missions=TournamentMissionsCategories(),
             ),
             mc=TournamentData(
-                map_data=TournamentMaps(
-                    code="29Y0P", creator="Sky", level="LEVEL 6"
-                ),
+                map_data=TournamentMaps(code="29Y0P", creator="Sky", level="LEVEL 6"),
                 missions=TournamentMissionsCategories(),
             ),
             hc=TournamentData(
-                map_data=TournamentMaps(
-                    code="5EMMA", creator="Opare", level="LEVEL 9"
-                ),
+                map_data=TournamentMaps(code="5EMMA", creator="Opare", level="LEVEL 9"),
                 missions=TournamentMissionsCategories(),
             ),
             # bo=TournamentData(
@@ -128,24 +134,26 @@ class TournamentStart(
             # ),
         )
         embed = create_embed(
-            tournament_document.name, 
+            tournament_document.name,
             (
                 f"Start: {format_dt(self.schedule_start, style='R')} - {format_dt(self.schedule_start, style='F')}\n"
                 f"End: {format_dt(self.schedule_end, style='R')} - {format_dt(self.schedule_end, style='F')}\n"
             ),
-            self.interaction.user
+            self.interaction.user,
         )
 
         for category in ["ta", "mc", "hc", "bo"]:
-            data = getattr(getattr(tournament_document, category, None), "map_data", None)
+            data = getattr(
+                getattr(tournament_document, category, None), "map_data", None
+            )
             if getattr(data, "code", None):
                 embed.add_field(
-                name=f"{tournament_category_map(category)} ({data.code})",
-                value=f"***{data.level}*** by {data.creator}",
-                inline=False,
-            )
+                    name=f"{tournament_category_map(category)} ({data.code})",
+                    value=f"***{data.level}*** by {data.creator}",
+                    inline=False,
+                )
 
-        #await tournament_document.insert()
+        # await tournament_document.insert()
         await self.interaction.edit_original_message(embed=embed)
 
 
@@ -205,14 +213,17 @@ class TournamentAnnouncement(
 
         await view.wait()
 
-        mentions = "".join([get_mention(tournament_category_map_reverse(m), self.interaction) for m in view.mentions])
+        mentions = "".join(
+            [
+                get_mention(tournament_category_map_reverse(m), self.interaction)
+                for m in view.mentions
+            ]
+        )
         if not view.confirm.value:
             return
 
-        view.clear_items()
-
         if self.scheduled_start:
-            
+
             await self.interaction.edit_original_message(
                 content="Scheduled.", embed=embed, view=view
             )
@@ -222,13 +233,10 @@ class TournamentAnnouncement(
                 embed=embed.to_dict(), schedule=self.scheduled_start, mentions=mentions
             )
             await document.insert()
-            
+
             return
-            
-        
-        await self.interaction.edit_original_message(
-            content="Done.", view=view
-        )
+
+        await self.interaction.edit_original_message(content="Done.", view=view)
         await self.interaction.guild.get_channel(TOURNAMENT_INFO_ID).send(
             f"{mentions}", embed=embed
         )
@@ -242,14 +250,12 @@ class TournamentAddMissions(
 ):
     """Add missions."""
 
-    category: str = discord.Option(description="Which tournament category?", autocomplete=True)
-    difficulty: str = discord.Option(
-        description="Which difficulty?", autocomplete=True
+    category: str = discord.Option(
+        description="Which tournament category?", autocomplete=True
     )
+    difficulty: str = discord.Option(description="Which difficulty?", autocomplete=True)
     type: str = discord.Option(description="Which type of mission?", autocomplete=True)
-    target: str = discord.Option(
-        description="Target value of mission."
-    )
+    target: str = discord.Option(description="Target value of mission.")
 
     async def callback(self) -> None:
         if not check_roles(self.interaction):
@@ -259,7 +265,9 @@ class TournamentAddMissions(
 
         tournament = await Tournament.find_active()
         if not tournament:
-            await self.interaction.edit_original_message(content="No active tournament.")
+            await self.interaction.edit_original_message(
+                content="No active tournament."
+            )
             return
 
         category = getattr(tournament, self.category)
@@ -271,14 +279,14 @@ class TournamentAddMissions(
             difficulty = getattr(category, self.difficulty)
             difficulty.type = self.type
             difficulty.target = self.target
-            
+
         embed = create_embed(
             "Add missions",
             (
                 f"**{tournament_category_map(self.category)}/{self.difficulty.capitalize()}**\n"
-                f"{pretty_mission_types(self.type, self.target)}"
+                f"{format_missions(self.type, self.target)}"
             ),
-            self.interaction.user
+            self.interaction.user,
         )
         view = ConfirmView()
         await self.interaction.edit_original_message(
@@ -290,7 +298,7 @@ class TournamentAddMissions(
 
         if not view.confirm.value:
             return
-        
+
         await self.interaction.edit_original_message(
             content="Added.",
             embed=embed,
@@ -298,36 +306,67 @@ class TournamentAddMissions(
         )
         await tournament.save()
 
-
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
     ):
         if focused == "category":
-            return AutoCompleteResponse({
-                "Time Attack": "ta",
-                "Mildcore": "mc",
-                "Hardcore": "hc",
-                "Bonus": "bo",
-                "General": "general",
-            })
+            return AutoCompleteResponse(
+                {
+                    "Time Attack": "ta",
+                    "Mildcore": "mc",
+                    "Hardcore": "hc",
+                    "Bonus": "bo",
+                    "General": "general",
+                }
+            )
         if focused == "difficulty":
-            return AutoCompleteResponse({
-                "Easy": "easy",
-                "Medium": "medium",
-                "Hard": "hard",
-                "Expert": "expert",
-                "General": "general",
-            })
+            return AutoCompleteResponse(
+                {
+                    "Easy": "easy",
+                    "Medium": "medium",
+                    "Hard": "hard",
+                    "Expert": "expert",
+                    "General": "general",
+                }
+            )
         if focused == "type":
             diff = options.get("difficulty")
             if diff == "general":
-                return AutoCompleteResponse({
-                    "XP Threshold": "xp",
-                    "Mission Threshold": "missions",
-                    "Top Placement": "top",
-                })
+                return AutoCompleteResponse(
+                    {
+                        "XP Threshold": "xp",
+                        "Mission Threshold": "missions",
+                        "Top Placement": "top",
+                    }
+                )
             if diff != "general":
-                return AutoCompleteResponse({
-                    "Sub x time": "sub",
-                    "Complete entire level": "complete",
-                })
+                return AutoCompleteResponse(
+                    {
+                        "Sub x time": "sub",
+                        "Complete entire level": "complete",
+                    }
+                )
+
+
+class TournamentViewMissions(
+    discord.SlashCommand,
+    guilds=[GUILD_ID],
+    name="view",
+    parent=TournamentMissionsParent,
+):
+    async def callback(self) -> None:
+        await self.interaction.response.defer(ephemeral=True)
+
+        tournament = await Tournament.find_active()
+        if not tournament:
+            await self.interaction.edit_original_message(
+                content="No active tournament."
+            )
+            return
+
+        embed = create_embed(
+            "Missions",
+            tournament.get_all_missions(),
+            self.interaction.user,
+        )
+        await self.interaction.edit_original_message(embed=embed)

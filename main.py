@@ -19,6 +19,7 @@ logger.addHandler(consoleHandle)
 
 bot = DoomBot()
 
+
 def load_all_extensions():
     """Load all slashes."""
     logger.info("Loading slash commands...")

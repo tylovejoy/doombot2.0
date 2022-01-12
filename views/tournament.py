@@ -53,7 +53,7 @@ class TournamentCategoryView(discord.ui.View):
 
         self.confirm = ConfirmButton(row=1, disabled=True)
         self.add_item(self.confirm)
-        
+
 
 class TournamentCategoriesSelect(discord.ui.Select):
     """Tournament categories."""

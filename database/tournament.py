@@ -6,6 +6,8 @@ from typing import Generator, Optional, List, Literal
 from beanie import Document
 from pydantic import BaseModel
 
+from utils.utilities import format_missions, tournament_category_map
+
 CategoryLiteral = Literal["ta", "mc", "hc", "bo"]
 DifficultyLiteral = Literal["easy", "medium", "hard", "expert"]
 
@@ -76,7 +78,7 @@ class Tournament(Document):
     hc: Optional[TournamentData]
     bo: Optional[TournamentData]
 
-    general: TournamentMissions = TournamentMissions()
+    general: List[Optional[TournamentMissions]] = []
 
     @classmethod
     async def find_active(cls) -> Tournament:
@@ -101,56 +103,33 @@ class Tournament(Document):
             map_string += self.get_map_str(category)
         return map_string
 
+    def get_map_str_short(self, category: str) -> str:
+        category = getattr(self, category, None)
+        return f"({category.map_data.code} - {category.map_data.level})"
+
     def get_records(self, category: CategoryLiteral) -> List[TournamentRecords]:
         category = getattr(self, category, None)
         return category.records
 
-    def get_difficulty_missions(self, difficulty: DifficultyLiteral) -> str:
-        missions = ""
-        for cat in self.get_categories():
-            category = getattr(getattr(self, cat, None).missions, difficulty, None)
-            missions += f"{category.type} - {category.target}\n"
-        return missions
-
     def get_category_missions(self, category: CategoryLiteral) -> str:
-        obj = getattr(self, category, None)
+        obj = getattr(self, category, None).missions
         missions = ""
         for difficulty in ["easy", "medium", "hard", "expert"]:
-            curr = getattr(obj.missions, difficulty, None)
-            missions += format_missions(curr, difficulty)
+            curr = getattr(obj, difficulty, None)
+            missions += f"- {difficulty.capitalize()}: " + format_missions(
+                curr.type, curr.target
+            )
 
         return missions
 
     def get_all_missions(self) -> str:
         missions = ""
-        map_ = {"ta": "Time Attack", "mc": "Mildcore", "hc": "Hardcore", "bo": "Bonus"}
-        for category in map_.keys():
-            if category in self.get_categories():
-                missions += f"**{map_[category]}:**\n"
-                missions += self.get_category_missions(category)
+        categories = list(self.get_categories())
+        for category in categories:
+            missions += f"**{tournament_category_map(category)} {self.get_map_str_short(category)}**\n"
+            missions += self.get_category_missions(category)
+
         return missions
 
     def get_general(self) -> str:
         return f"{self.general.type} - {self.general.target}\n"
-
-
-def format_missions(
-    mission: TournamentMissions, difficulty: DifficultyLiteral, is_general: bool = False
-) -> str:
-    """Format missions into user friendly strings."""
-    formatted = ""
-
-    if is_general:
-        if mission.type == "xp":
-            formatted += f"Get {mission.target} XP (excluding missions)\n"
-        elif mission.type == "mission":
-            formatted += f"Complete {mission.target[0]} {mission.target[1]} missions\n"
-        elif mission.type == "top":
-            formatted += f"Get Top 3 in {mission.target} categories.\n"
-    else:
-        if mission.type == "sub":
-            formatted += f"**{difficulty.capitalize()}:** Get {mission.type} {mission.target} seconds.\n"
-        elif mission.type == "complete":
-            formatted += f"**{difficulty.capitalize()}:** Complete the level.\n"
-
-    return formatted

@@ -5,6 +5,7 @@ from typing import Union
 import discord
 
 from database.maps import MapAlias
+
 from utils.constants import (
     ROLE_WHITELIST,
     TA_ROLE_ID,
@@ -122,21 +123,21 @@ async def select_button_enable(
             x.default = True
         else:
             x.default = False
-    
+
     await view.interaction.edit_original_message(view=view)
+
 
 async def no_perms_warning(interaction: discord.Interaction):
     await interaction.response.send_message(
         "You do not have permission to use this command.", ephemeral=True
     )
 
+
 def tournament_category_map(category: str) -> str:
-    return {
-        "ta": "Time Attack",
-        "mc": "Mildcore",
-        "hc": "Hardcore",
-        "bo": "Bonus"
-    }.get(category, None)
+    return {"ta": "Time Attack", "mc": "Mildcore", "hc": "Hardcore", "bo": "Bonus"}.get(
+        category, None
+    )
+
 
 def tournament_category_map_reverse(category: str) -> str:
     return {
@@ -150,10 +151,30 @@ def tournament_category_map_reverse(category: str) -> str:
 
 
 def pretty_mission_types(type_: str, target: str) -> str:
-    return ({
-        "xp": f"Reach XP Threshold of {target}",
-        "sub": f"Get sub {target}",
-        "missions": f"Complete {target} missions.",
-        "top": f"Get in the top 3 of {target} categories.",
-        "complete": "Complete the level.",
-    }).get(type_)
+    return (
+        {
+            "xp": f"Reach XP Threshold of {target}",
+            "sub": f"Get sub {target}",
+            "missions": f"Complete {target} missions.",
+            "top": f"Get in the top 3 of {target} categories.",
+            "complete": "Complete the level.",
+        }
+    ).get(type_)
+
+
+def format_missions(type_: str, target: str) -> str:
+    """Format missions into user friendly strings."""
+    formatted = ""
+
+    if type_ == "xp":
+        formatted += f"Get {target} XP (excluding missions)\n"
+    elif type_ == "mission":
+        formatted += f"Complete {target[0]} {target[1]} missions\n"
+    elif type_ == "top":
+        formatted += f"Get Top 3 in {target} categories.\n"
+    if type_ == "sub":
+        formatted += f"Get {type_} {target} seconds.\n"
+    elif type_ == "complete":
+        formatted += f"Complete the level.\n"
+
+    return formatted
