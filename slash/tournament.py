@@ -271,8 +271,7 @@ class TournamentAddMissions(
 
         category = getattr(tournament, self.category)
         if self.category == "general":
-            category.type = self.type
-            category.target = self.target
+            category.append(TournamentMissions(type=self.type, target=self.target))
         else:
             category = category.missions
             difficulty = getattr(category, self.difficulty)
@@ -347,10 +346,10 @@ class TournamentAddMissions(
                 )
 
 
-class TournamentViewMissions(
+class TournamentPublishMissions(
     discord.SlashCommand,
     guilds=[GUILD_ID],
-    name="view",
+    name="publish",
     parent=TournamentMissionsParent,
 ):
     async def callback(self) -> None:
@@ -368,4 +367,26 @@ class TournamentViewMissions(
             tournament.get_all_missions(),
             self.interaction.user,
         )
-        await self.interaction.edit_original_message(embed=embed)
+        view = TournamentCategoryView(self.interaction)
+        await self.interaction.edit_original_message(
+            content="Select any mentions and confirm missions are correct.",
+            embed=embed,
+            view=view,
+        )
+
+        await view.wait()
+
+        mentions = "".join(
+            [
+                get_mention(tournament_category_map_reverse(m), self.interaction)
+                for m in view.mentions
+            ]
+        )
+
+        if not view.confirm.value:
+            return
+
+        await self.interaction.edit_original_message(content="Published.", view=view)
+        await self.interaction.guild.get_channel(TOURNAMENT_INFO_ID).send(
+            f"{mentions}", embed=embed
+        )

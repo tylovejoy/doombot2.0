@@ -115,9 +115,9 @@ class Tournament(Document):
         obj = getattr(self, category, None).missions
         missions = ""
         for difficulty in ["easy", "medium", "hard", "expert"]:
-            curr = getattr(obj, difficulty, None)
+            mission = getattr(obj, difficulty, None)
             missions += f"- {difficulty.capitalize()}: " + format_missions(
-                curr.type, curr.target
+                mission.type, mission.target
             )
 
         return missions
@@ -128,8 +128,11 @@ class Tournament(Document):
         for category in categories:
             missions += f"**{tournament_category_map(category)} {self.get_map_str_short(category)}**\n"
             missions += self.get_category_missions(category)
-
+        missions += self.get_general()
         return missions
 
     def get_general(self) -> str:
-        return f"{self.general.type} - {self.general.target}\n"
+        missions = "**General:**\n"
+        for mission in self.general:
+            missions += f"- {format_missions(mission.type, mission.target)}"
+        return missions
