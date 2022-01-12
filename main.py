@@ -1,5 +1,6 @@
 import logging
 from os import environ
+from database.documents import database_init
 
 from doombot import DoomBot
 from slash import maps, records, parents, tournament, exp, tags
@@ -18,7 +19,6 @@ logger.addHandler(consoleHandle)
 
 bot = DoomBot()
 
-
 def load_all_extensions():
     """Load all slashes."""
     logger.info("Loading slash commands...")
@@ -34,6 +34,8 @@ def load_all_extensions():
 @bot.event
 async def setup():
     """Upload slash commands to discord."""
+    await database_init()
+
     logger.info("Uploading guild slash commands to Discord...")
     await bot.upload_guild_application_commands()
     logger.info("Finished. Guild slash commands uploaded to Discord...")

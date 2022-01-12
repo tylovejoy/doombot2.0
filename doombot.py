@@ -1,11 +1,14 @@
+import datetime
 from logging import getLogger
 import aiohttp
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
-from database.documents import ExperiencePoints, Starboard, database_init
+from database.documents import ExperiencePoints, Starboard
 from database.records import Record
+from database.tournament import Announcement
+
 from utils.constants import (
     BOT_ID,
     NON_SPR_RECORDS_ID,
@@ -13,6 +16,7 @@ from utils.constants import (
     SUGGESTIONS_ID,
     TOP_RECORDS_ID,
     TOP_SUGGESTIONS_ID,
+    TOURNAMENT_INFO_ID,
 )
 from utils.utilities import display_record, star_emoji
 
@@ -72,7 +76,9 @@ class DoomBot(discord.Client):
             f"Using discord.py version: {discord.__version__}\n"
             f"Owner: {app_info.owner}\n"
         )
-        await database_init()
+    
+        logger.info("Starting announcement_checker task...")
+        self.annoucement_checker.start()
         async with aiohttp.ClientSession() as session:
 
             url = "https://workshop.codes/wiki/dictionary"
@@ -84,6 +90,16 @@ class DoomBot(discord.Client):
                     .replace('"', "")
                     .split(",")
                 )
+    
+    @tasks.loop(seconds=30)
+    async def annoucement_checker(self):
+        announcements = await Announcement.find().to_list()
+        for announcement in announcements:
+            if datetime.datetime.now() >= announcement.schedule:
+                embed = discord.Embed.from_dict(announcement.embed)
+                info_channel = self.get_channel(TOURNAMENT_INFO_ID)
+                await info_channel.send(announcement.mentions, embed=embed)
+                await announcement.delete()
 
     async def on_member_join(self, member: discord.Member):
         new_user = ExperiencePoints(

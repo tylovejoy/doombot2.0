@@ -217,6 +217,7 @@ class TournamentAnnouncement(
             )
             await document.insert()
             return
+            
         view.clear_items()
         await self.interaction.edit_original_message(
             content="Done.", embed=None, view=view
