@@ -374,7 +374,7 @@ class TournamentAddMissions(
 class TournamentViewMissions(
     discord.SlashCommand,
     guilds=[GUILD_ID],
-    name="view",
+    name="publish",
     parent=TournamentMissionsParent,
 ):
     async def callback(self) -> None:
@@ -392,4 +392,27 @@ class TournamentViewMissions(
             tournament.get_all_missions(),
             self.interaction.user,
         )
-        await self.interaction.edit_original_message(embed=embed)
+
+        view = TournamentCategoryView(self.interaction)
+        await self.interaction.edit_original_message(
+            content="Select any mentions and confirm data is correct.", 
+            embed=embed, 
+            view=view,
+        )
+        await view.wait()
+
+        mentions = "".join(
+            [
+                get_mention(tournament_category_map_reverse(m), self.interaction)
+                for m in view.mentions
+            ]
+        )
+
+        if not view.confirm.value:
+            return
+            
+        await self.interaction.edit_original_message(content="Done.", view=view)
+        await self.interaction.guild.get_channel(TOURNAMENT_INFO_ID).send(
+            f"{mentions}", embed=embed
+        )
+
