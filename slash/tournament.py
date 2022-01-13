@@ -47,13 +47,15 @@ def setup(bot):
 
 
 class Test(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
-    option: bool = discord.Option()
+    category: str = discord.Option()
+    rank: str = discord.Option()
 
     async def callback(self) -> None:
-        print(TournamentParent._children_)
-        for x in TournamentParent._children_:
-            print(type(x))
-
+        await self.interaction.response.defer(ephemeral=True)
+        records = await Tournament.get_records(self.category, self.rank)
+        for x in records:
+            print(x)
+        await self.interaction.edit_original_message(content="Done.")
 
 class TournamentStart(
     discord.SlashCommand, guilds=[GUILD_ID], name="start", parent=TournamentParent
@@ -84,8 +86,14 @@ class TournamentStart(
         if not check_roles(self.interaction):
             await no_perms_warning(self.interaction)
             return
+
         await self.interaction.response.defer(ephemeral=True)
-        # TODO: Check for active tournaments
+
+        if await Tournament.find_active():
+            await self.interaction.edit_original_message(
+                content="Tournament already active!"
+            )
+            return
 
         last_tournament = await Tournament.find_latest()
         if last_tournament:
@@ -103,14 +111,12 @@ class TournamentStart(
             - datetime.datetime.now()
             + self.schedule_start
         )
-        print(type(self.schedule_end))
 
         tournament_document = Tournament(
             tournament_id=last_id + 1,
             name="Doomfist Parkour Tournament",
             active=True,
             bracket=False,
-            mentions="kdjfgkjdsfg",
             schedule_start=self.schedule_start,
             schedule_end=self.schedule_end,
             ta=TournamentData(
@@ -151,9 +157,27 @@ class TournamentStart(
                     value=f"***{data.level}*** by {data.creator}",
                     inline=False,
                 )
+        view = TournamentCategoryView(self.interaction)
+        await self.interaction.edit_original_message(
+            content="Select any mentions and confirm data is correct.", embed=embed
+        )
+        await view.wait()
 
-        # await tournament_document.insert()
-        await self.interaction.edit_original_message(embed=embed)
+        mentions = "".join(
+            [
+                get_mention(tournament_category_map_reverse(m), self.interaction)
+                for m in view.mentions
+            ]
+        )
+        tournament_document.mentions = mentions
+
+        if not view.confirm.value:
+            return
+
+        await tournament_document.insert()
+        await self.interaction.edit_original_message(
+            content="Tournament scheduled.",
+        )
 
 
 class Hardcore(

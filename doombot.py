@@ -7,7 +7,7 @@ from discord.ext import commands, tasks
 
 from database.documents import ExperiencePoints, Starboard
 from database.records import Record
-from database.tournament import Announcement
+from database.tournament import Announcement, Tournament
 
 from utils.constants import (
     BOT_ID,
@@ -92,7 +92,40 @@ class DoomBot(discord.Client):
                 )
 
     @tasks.loop(seconds=30)
+    async def tournament_checker(self):
+        """Periodically check for the start/end of tournaments."""
+        tournament = await Tournament.find_active()
+        if not tournament:
+            return
+
+        schedules = [tournament.schedule_start, tournament.schedule_end]
+        sentinel = datetime.datetime(year=1, month=1, day=1)
+
+        # Deactivate ended tournament
+        if all([s == sentinel for s in schedules]):
+            tournament.active = False
+            await tournament.save()
+            return
+
+        # Check to start tournament
+        if datetime.datetime.now() >= tournament.schedule_start != sentinel:
+            logger.info("Starting scheduled tournament...")
+            # TODO: start_round func
+            tournament.schedule_start = sentinel
+            await tournament.save()
+            return
+
+        # Check to end tournament
+        if datetime.datetime.now() >= tournament.schedule_end != sentinel:
+            logger.info("Ending scheduled tournament...")
+            # TODO: end_round func
+            tournament.schedule_end = sentinel
+            await tournament.save()
+            return
+
+    @tasks.loop(seconds=30)
     async def annoucement_checker(self):
+        """Periodically check for scheduled tournament announcements."""
         announcements = await Announcement.find().to_list()
         for announcement in announcements:
             if datetime.datetime.now() >= announcement.schedule:

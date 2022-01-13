@@ -4,7 +4,9 @@ from logging import getLogger
 from typing import Generator, Optional, List, Literal
 
 from beanie import Document
+from discord.app import Option
 from pydantic import BaseModel
+from database.documents import EXPRanks
 
 from utils.utilities import format_missions, tournament_category_map
 
@@ -62,6 +64,26 @@ class TournamentData(BaseModel):
     missions: TournamentMissionsCategories = TournamentMissionsCategories()
 
 
+class ShorterRecordData(BaseModel):
+    record: float
+    posted_by: int
+    attachment_url: str
+
+class ShortRecordData(BaseModel):
+    records: ShorterRecordData
+
+class ShortUserData(BaseModel):
+    alias: str
+    rank: EXPRanks
+
+class TournamentRecordsLookup(BaseModel):
+    ta: Optional[ShortRecordData]
+    mc: Optional[ShortRecordData]
+    hc: Optional[ShortRecordData]
+    bo: Optional[ShortRecordData]
+    user_data: ShortUserData
+
+
 class Tournament(Document):
     """Collection of Tournament data."""
 
@@ -88,6 +110,33 @@ class Tournament(Document):
     async def find_latest(cls) -> Tournament:
         return (await cls.find().sort("-tournament_id").limit(1).to_list())[0]
 
+    @classmethod
+    async def get_records(cls, category, rank):
+        return await cls.find(cls.active == True).aggregate(
+            [
+                {"$project": {f"{category}.records": 1}},
+                {"$unwind": {"path": f"${category}.records"}},
+                {"$sort": {f"{category}.records": 1}},
+                {
+                    "$lookup": {
+                        "from": "ExperiencePoints",
+                        "localField": f"{category}.records.posted_by",
+                        "foreignField": "user_id",
+                        "as": "user_data",
+                    }
+                },
+                {"$unwind": {"path": "$user_data"}},
+                {
+                    "$project": {
+                        f"{category}.records": 1,
+                        "user_data.alias": 1,
+                        "user_data.rank": 1,
+                    }
+                },
+                {"$match": {f"user_data.rank.{category}": f"{rank}"}},
+            ], projection_model=TournamentRecordsLookup
+        ).to_list()
+
     def get_categories(self) -> Generator[str]:
         for cat in ["ta", "mc", "hc", "bo"]:
             if getattr(self, cat, None):
@@ -106,10 +155,6 @@ class Tournament(Document):
     def get_map_str_short(self, category: str) -> str:
         category = getattr(self, category, None)
         return f"({category.map_data.code} - {category.map_data.level})"
-
-    def get_records(self, category: CategoryLiteral) -> List[TournamentRecords]:
-        category = getattr(self, category, None)
-        return category.records
 
     def get_category_missions(self, category: CategoryLiteral) -> str:
         obj = getattr(self, category, None).missions
