@@ -1,6 +1,7 @@
 from typing import List, Union
 
 import discord
+from discord.partial_emoji import PartialEmoji
 from discord.utils import MISSING
 
 from database.documents import ExperiencePoints
@@ -40,11 +41,17 @@ async def records_tournament_embed_fields(
     cat = getattr(r, category, None)
     if not cat:
         return
+    rank_emoji = {
+        "Unranked": "Unranked",
+        "Gold": PartialEmoji.from_str("<:gold:931317421862699118>"),
+        "Diamond": PartialEmoji.from_str("<:diamond:931317455639445524>"),
+        "Grandmaster": PartialEmoji.from_str("<:grandmaster:931317469396729876>"),
+    }
     rank_str = ""
     if rank is MISSING:
         rank_str = r.user_data.rank
         rank_str = getattr(rank_str, category)
-        rank_str = f" - {rank_str}"
+        rank_str = rank_emoji[rank_str]
 
     return {
         "name": f"#{count + 1} - {r.user_data.alias}{rank_str}",

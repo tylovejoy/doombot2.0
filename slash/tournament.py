@@ -1,6 +1,7 @@
 import datetime
 from logging import getLogger
 from typing import Dict, Optional, Union
+from discord.partial_emoji import PartialEmoji
 from discord.utils import MISSING
 import dateparser
 import discord
