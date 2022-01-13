@@ -4,7 +4,7 @@ from typing import Dict, Union, Optional
 import discord
 from discord.app import AutoCompleteResponse
 
-from database.documents import ExperiencePoints
+from database.documents import ExperiencePoints, VerificationViews
 from database.records import Record
 from slash.parents import SubmitParent, DeleteParent
 from utils.constants import (
@@ -184,6 +184,7 @@ class SubmitRecord(
         verify_view = VerificationView()
         hidden_msg = await verification_channel.send(embed=embed, view=verify_view)
         record_document.hidden_id = hidden_msg.id
+        await VerificationViews(message_id=hidden_msg.id).save()
         await record_document.save()
 
     async def autocomplete(

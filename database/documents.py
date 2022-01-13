@@ -12,6 +12,12 @@ from pymongo.errors import ServerSelectionTimeoutError
 logger = getLogger(__name__)
 
 
+class VerificationViews(Document):
+    """Collection of unattended verifications to persist thru restart."""
+
+    message_id: int
+
+
 class TagNamesProjection(BaseModel):
     name: str
 

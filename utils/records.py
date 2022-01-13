@@ -2,6 +2,7 @@ import math
 import re
 
 import discord
+from database.documents import VerificationViews
 
 from database.records import Record
 from utils.constants import VERIFICATION_CHANNEL_ID
@@ -17,6 +18,9 @@ async def delete_hidden(interaction: discord.Interaction, record_document: Recor
         hidden_msg = await interaction.guild.get_channel(
             VERIFICATION_CHANNEL_ID
         ).fetch_message(record_document.hidden_id)
+        await VerificationViews.find_one(
+            VerificationViews.message_id == record_document.hidden_id
+        ).delete()
         await hidden_msg.delete()
     except (discord.NotFound, discord.HTTPException):
         pass

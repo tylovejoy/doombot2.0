@@ -5,7 +5,7 @@ import aiohttp
 import discord
 from discord.ext import commands, tasks
 
-from database.documents import ExperiencePoints, Starboard
+from database.documents import ExperiencePoints, Starboard, VerificationViews
 from database.records import Record
 from database.tournament import Announcement, Tournament
 
@@ -19,6 +19,7 @@ from utils.constants import (
     TOURNAMENT_INFO_ID,
 )
 from utils.utilities import display_record, star_emoji
+from views.records import VerificationView
 
 logger = getLogger(__name__)
 
@@ -66,6 +67,7 @@ class DoomBot(discord.Client):
             SUGGESTIONS_ID: self.suggestion_channel,
         }
         self.ws_list = None
+        self.verification_views_added = False
 
     async def on_ready(self):
         """Display bot info on ready event."""
@@ -90,6 +92,11 @@ class DoomBot(discord.Client):
                     .replace('"', "")
                     .split(",")
                 )
+        if not self.verification_views_added:
+            views = await VerificationViews.find().to_list()
+            for view in views:
+                self.add_view(VerificationView(), view.message_id)
+            self.verification_views_added = True
 
     @tasks.loop(seconds=30)
     async def tournament_checker(self):
