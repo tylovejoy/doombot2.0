@@ -153,14 +153,15 @@ def tournament_category_map_reverse(category: str) -> str:
 def format_missions(type_: str, target: str) -> str:
     """Format missions into user friendly strings."""
     formatted = ""
-
+    # General missions
     if type_ == "xp":
         formatted += f"Get {target} XP (excluding missions)\n"
     elif type_ == "missions":
         formatted += f"Complete {target} missions\n"
     elif type_ == "top":
         formatted += f"Get Top 3 in {target} categories.\n"
-    if type_ == "sub":
+    # Category Missions
+    elif type_ == "sub":
         formatted += f"Get {type_} {target} seconds.\n"
     elif type_ == "complete":
         formatted += "Complete the level.\n"

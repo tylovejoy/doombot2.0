@@ -25,6 +25,7 @@ from slash.parents import (
 from utils.constants import (
     GUILD_ID,
     TOURNAMENT_INFO_ID,
+    TOURNAMENT_SUBMISSION_ID,
 )
 from utils.embed import create_embed, records_tournament_embed_fields, split_embeds
 from utils.utilities import (
@@ -258,7 +259,41 @@ class TournamentStart(
         )
 
 
-class Hardcore(
+class TimeAttackSubmission(
+    discord.SlashCommand,
+    guilds=[GUILD_ID],
+    name="timeattack",
+    parent=TournamentSubmitParent,
+):
+    """Time Attack tournament submission."""
+
+    # TODO: Attachment arg
+    record: str = discord.Option(
+        description="What is the record you'd like to submit? HH:MM:SS.ss format. "
+    )
+
+    async def callback(self) -> None:
+        await tournament_submissions(self.interaction, self.record, "ta")
+
+
+class MildcoreSubmission(
+    discord.SlashCommand,
+    guilds=[GUILD_ID],
+    name="mildcore",
+    parent=TournamentSubmitParent,
+):
+    """Mildcore tournament submission."""
+
+    # TODO: Attachment arg
+    record: str = discord.Option(
+        description="What is the record you'd like to submit? HH:MM:SS.ss format. "
+    )
+
+    async def callback(self) -> None:
+        await tournament_submissions(self.interaction, self.record, "mc")
+
+
+class HardcoreSubmission(
     discord.SlashCommand,
     guilds=[GUILD_ID],
     name="hardcore",
@@ -268,58 +303,28 @@ class Hardcore(
 
     # TODO: Attachment arg
     record: str = discord.Option(
-        description=(
-            "What is the record you'd like to submit? "
-            "HH:MM:SS.ss format. "
-        )
+        description="What is the record you'd like to submit? HH:MM:SS.ss format. "
     )
 
     async def callback(self) -> None:
-        await self.interaction.response.defer(ephemeral=True)
-        tournament = await Tournament.find_active()
-        if not tournament:
-            await self.interaction.edit_original_message(
-                content="Tournament not active!"
-            )
-            return
+        await tournament_submissions(self.interaction, self.record, "hc")
 
-        record_seconds = time_convert(self.record)
 
-        already_posted = False
-        submission = None
-        for r in tournament.hc.records:
-            if r.posted_by == self.interaction.user.id:
-                if record_seconds >= r.record:
-                    await self.interaction.edit_original_message(content="Record must be faster than previously submitted record.")
-                    return
-                already_posted = True
-                r.record = record_seconds
-                submission = r
-                break
+class BonusSubmission(
+    discord.SlashCommand,
+    guilds=[GUILD_ID],
+    name="bonus",
+    parent=TournamentSubmitParent,
+):
+    """Bonus tournament submission."""
 
-        if not already_posted:
-            submission = TournamentRecords(
-                record=record_seconds,
-                posted_by=self.interaction.user.id,
-                attachment_url=""
-            )
-            tournament.hc.records.append(submission)
-        
-        view = ConfirmView()
+    # TODO: Attachment arg
+    record: str = discord.Option(
+        description="What is the record you'd like to submit? HH:MM:SS.ss format. "
+    )
 
-        embed = create_embed(
-            f"Hardcore Submission",
-            f"> **Record:** {display_record(submission.record)}",
-            self.interaction.user,
-        )
-        await self.interaction.edit_original_message(content="Is this correct?", embed=embed, view=view)
-        
-        await view.wait()
-        if not view.confirm.value:
-            return
-        
-        await self.interaction.edit_original_message(content="Submitted.", embed=embed, view=view)
-        await tournament.save()
+    async def callback(self) -> None:
+        await tournament_submissions(self.interaction, self.record, "bo")
 
 
 class TournamentAnnouncement(
@@ -545,3 +550,141 @@ class TournamentViewMissions(
         await self.interaction.guild.get_channel(TOURNAMENT_INFO_ID).send(
             f"{mentions}", embed=embed
         )
+
+
+async def tournament_submissions(
+    interaction: discord.Interaction, record: str, category: str
+):
+    await interaction.response.defer(ephemeral=True)
+    tournament = await Tournament.find_active()
+    if not tournament:
+        await interaction.edit_original_message(content="Tournament not active!")
+        return
+
+    category_attr = getattr(tournament, category)
+    record_seconds = time_convert(record)
+
+    already_posted = False
+    submission = None
+    for r in category_attr.records:
+        if r.posted_by == interaction.user.id:
+            if record_seconds >= r.record:
+                await interaction.edit_original_message(
+                    content="Record must be faster than previously submitted record."
+                )
+                return
+            already_posted = True
+            r.record = record_seconds
+            submission = r
+            break
+
+    if not already_posted:
+        submission = TournamentRecords(
+            record=record_seconds, posted_by=interaction.user.id, attachment_url=""
+        )
+        category_attr.records.append(submission)
+
+    view = ConfirmView()
+
+    embed = create_embed(
+        f"{tournament_category_map(category)} Submission",
+        f"> **Record:** {display_record(submission.record)}",
+        interaction.user,
+    )
+    await interaction.edit_original_message(
+        content="Is this correct?", embed=embed, view=view
+    )
+
+    await view.wait()
+    if not view.confirm.value:
+        return
+
+    await interaction.edit_original_message(
+        content="Submitted.", embed=embed, view=view
+    )
+    await tournament.save()
+
+    await interaction.guild.get_channel(TOURNAMENT_SUBMISSION_ID).send(embed=embed)
+
+
+def compute_mission_xp(tournament: Tournament) -> dict:
+    store = {}
+    mission_points = {
+        "expert": 2000,
+        "hard": 1500,
+        "medium": 1000,
+        "easy": 500,
+    }
+    for category in ["ta", "mc", "hc", "bo"]:
+        category_attr: TournamentData = getattr(tournament, category, None)
+        if not category_attr:
+            continue
+
+        records = category_attr.records
+        missions = category_attr.missions
+
+        for record in records:
+            if not store.get(record.posted_by):
+                store[record.posted_by] = {
+                    "easy": 0,
+                    "medium": 0,
+                    "hard": 0,
+                    "expert": 0,
+                    "general": 0,
+                    "xp": 0,
+                }
+            # Goes hardest to easiest, because highest mission only
+            for mission_category in ["expert", "hard", "medium", "easy"]:
+                mission: TournamentMissions = getattr(missions, mission_category, None)
+                if not mission or mission.type or mission.target:
+                    continue
+
+                type_ = mission.type
+                target = mission.target
+
+                if (type_ == "sub" and record.record < float(target)) or (
+                    type_ == "complete" and record.record
+                ):
+                    store[record.posted_by][mission_category] += 1
+                    store[record.posted_by]["xp"] += mission_points[mission_category]
+                    break
+    return store
+
+
+def compute_general_missions(tournament: Tournament, store: dict) -> dict:
+    general_missions = tournament.general
+
+    for user_id, data in store.items():
+        for mission in general_missions:
+            total_missions = (
+                data["easy"] + data["medium"] + data["hard"] + data["expert"]
+            )
+            if (mission.type == "xp" and data["xp"] > mission.target) or (
+                mission.type == "missions" and total_missions >= mission.target
+            ):
+                store[user_id]["general"] += 1
+                store[user_id]["xp"] += 2000
+
+            if mission.type == "top":
+                temp_store = {
+                    "ta": 0,
+                    "mc": 0,
+                    "hc": 0,
+                    "bo": 0,
+                }
+                for category in ["ta", "mc", "hc", "bo"]:
+                    category_attr: TournamentData = getattr(tournament, category, None)
+                    if not category_attr:
+                        continue
+
+                    records = category_attr.records
+                    for i, record in enumerate(records):
+                        if i > 2:
+                            break
+                        if record.posted_by == user_id:
+                            temp_store[category] += 1
+                            break
+                if sum(temp_store.values()) >= mission.target:
+                    store[user_id]["general"] += 1
+                    store[user_id]["xp"] += 2000
+    return store
