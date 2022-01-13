@@ -1,11 +1,13 @@
 import datetime
 from logging import getLogger
 from typing import Dict, Optional, Union
+from discord import user
 from discord.utils import MISSING
 import dateparser
 import discord
 from discord.app import AutoCompleteResponse
 from discord.utils import format_dt
+from database.documents import ExperiencePoints
 
 from database.tournament import (
     Announcement,
@@ -23,6 +25,7 @@ from slash.parents import (
     TournamentSubmitParent,
 )
 from utils.constants import (
+    BOT_ID,
     GUILD_ID,
     TOURNAMENT_INFO_ID,
     TOURNAMENT_SUBMISSION_ID,
@@ -607,7 +610,42 @@ async def tournament_submissions(
     await interaction.guild.get_channel(TOURNAMENT_SUBMISSION_ID).send(embed=embed)
 
 
+async def end_tournament(client: discord.Client, tournament: Tournament):
+    tournament.active = False
+    tournament.schedule_end = datetime.datetime(year=1, month=1, day=1)
+    xp_store = compute_mission_xp(tournament)
+
+    for user_id, data in xp_store.items():
+        user = await ExperiencePoints.find_user(user_id)
+        user.xp += data["xp"]
+        user.xp_avg.pop(0)
+        user.xp_avg.append(data["xp"])
+        await user.save()
+        # Find current average for ending summary
+        xp_store[user_id]["cur_avg"] = sum([xp for xp in user.xp_avg if xp != 0])
+
+    await tournament.save()
+    embed = create_embed(
+        "Tournament Announcement",
+        "",
+        client.get_user(BOT_ID),
+    )
+    embed.add_field(
+        name=f"The round has ended!",
+        value=f"Stay tuned for the next announcement!",
+    )
+    await client.get_channel(TOURNAMENT_INFO_ID).send(tournament.mentions, embed=embed)
+
+    # TODO: Send summary to #org
+
+
+async def start_tournament(tournament: Tournament):
+    pass
+
+
 def compute_mission_xp(tournament: Tournament) -> dict:
+    # TODO: Leaderboard XP computation
+
     store = {}
     mission_points = {
         "expert": 2000,
@@ -632,6 +670,7 @@ def compute_mission_xp(tournament: Tournament) -> dict:
                     "expert": 0,
                     "general": 0,
                     "xp": 0,
+                    "cur_avg": 0,
                 }
             # Goes hardest to easiest, because highest mission only
             for mission_category in ["expert", "hard", "medium", "easy"]:
@@ -648,7 +687,7 @@ def compute_mission_xp(tournament: Tournament) -> dict:
                     store[record.posted_by][mission_category] += 1
                     store[record.posted_by]["xp"] += mission_points[mission_category]
                     break
-    return store
+    return compute_general_missions(tournament, store)
 
 
 def compute_general_missions(tournament: Tournament, store: dict) -> dict:

@@ -111,16 +111,12 @@ class DoomBot(discord.Client):
         if datetime.datetime.now() >= tournament.schedule_start != sentinel:
             logger.info("Starting scheduled tournament...")
             # TODO: start_round func
-            tournament.schedule_start = sentinel
-            await tournament.save()
             return
 
         # Check to end tournament
         if datetime.datetime.now() >= tournament.schedule_end != sentinel:
             logger.info("Ending scheduled tournament...")
             # TODO: end_round func
-            tournament.schedule_end = sentinel
-            await tournament.save()
             return
 
     @tasks.loop(seconds=30)

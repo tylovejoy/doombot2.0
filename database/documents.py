@@ -1,7 +1,7 @@
 from __future__ import annotations
 from logging import getLogger
 from os import environ
-from typing import List
+from typing import List, Optional
 from beanie.odm.fields import Indexed
 
 import motor
@@ -71,6 +71,7 @@ class ExperiencePoints(Document):
     alerts_enabled: bool
     rank: EXPRanks = EXPRanks()
     xp: int = 0
+    xp_avg: List[Optional[int]] = [0, 0, 0, 0, 0]
 
     @classmethod
     async def find_user(cls, user_id) -> ExperiencePoints:

@@ -105,6 +105,8 @@ class Tournament(Document):
 
     general: List[Optional[TournamentMissions]] = []
 
+    xp: Optional[dict]
+
     @classmethod
     async def find_active(cls) -> Tournament:
         return await cls.find_one(cls.active == True)
