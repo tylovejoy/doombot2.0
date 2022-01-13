@@ -1,7 +1,6 @@
 import datetime
 from logging import getLogger
 from typing import Dict, Optional, Union
-from discord import user
 from discord.utils import MISSING
 import dateparser
 import discord
@@ -631,8 +630,8 @@ async def end_tournament(client: discord.Client, tournament: Tournament):
         client.get_user(BOT_ID),
     )
     embed.add_field(
-        name=f"The round has ended!",
-        value=f"Stay tuned for the next announcement!",
+        name="The round has ended!",
+        value="Stay tuned for the next announcement!",
     )
     await client.get_channel(TOURNAMENT_INFO_ID).send(tournament.mentions, embed=embed)
 
