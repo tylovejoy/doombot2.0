@@ -58,7 +58,7 @@ async def records_tournament_embed_fields(
             rank_str = rank_emoji[rank_str]
     else:
         alias = "Unknown user"
-        rank_str = "Unknown rank"
+        rank_str = " - Unknown rank"
 
     return {
         "name": f"#{count + 1} - {alias}{rank_str}",

@@ -84,7 +84,7 @@ class TournamentRecordsLookup(BaseModel):
     mc: Optional[ShortRecordData]
     hc: Optional[ShortRecordData]
     bo: Optional[ShortRecordData]
-    user_data: ShortUserData
+    user_data: Optional[ShortUserData]
 
 
 class Tournament(Document):
