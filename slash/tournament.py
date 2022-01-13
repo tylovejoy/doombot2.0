@@ -1,7 +1,7 @@
 import datetime
 from logging import getLogger
 from typing import Dict, Optional, Union
-
+from discord.utils import MISSING
 import dateparser
 import discord
 from discord.app import AutoCompleteResponse
@@ -25,7 +25,7 @@ from utils.constants import (
     GUILD_ID,
     TOURNAMENT_INFO_ID,
 )
-from utils.embed import create_embed
+from utils.embed import create_embed, records_tournament_embed_fields, split_embeds
 from utils.utilities import (
     check_roles,
     format_missions,
@@ -35,6 +35,7 @@ from utils.utilities import (
     tournament_category_map_reverse,
 )
 from views.basic import ConfirmView
+from views.paginator import Paginator
 
 from views.tournament import TournamentCategoryView, TournamentStartView
 
@@ -44,6 +45,79 @@ logger = getLogger(__name__)
 def setup(bot):
     logger.info("Loading Tournament commands...")
     bot.application_command(Test)
+
+
+class ViewTournamentRecords(
+    discord.SlashCommand, guilds=[GUILD_ID], name="leaderboard", parent=TournamentParent
+):
+    """View leaderboard for a particular tournament category and optionally tournament rank."""
+
+    category: str = discord.Option(
+        description="Which tournament category?",
+        autocomplete=True,
+    )
+    rank: Optional[str] = discord.Option(
+        description="Which rank to display?",
+        autocomplete=True,
+    )
+
+    async def callback(self) -> None:
+        await self.interaction.response.defer(ephemeral=True)
+        if self.category not in ["ta", "mc", "hc", "bo"] or self.rank not in [
+            "Unranked",
+            "Gold",
+            "Diamond",
+            "Grandmaster",
+            MISSING,
+        ]:
+            await self.interaction.edit_original_message(content="Invalid arguments.")
+            return
+
+        records = await Tournament.get_records(self.category, rank=self.rank)
+
+        if self.rank is MISSING:
+            rank_str = "- Overall"
+        else:
+            rank_str = "- " + self.rank
+
+        embed = create_embed(
+            title=f"{tournament_category_map(self.category)} {rank_str}",
+            desc="",
+            user=self.interaction.user,
+        )
+        embeds = await split_embeds(
+            embed,
+            records,
+            records_tournament_embed_fields,
+            category=self.category,
+            rank=self.rank,
+        )
+        view = Paginator(embeds, self.interaction.user, timeout=None)
+        if not view.formatted_pages:
+            await self.interaction.edit_original_message(content="No records found.")
+            return
+
+        await self.interaction.edit_original_message(
+            embed=view.formatted_pages[0], view=view
+        )
+        await view.wait()
+
+    async def autocomplete(
+        self, options: Dict[str, Union[int, float, str]], focused: str
+    ):
+        if focused == "category":
+            return AutoCompleteResponse(
+                {
+                    "Time Attack": "ta",
+                    "Mildcore": "mc",
+                    "Hardcore": "hc",
+                    "Bonus": "bo",
+                }
+            )
+        if focused == "rank":
+            return AutoCompleteResponse(
+                {k: k for k in ["Unranked", "Gold", "Diamond", "Grandmaster"]}
+            )
 
 
 class Test(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
@@ -56,6 +130,7 @@ class Test(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
         for x in records:
             print(x)
         await self.interaction.edit_original_message(content="Done.")
+
 
 class TournamentStart(
     discord.SlashCommand, guilds=[GUILD_ID], name="start", parent=TournamentParent
@@ -395,8 +470,8 @@ class TournamentViewMissions(
 
         view = TournamentCategoryView(self.interaction)
         await self.interaction.edit_original_message(
-            content="Select any mentions and confirm data is correct.", 
-            embed=embed, 
+            content="Select any mentions and confirm data is correct.",
+            embed=embed,
             view=view,
         )
         await view.wait()
@@ -410,9 +485,8 @@ class TournamentViewMissions(
 
         if not view.confirm.value:
             return
-            
+
         await self.interaction.edit_original_message(content="Done.", view=view)
         await self.interaction.guild.get_channel(TOURNAMENT_INFO_ID).send(
             f"{mentions}", embed=embed
         )
-

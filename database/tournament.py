@@ -4,6 +4,7 @@ from logging import getLogger
 from typing import Generator, Optional, List, Literal
 
 from beanie import Document
+from discord.utils import MISSING
 from pydantic import BaseModel
 from database.documents import EXPRanks
 
@@ -68,12 +69,15 @@ class ShorterRecordData(BaseModel):
     posted_by: int
     attachment_url: str
 
+
 class ShortRecordData(BaseModel):
     records: ShorterRecordData
+
 
 class ShortUserData(BaseModel):
     alias: str
     rank: EXPRanks
+
 
 class TournamentRecordsLookup(BaseModel):
     ta: Optional[ShortRecordData]
@@ -110,31 +114,36 @@ class Tournament(Document):
         return (await cls.find().sort("-tournament_id").limit(1).to_list())[0]
 
     @classmethod
-    async def get_records(cls, category, rank):
-        return await cls.find(cls.active == True).aggregate(
-            [
-                {"$project": {f"{category}.records": 1}},
-                {"$unwind": {"path": f"${category}.records"}},
-                {"$sort": {f"{category}.records": 1}},
-                {
-                    "$lookup": {
-                        "from": "ExperiencePoints",
-                        "localField": f"{category}.records.posted_by",
-                        "foreignField": "user_id",
-                        "as": "user_data",
-                    }
-                },
-                {"$unwind": {"path": "$user_data"}},
-                {
-                    "$project": {
-                        f"{category}.records": 1,
-                        "user_data.alias": 1,
-                        "user_data.rank": 1,
-                    }
-                },
-                {"$match": {f"user_data.rank.{category}": f"{rank}"}},
-            ], projection_model=TournamentRecordsLookup
-        ).to_list()
+    async def get_records(cls, category, rank=MISSING):
+        aggregation = [
+            {"$project": {f"{category}.records": 1}},
+            {"$unwind": {"path": f"${category}.records"}},
+            {"$sort": {f"{category}.records": 1}},
+            {
+                "$lookup": {
+                    "from": "ExperiencePoints",
+                    "localField": f"{category}.records.posted_by",
+                    "foreignField": "user_id",
+                    "as": "user_data",
+                }
+            },
+            {"$unwind": {"path": "$user_data"}},
+            {
+                "$project": {
+                    f"{category}.records": 1,
+                    "user_data.alias": 1,
+                    "user_data.rank": 1,
+                }
+            },
+        ]
+        if rank is not MISSING:
+            aggregation.append({"$match": {f"user_data.rank.{category}": f"{rank}"}})
+
+        return (
+            await cls.find(cls.active == True)
+            .aggregate(aggregation, projection_model=TournamentRecordsLookup)
+            .to_list()
+        )
 
     def get_categories(self) -> Generator[str]:
         for cat in ["ta", "mc", "hc", "bo"]:
@@ -175,7 +184,7 @@ class Tournament(Document):
         for category in categories:
             missions += f"**{tournament_category_map(category)} {self.get_map_str_short(category)}**\n"
             missions += self.get_category_missions(category)
-        
+
         return missions
 
     def get_general(self) -> str:
