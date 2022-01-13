@@ -15,6 +15,7 @@ from database.tournament import (
     TournamentMaps,
     TournamentMissions,
     TournamentMissionsCategories,
+    TournamentRecords,
 )
 from slash.parents import (
     TournamentMissionsParent,
@@ -28,9 +29,11 @@ from utils.constants import (
 from utils.embed import create_embed, records_tournament_embed_fields, split_embeds
 from utils.utilities import (
     check_roles,
+    display_record,
     format_missions,
     get_mention,
     no_perms_warning,
+    time_convert,
     tournament_category_map,
     tournament_category_map_reverse,
 )
@@ -263,8 +266,60 @@ class Hardcore(
 ):
     """Hardcore tournament submission."""
 
+    # TODO: Attachment arg
+    record: str = discord.Option(
+        description=(
+            "What is the record you'd like to submit? "
+            "HH:MM:SS.ss format. "
+        )
+    )
+
     async def callback(self) -> None:
-        await self.interaction.response.send_message("PONG")
+        await self.interaction.response.defer(ephemeral=True)
+        tournament = await Tournament.find_active()
+        if not tournament:
+            await self.interaction.edit_original_message(
+                content="Tournament not active!"
+            )
+            return
+
+        record_seconds = time_convert(self.record)
+
+        already_posted = False
+        submission = None
+        for r in tournament.hc.records:
+            if r.posted_by == self.interaction.user.id:
+                if record_seconds >= r.record:
+                    await self.interaction.edit_original_message(content="Record must be faster than previously submitted record.")
+                    return
+                already_posted = True
+                r.record = record_seconds
+                submission = r
+                break
+
+        if not already_posted:
+            submission = TournamentRecords(
+                record=record_seconds,
+                posted_by=self.interaction.user.id,
+                attachment_url=""
+            )
+            tournament.hc.records.append(submission)
+        
+        view = ConfirmView()
+
+        embed = create_embed(
+            f"Hardcore Submission",
+            f"> **Record:** {display_record(submission.record)}",
+            self.interaction.user,
+        )
+        await self.interaction.edit_original_message(content="Is this correct?", embed=embed, view=view)
+        
+        await view.wait()
+        if not view.confirm.value:
+            return
+        
+        await self.interaction.edit_original_message(content="Submitted.", embed=embed, view=view)
+        await tournament.save()
 
 
 class TournamentAnnouncement(
