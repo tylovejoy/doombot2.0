@@ -1,4 +1,5 @@
 from typing import List, Union
+from webbrowser import get
 
 import discord
 from discord.partial_emoji import PartialEmoji
@@ -48,13 +49,19 @@ async def records_tournament_embed_fields(
         "Grandmaster": PartialEmoji.from_str("<:grandmaster:931317469396729876>"),
     }
     rank_str = ""
-    if rank is MISSING:
-        rank_str = r.user_data.rank
-        rank_str = getattr(rank_str, category)
-        rank_str = rank_emoji[rank_str]
+
+    if getattr(r, "user_data", None):
+        alias = r.user_data.alias
+        if rank is MISSING:
+            rank_str = r.user_data.rank
+            rank_str = getattr(rank_str, category)
+            rank_str = rank_emoji[rank_str]
+    else:
+        alias = "Unknown user"
+        rank_str = "Unknown rank"
 
     return {
-        "name": f"#{count + 1} - {r.user_data.alias}{rank_str}",
+        "name": f"#{count + 1} - {alias}{rank_str}",
         "value": (f"> **Record**: {display_record(cat.records.record)}\n"),
     }
 

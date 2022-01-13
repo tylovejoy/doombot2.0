@@ -129,7 +129,7 @@ class Tournament(Document):
                     "as": "user_data",
                 }
             },
-            {"$unwind": {"path": "$user_data"}},
+            {"$unwind": {"path": "$user_data", "preserveNullAndEmptyArrays": True}},
             {
                 "$project": {
                     f"{category}.records": 1,
