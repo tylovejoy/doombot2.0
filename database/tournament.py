@@ -4,7 +4,6 @@ from logging import getLogger
 from typing import Generator, Optional, List, Literal
 
 from beanie import Document
-from discord.app import Option
 from pydantic import BaseModel
 from database.documents import EXPRanks
 
@@ -169,12 +168,18 @@ class Tournament(Document):
 
     def get_all_missions(self) -> str:
         missions = ""
+        # General
+        missions += self.get_general() + "\n"
+        # Categories
         categories = list(self.get_categories())
         for category in categories:
             missions += f"**{tournament_category_map(category)} {self.get_map_str_short(category)}**\n"
             missions += self.get_category_missions(category)
-
+        
         return missions
 
     def get_general(self) -> str:
-        return f"{self.general.type} - {self.general.target}\n"
+        missions = "**General:**\n"
+        for mission in self.general:
+            missions += f"- {format_missions(mission.type, mission.target)}"
+        return missions

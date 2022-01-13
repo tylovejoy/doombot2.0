@@ -295,8 +295,8 @@ class TournamentAddMissions(
 
         category = getattr(tournament, self.category)
         if self.category == "general":
-            category.type = self.type
-            category.target = self.target
+            general = TournamentMissions(type=self.type, target=self.target)
+            category.append(general)
         else:
             category = category.missions
             difficulty = getattr(category, self.difficulty)
