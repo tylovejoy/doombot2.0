@@ -2,7 +2,7 @@ import datetime
 from logging import getLogger
 from math import ceil
 import operator
-from typing import Dict, Optional, Union, List
+from typing import Dict, Optional, Tuple, Union, List
 from discord.partial_emoji import PartialEmoji
 from discord.utils import MISSING
 import dateparser
@@ -561,6 +561,7 @@ class TournamentViewMissions(
 async def tournament_submissions(
     interaction: discord.Interaction, record: str, category: str
 ):
+    """Tournament submissions."""
     await interaction.response.defer(ephemeral=True)
     tournament = await Tournament.find_active()
     if not tournament:
@@ -614,6 +615,12 @@ async def tournament_submissions(
 
 
 async def end_tournament(client: discord.Client, tournament: Tournament):
+    """End of tournament duties.
+    Deactivate the tournament, compute leaderboard and mission XP.
+    Record XP average for each user.
+    Announce the ending of the tournament.
+    Send Tournament Orgs a summary.
+    """
     tournament.active = False
     tournament.schedule_end = datetime.datetime(year=1, month=1, day=1)
     xp_store = await compute_mission_xp(tournament)
@@ -649,6 +656,7 @@ async def start_tournament(tournament: Tournament):
 async def split_leaderboard_ranks(
     records: List[Optional[TournamentRecords]], category: str
 ) -> dict:
+    """Split leaderboard into individual ranks."""
     sorted_records = sorted(records, key=operator.itemgetter("record"))
     split_ranks = {
         "Unranked": [],
@@ -663,20 +671,25 @@ async def split_leaderboard_ranks(
     return split_ranks
 
 
-async def compute_leaderboard_xp(tournament: Tournament, store: dict):
-
-    # TODO: This doesn't account for ranks yet
-
+async def compute_leaderboard_xp(
+    tournament: Tournament, store: dict
+) -> Tuple[dict, dict]:
+    """Compute the XP for each leaderboard (rank/category)."""
     multipler = {
         "ta": 0.8352,
         "mc": 0.3654,
         "hc": 0.8352,
         "bo": 0.3654,
     }
+    all_split_records = {}
 
     for category in ["ta", "mc", "hc", "bo"]:
         all_records = getattr(tournament, category, [])
+        if not all_records:
+            continue
+
         split_sorted_records = await split_leaderboard_ranks(all_records, category)
+        all_split_records[category] = split_sorted_records
 
         for _, records in split_sorted_records.items():
             if not records:
@@ -699,9 +712,11 @@ async def compute_leaderboard_xp(tournament: Tournament, store: dict):
                         xp = formula
 
                 store[record.posted_by]["xp"] += xp
+    return store, all_split_records
 
 
 def init_xp_store(tournament: Tournament) -> dict:
+    """Initialize the XP dictionary. Fill with all active players."""
     store = {}
     for category in ["ta", "mc", "hc", "bo"]:
         category_attr: TournamentData = getattr(tournament, category, None)
@@ -725,9 +740,10 @@ def init_xp_store(tournament: Tournament) -> dict:
 
 
 async def compute_mission_xp(tournament: Tournament) -> dict:
-
-    store = init_xp_store(tournament)
-    store = await compute_leaderboard_xp(tournament, store)
+    """Compute the XP from difficulty based missions."""
+    store, all_records = await compute_leaderboard_xp(
+        tournament, init_xp_store(tournament)
+    )
 
     mission_points = {
         "expert": 2000,
@@ -761,10 +777,12 @@ async def compute_mission_xp(tournament: Tournament) -> dict:
                     store[record.posted_by]["xp"] += mission_points[mission_category]
                     break
 
-    return compute_general_missions(tournament, store)
+    return compute_general_missions(tournament, store, all_records)
 
 
-def compute_general_missions(tournament: Tournament, store: dict) -> dict:
+def compute_general_missions(
+    tournament: Tournament, store: dict, all_records: dict
+) -> dict:
     general_missions = tournament.general
 
     for user_id, data in store.items():
@@ -786,17 +804,18 @@ def compute_general_missions(tournament: Tournament, store: dict) -> dict:
                     "bo": 0,
                 }
                 for category in ["ta", "mc", "hc", "bo"]:
-                    category_attr: TournamentData = getattr(tournament, category, None)
-                    if not category_attr:
+                    record_category = all_records.get(category, None)
+                    if not record_category:
                         continue
-
-                    records = category_attr.records
-                    for i, record in enumerate(records):
-                        if i > 2:
-                            break
-                        if record.posted_by == user_id:
-                            temp_store[category] += 1
-                            break
+                    for _, rank_records in record_category.items():
+                        if not rank_records:
+                            continue
+                        for i, record in enumerate(rank_records):
+                            if i > 2:
+                                break
+                            if record.posted_by == user_id:
+                                temp_store[category] += 1
+                                break
                 if sum(temp_store.values()) >= mission.target:
                     store[user_id]["general"] += 1
                     store[user_id]["xp"] += 2000
