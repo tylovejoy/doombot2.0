@@ -22,6 +22,10 @@ TIME_REGEX = re.compile(
 )
 
 
+def logging_util(first: str, second: str) -> str:
+    return first + " " + "-" * (30 - len(first)) + " " + second + "..."
+
+
 def is_time_format(s: str) -> bool:
     """Check if string is in HH:MM:SS.SS format or a legal variation."""
     return bool(TIME_REGEX.match(s))

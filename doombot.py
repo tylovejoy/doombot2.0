@@ -18,7 +18,7 @@ from utils.constants import (
     TOP_SUGGESTIONS_ID,
     TOURNAMENT_INFO_ID,
 )
-from utils.utilities import display_record, star_emoji
+from utils.utilities import display_record, star_emoji, logging_util
 from views.records import VerificationView
 
 logger = getLogger(__name__)
@@ -78,9 +78,9 @@ class DoomBot(discord.Client):
             f"Using discord.py version: {discord.__version__}\n"
             f"Owner: {app_info.owner}\n"
         )
-        logger.info("Task starting ------- ANNOUNCEMENTS...")
+        logger.info(logging_util("Task Initialize", "ANNOUNCEMENTS"))
         self.annoucement_checker.start()
-        logger.info("Task starting ------- TOURNAMENT...")
+        logger.info(logging_util("Task Initialize", "TOURNAMENT"))
         self.tournament_checker.start()
 
         async with aiohttp.ClientSession() as session:
@@ -95,10 +95,10 @@ class DoomBot(discord.Client):
                     .split(",")
                 )
         if not self.verification_views_added:
-            logger.info("Task starting ------- VERIFICATION VIEWS...")
+            logger.info(logging_util("Task Initialize", "VERIFICATION VIEWS"))
             views = await VerificationViews.find().to_list()
             for view in views:
-                self.add_view(VerificationView(), view.message_id)
+                self.add_view(VerificationView(), message_id=view.message_id)
             self.verification_views_added = True
 
     @tasks.loop(seconds=30)
@@ -119,13 +119,13 @@ class DoomBot(discord.Client):
 
         # Check to start tournament
         if datetime.datetime.now() >= tournament.schedule_start != sentinel:
-            logger.info("Task ---------------- STARTING TOURNAMENT...")
+            logger.info(logging_util("Task Start", "STARTING TOURNAMENT"))
             # TODO: start_round func
             return
 
         # Check to end tournament
         if datetime.datetime.now() >= tournament.schedule_end != sentinel:
-            logger.info("Task ---------------- ENDING TOURNAMENT...")
+            logger.info(logging_util("Task Start", "ENDING TOURNAMENT"))
             # TODO: end_round func
             return
 

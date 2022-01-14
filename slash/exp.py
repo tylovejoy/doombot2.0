@@ -9,13 +9,14 @@ from discord.guild import MISSING
 
 from database.documents import ExperiencePoints
 from slash.records import check_user
+from utils.utilities import logging_util
 from utils.constants import GUILD_ID
 
 logger = getLogger(__name__)
 
 
 def setup(bot):
-    logger.info("Loading ------------- EXP...")
+    logger.info(logging_util("Loading", "EXP"))
     bot.application_command(RankCard)
     bot.application_command(Alerts)
     bot.application_command(ChangeName)

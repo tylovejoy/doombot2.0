@@ -36,6 +36,7 @@ from utils.utilities import (
     display_record,
     format_missions,
     get_mention,
+    logging_util,
     no_perms_warning,
     time_convert,
     tournament_category_map,
@@ -50,7 +51,7 @@ logger = getLogger(__name__)
 
 
 def setup(bot):
-    logger.info("Loading ------------- TOURNAMENT...")
+    logger.info(logging_util("Loading", "TOURNAMENT"))
     bot.application_command(Test)
 
 

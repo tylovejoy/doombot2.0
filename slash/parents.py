@@ -1,12 +1,13 @@
 import discord
 from logging import getLogger
+from utilities import logging_util
 from utils.constants import GUILD_ID
 
 logger = getLogger(__name__)
 
 
 def setup(bot: discord.Client):
-    logger.info("Loading ------------- PARENTS...")
+    logger.info(logging_util("Loading", "PARENTS"))
     bot.application_command(SubmitParent)
     bot.application_command(EditParent)
     bot.application_command(DeleteParent)

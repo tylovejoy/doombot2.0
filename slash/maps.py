@@ -16,6 +16,7 @@ from utils.constants import (
     NEWEST_MAPS_ID,
 )
 from utils.utilities import (
+    logging_util,
     no_perms_warning,
     preprocess_map_code,
     case_ignore_compare,
@@ -37,7 +38,7 @@ MAP_TYPES_AUTOCOMPLETE = {k: k for k in MapTypes.list()}
 
 
 def setup(bot):
-    logger.info("Loading ------------- MAPS...")
+    logger.info(logging_util("Loading", "MAPS"))
     bot.application_command(MapSearch)
 
 

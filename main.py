@@ -4,6 +4,7 @@ from database.documents import database_init
 
 from doombot import DoomBot
 from slash import maps, records, parents, tournament, exp, tags
+from utils.utilities import logging_util
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -22,14 +23,14 @@ bot = DoomBot()
 
 def load_all_extensions():
     """Load all slashes."""
-    logger.info("Loading ------------- SLASH COMMANDS...")
+    logger.info(logging_util("Loading", "SLASH COMMANDS"))
     parents.setup(bot)
     maps.setup(bot)
     records.setup(bot)
     tournament.setup(bot)
     exp.setup(bot)
     tags.setup(bot)
-    logger.info("Loading Complete ---- SLASH COMMANDS...")
+    logger.info(logging_util("Loading Complete", "SLASH COMMANDS"))
 
 
 @bot.event
@@ -37,9 +38,9 @@ async def setup():
     """Upload slash commands to discord."""
 
     await database_init()
-    logger.info("Uploading ----------- SLASH COMMANDS...")
+    logger.info(logging_util("Uploading", "SLASH COMMANDS"))
     await bot.upload_guild_application_commands()
-    logger.info("Uploading Complete -- SLASH COMMANDS...")
+    logger.info(logging_util("Uploading Complete", "SLASH COMMANDS"))
 
 
 TOKEN = environ["TOKEN"]

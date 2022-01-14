@@ -24,6 +24,7 @@ from utils.enums import Emoji
 from utils.records import delete_hidden, world_records, personal_best
 from utils.utilities import (
     find_alt_map_code,
+    logging_util,
     no_perms_warning,
     preprocess_map_code,
     time_convert,
@@ -36,7 +37,7 @@ logger = getLogger(__name__)
 
 
 def setup(bot: discord.Client):
-    logger.info("Loading ------------- RECORDS...")
+    logger.info(logging_util("Loading", "RECORDS"))
     bot.application_command(ViewRecords)
     bot.application_command(PersonalRecords)
     bot.application_command(PersonalRecordsUserCommand)
