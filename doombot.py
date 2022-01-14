@@ -5,9 +5,9 @@ import aiohttp
 import discord
 from discord.ext import commands, tasks
 
-from database.documents import ExperiencePoints, Starboard
+from database.documents import ExperiencePoints, Starboard, VerificationViews
 from database.records import Record
-from database.tournament import Announcement
+from database.tournament import Announcement, Tournament
 
 from utils.constants import (
     BOT_ID,
@@ -19,6 +19,7 @@ from utils.constants import (
     TOURNAMENT_INFO_ID,
 )
 from utils.utilities import display_record, star_emoji
+from views.records import VerificationView
 
 logger = getLogger(__name__)
 
@@ -66,6 +67,7 @@ class DoomBot(discord.Client):
             SUGGESTIONS_ID: self.suggestion_channel,
         }
         self.ws_list = None
+        self.verification_views_added = False
 
     async def on_ready(self):
         """Display bot info on ready event."""
@@ -90,9 +92,43 @@ class DoomBot(discord.Client):
                     .replace('"', "")
                     .split(",")
                 )
+        if not self.verification_views_added:
+            views = await VerificationViews.find().to_list()
+            for view in views:
+                self.add_view(VerificationView(), view.message_id)
+            self.verification_views_added = True
+
+    @tasks.loop(seconds=30)
+    async def tournament_checker(self):
+        """Periodically check for the start/end of tournaments."""
+        tournament = await Tournament.find_active()
+        if not tournament:
+            return
+
+        schedules = [tournament.schedule_start, tournament.schedule_end]
+        sentinel = datetime.datetime(year=1, month=1, day=1)
+
+        # Deactivate ended tournament
+        if all([s == sentinel for s in schedules]):
+            tournament.active = False
+            await tournament.save()
+            return
+
+        # Check to start tournament
+        if datetime.datetime.now() >= tournament.schedule_start != sentinel:
+            logger.info("Starting scheduled tournament...")
+            # TODO: start_round func
+            return
+
+        # Check to end tournament
+        if datetime.datetime.now() >= tournament.schedule_end != sentinel:
+            logger.info("Ending scheduled tournament...")
+            # TODO: end_round func
+            return
 
     @tasks.loop(seconds=30)
     async def annoucement_checker(self):
+        """Periodically check for scheduled tournament announcements."""
         announcements = await Announcement.find().to_list()
         for announcement in announcements:
             if datetime.datetime.now() >= announcement.schedule:

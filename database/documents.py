@@ -1,7 +1,7 @@
 from __future__ import annotations
 from logging import getLogger
 from os import environ
-from typing import List
+from typing import List, Optional
 from beanie.odm.fields import Indexed
 
 import motor
@@ -10,6 +10,12 @@ from pydantic.main import BaseModel
 from pymongo.errors import ServerSelectionTimeoutError
 
 logger = getLogger(__name__)
+
+
+class VerificationViews(Document):
+    """Collection of unattended verifications to persist thru restart."""
+
+    message_id: int
 
 
 class TagNamesProjection(BaseModel):
@@ -71,6 +77,7 @@ class ExperiencePoints(Document):
     alerts_enabled: bool
     rank: EXPRanks = EXPRanks()
     xp: int = 0
+    xp_avg: List[Optional[int]] = [0, 0, 0, 0, 0]
 
     @classmethod
     async def find_user(cls, user_id) -> ExperiencePoints:

@@ -1,10 +1,14 @@
 from typing import List, Union
+from webbrowser import get
 
 import discord
+from discord.partial_emoji import PartialEmoji
+from discord.utils import MISSING
 
 from database.documents import ExperiencePoints
 from database.maps import Map
 from database.records import Record, WorldRecordsAggregate
+from database.tournament import TournamentRecordsLookup
 from utils.enums import Emoji
 from utils.utilities import display_record
 
@@ -20,7 +24,7 @@ def create_embed(title: str, desc: str, user: discord.Member, color: hex = 0x000
     return embed
 
 
-async def maps_embed_fields(m: Map, *args) -> dict:
+async def maps_embed_fields(m: Map, *args, **kwargs) -> dict:
     """Embed fields for a map."""
     return {
         "name": f"{m.code} - {m.map_name}",
@@ -32,7 +36,37 @@ async def maps_embed_fields(m: Map, *args) -> dict:
     }
 
 
-async def records_board_embed_fields(r: Record, count: int) -> dict:
+async def records_tournament_embed_fields(
+    r: TournamentRecordsLookup, count: int, category=None, rank=None
+) -> dict:
+    cat = getattr(r, category, None)
+    if not cat:
+        return
+    rank_emoji = {
+        "Unranked": "Unranked",
+        "Gold": PartialEmoji.from_str("<:gold:931317421862699118>"),
+        "Diamond": PartialEmoji.from_str("<:diamond:931317455639445524>"),
+        "Grandmaster": PartialEmoji.from_str("<:grandmaster:931317469396729876>"),
+    }
+    rank_str = ""
+
+    if getattr(r, "user_data", None):
+        alias = r.user_data.alias
+        if rank is MISSING:
+            rank_str = r.user_data.rank
+            rank_str = getattr(rank_str, category)
+            rank_str = rank_emoji[rank_str]
+    else:
+        alias = "Unknown user"
+        rank_str = " - Unknown rank"
+
+    return {
+        "name": f"#{count + 1} - {alias}{rank_str}",
+        "value": (f"> **Record**: {display_record(cat.records.record)}\n"),
+    }
+
+
+async def records_board_embed_fields(r: Record, count: int, *args, **kwargs) -> dict:
     """Embed fields for a record board."""
     return {
         "name": f"#{count + 1} - {await ExperiencePoints.get_alias(r.posted_by)}",
@@ -43,7 +77,7 @@ async def records_board_embed_fields(r: Record, count: int) -> dict:
     }
 
 
-async def records_basic_embed_fields(r: Record, *args) -> dict:
+async def records_basic_embed_fields(r: Record, *args, **kwargs) -> dict:
     """Embed fields for record submissions."""
     return {
         "name": f"{await ExperiencePoints.get_alias(r.posted_by)}",
@@ -55,7 +89,7 @@ async def records_basic_embed_fields(r: Record, *args) -> dict:
     }
 
 
-async def records_basic_embed_fields_verification(r: Record, *args) -> dict:
+async def records_basic_embed_fields_verification(r: Record, *args, **kwargs) -> dict:
     """Embed fields for record submissions."""
     return {
         "name": f"{await ExperiencePoints.get_alias(r.posted_by)}",
@@ -68,7 +102,7 @@ async def records_basic_embed_fields_verification(r: Record, *args) -> dict:
     }
 
 
-async def records_wr_embed_fields(r: Record, *args) -> dict:
+async def records_wr_embed_fields(r: Record, *args, **kwargs) -> dict:
     """Embed fields for world records among multiple levels."""
     return {
         "name": f"{r.id.level} - {await ExperiencePoints.get_alias(r.posted_by)}",
@@ -76,7 +110,7 @@ async def records_wr_embed_fields(r: Record, *args) -> dict:
     }
 
 
-async def records_wr_user_embed_fields(r: Record, *args) -> dict:
+async def records_wr_user_embed_fields(r: Record, *args, **kwargs) -> dict:
     """Embed fields for world records among multiple levels."""
     return {
         "name": f"{r.id.code} - {r.id.level} - {await ExperiencePoints.get_alias(r.posted_by)}",
@@ -88,13 +122,17 @@ async def split_embeds(
     initial_embed: discord.Embed,
     documents: List[Union[Map, Record, WorldRecordsAggregate]],
     field_opts,
+    category=None,
+    rank=None,
 ) -> List[discord.Embed]:
     """Split data into multiple embeds."""
     embed = initial_embed.copy()
     embeds = []
     count = len(documents)
     for i, doc in enumerate(documents):
-        embed.add_field(**await field_opts(doc, i), inline=False)
+        embed.add_field(
+            **await field_opts(doc, i, category=category, rank=rank), inline=False
+        )
 
         if i != 0 and ((i + 1) % 10 == 0 or count - 1 == i):
             embeds.append(embed)
