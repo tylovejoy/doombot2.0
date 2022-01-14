@@ -22,24 +22,24 @@ bot = DoomBot()
 
 def load_all_extensions():
     """Load all slashes."""
-    logger.info("Loading slash commands...")
+    logger.info("Loading ------------- SLASH COMMANDS...")
     parents.setup(bot)
     maps.setup(bot)
     records.setup(bot)
     tournament.setup(bot)
     exp.setup(bot)
     tags.setup(bot)
-    logger.info("Finished. Slash commands loaded.")
+    logger.info("Loading Complete ---- SLASH COMMANDS...")
 
 
 @bot.event
 async def setup():
     """Upload slash commands to discord."""
-    await database_init()
 
-    logger.info("Uploading guild slash commands to Discord...")
+    await database_init()
+    logger.info("Uploading ----------- SLASH COMMANDS...")
     await bot.upload_guild_application_commands()
-    logger.info("Finished. Guild slash commands uploaded to Discord...")
+    logger.info("Uploading Complete -- SLASH COMMANDS...")
 
 
 TOKEN = environ["TOKEN"]

@@ -50,7 +50,7 @@ logger = getLogger(__name__)
 
 
 def setup(bot):
-    logger.info("Loading Tournament commands...")
+    logger.info("Loading ------------- TOURNAMENT...")
     bot.application_command(Test)
 
 

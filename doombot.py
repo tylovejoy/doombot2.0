@@ -78,9 +78,11 @@ class DoomBot(discord.Client):
             f"Using discord.py version: {discord.__version__}\n"
             f"Owner: {app_info.owner}\n"
         )
-
-        logger.info("Starting announcement_checker task...")
+        logger.info("Task starting ------- ANNOUNCEMENTS...")
         self.annoucement_checker.start()
+        logger.info("Task starting ------- TOURNAMENT...")
+        self.tournament_checker.start()
+
         async with aiohttp.ClientSession() as session:
 
             url = "https://workshop.codes/wiki/dictionary"
@@ -93,6 +95,7 @@ class DoomBot(discord.Client):
                     .split(",")
                 )
         if not self.verification_views_added:
+            logger.info("Task starting ------- VERIFICATION VIEWS...")
             views = await VerificationViews.find().to_list()
             for view in views:
                 self.add_view(VerificationView(), view.message_id)
@@ -116,13 +119,13 @@ class DoomBot(discord.Client):
 
         # Check to start tournament
         if datetime.datetime.now() >= tournament.schedule_start != sentinel:
-            logger.info("Starting scheduled tournament...")
+            logger.info("Task ---------------- STARTING TOURNAMENT...")
             # TODO: start_round func
             return
 
         # Check to end tournament
         if datetime.datetime.now() >= tournament.schedule_end != sentinel:
-            logger.info("Ending scheduled tournament...")
+            logger.info("Task ---------------- ENDING TOURNAMENT...")
             # TODO: end_round func
             return
 

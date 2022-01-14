@@ -6,7 +6,7 @@ logger = getLogger(__name__)
 
 
 def setup(bot: discord.Client):
-    logger.info("Loading Slash Parents...")
+    logger.info("Loading ------------- PARENTS...")
     bot.application_command(SubmitParent)
     bot.application_command(EditParent)
     bot.application_command(DeleteParent)

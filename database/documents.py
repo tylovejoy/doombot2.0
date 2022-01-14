@@ -118,6 +118,7 @@ async def database_init():
             database=client.doombot, document_models=Document.__subclasses__()
         )
     except ServerSelectionTimeoutError:
-        logger.critical("Database connection failed..")
+        logger.critical("Connecting database - FAILED!!!")
+
     else:
-        logger.info("Database connection successful.")
+        logger.info("Connecting database - SUCCESS!")
