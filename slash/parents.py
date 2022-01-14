@@ -1,6 +1,6 @@
 import discord
 from logging import getLogger
-from utilities import logging_util
+from utils.utilities import logging_util
 from utils.constants import GUILD_ID
 
 logger = getLogger(__name__)

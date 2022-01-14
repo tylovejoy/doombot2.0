@@ -37,13 +37,17 @@ class VerificationView(discord.ui.View):
             return False
         return True
 
-    @discord.ui.button(label="Verify", style=discord.ButtonStyle.green, custom_id="v_verify")
+    @discord.ui.button(
+        label="Verify", style=discord.ButtonStyle.green, custom_id="v_verify"
+    )
     async def verify(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Button component for verification acceptance."""
         await verification(interaction, True)
         self.stop()
 
-    @discord.ui.button(label="Reject", style=discord.ButtonStyle.red, custom_id="v_reject")
+    @discord.ui.button(
+        label="Reject", style=discord.ButtonStyle.red, custom_id="v_reject"
+    )
     async def reject(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Button component for verification rejection."""
         await verification(interaction, False)

@@ -11,6 +11,7 @@ from database.documents import ExperiencePoints
 from slash.records import check_user
 from utils.utilities import logging_util
 from utils.constants import GUILD_ID
+from utils.embed import create_embed
 
 logger = getLogger(__name__)
 
@@ -20,6 +21,7 @@ def setup(bot):
     bot.application_command(RankCard)
     bot.application_command(Alerts)
     bot.application_command(ChangeName)
+    bot.application_command(VerificationStats)
 
 
 def format_xp(xp):
@@ -260,3 +262,23 @@ class ChangeName(discord.SlashCommand, guilds=[GUILD_ID], name="name"):
             content=f"Name changed to {self.name}."
         )
         await user.save()
+
+
+class VerificationStats(discord.SlashCommand, guilds=[GUILD_ID], name="verified"):
+    """Display how many records a user has verified."""
+
+    user: discord.Member = discord.Option(
+        description="Enter a use to see their verification stats."
+    )
+
+    async def callback(self) -> None:
+        await self.interaction.response.defer(ephemeral=True)
+        user = await ExperiencePoints.find_user(self.user.id)
+
+        embed = create_embed(
+            f"Verification Stats for {self.user}",
+            f"# of Records Verified: **{user.verified_count}**",
+            self.interaction.user,
+        )
+
+        await self.interaction.edit_original_message(embed=embed)
