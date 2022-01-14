@@ -715,7 +715,7 @@ async def compute_leaderboard_xp(
     return store, all_split_records
 
 
-def init_xp_store(tournament: Tournament) -> dict:
+async def init_xp_store(tournament: Tournament) -> dict:
     """Initialize the XP dictionary. Fill with all active players."""
     store = {}
     for category in ["ta", "mc", "hc", "bo"]:
@@ -742,7 +742,7 @@ def init_xp_store(tournament: Tournament) -> dict:
 async def compute_mission_xp(tournament: Tournament) -> dict:
     """Compute the XP from difficulty based missions."""
     store, all_records = await compute_leaderboard_xp(
-        tournament, init_xp_store(tournament)
+        tournament, await init_xp_store(tournament)
     )
 
     mission_points = {
@@ -777,10 +777,10 @@ async def compute_mission_xp(tournament: Tournament) -> dict:
                     store[record.posted_by]["xp"] += mission_points[mission_category]
                     break
 
-    return compute_general_missions(tournament, store, all_records)
+    return await compute_general_missions(tournament, store, all_records)
 
 
-def compute_general_missions(
+async def compute_general_missions(
     tournament: Tournament, store: dict, all_records: dict
 ) -> dict:
     general_missions = tournament.general
