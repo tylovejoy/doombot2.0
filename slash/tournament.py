@@ -655,7 +655,7 @@ async def start_tournament(tournament: Tournament):
 
 async def split_leaderboard_ranks(
     records: List[Optional[TournamentRecords]], category: str
-) -> dict:
+) -> dict[str, List[TournamentRecords]]:
     """Split leaderboard into individual ranks."""
     sorted_records = sorted(records, key=operator.itemgetter("record"))
     split_ranks = {
@@ -672,8 +672,8 @@ async def split_leaderboard_ranks(
 
 
 async def compute_leaderboard_xp(
-    tournament: Tournament, store: dict
-) -> Tuple[dict, dict]:
+    tournament: Tournament, store: dict[int, dict[str, int]]
+) -> Tuple[dict[int, dict], dict[str, dict[str, list[TournamentRecords]]]]:
     """Compute the XP for each leaderboard (rank/category)."""
     multipler = {
         "ta": 0.8352,
@@ -715,7 +715,7 @@ async def compute_leaderboard_xp(
     return store, all_split_records
 
 
-async def init_xp_store(tournament: Tournament) -> dict:
+async def init_xp_store(tournament: Tournament) -> dict[int, dict[str, int]]:
     """Initialize the XP dictionary. Fill with all active players."""
     store = {}
     for category in ["ta", "mc", "hc", "bo"]:
@@ -739,7 +739,7 @@ async def init_xp_store(tournament: Tournament) -> dict:
     return store
 
 
-async def compute_mission_xp(tournament: Tournament) -> dict:
+async def compute_mission_xp(tournament: Tournament) -> dict[int, dict]:
     """Compute the XP from difficulty based missions."""
     store, all_records = await compute_leaderboard_xp(
         tournament, await init_xp_store(tournament)
@@ -781,8 +781,8 @@ async def compute_mission_xp(tournament: Tournament) -> dict:
 
 
 async def compute_general_missions(
-    tournament: Tournament, store: dict, all_records: dict
-) -> dict:
+    tournament: Tournament, store: dict[int, dict], all_records: dict[str, dict[str, list[TournamentRecords]]]
+) -> dict[int, dict]:
     general_missions = tournament.general
 
     for user_id, data in store.items():
