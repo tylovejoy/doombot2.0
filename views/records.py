@@ -37,13 +37,13 @@ class VerificationView(discord.ui.View):
             return False
         return True
 
-    @discord.ui.button(label="Verify", style=discord.ButtonStyle.green)
+    @discord.ui.button(label="Verify", style=discord.ButtonStyle.green, custom_id="v_verify")
     async def verify(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Button component for verification acceptance."""
         await verification(interaction, True)
         self.stop()
 
-    @discord.ui.button(label="Reject", style=discord.ButtonStyle.red)
+    @discord.ui.button(label="Reject", style=discord.ButtonStyle.red, custom_id="v_reject")
     async def reject(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Button component for verification rejection."""
         await verification(interaction, False)
@@ -57,6 +57,8 @@ async def verification(interaction: discord.Interaction, verified: bool):
 
     if verified:
         data = accepted(interaction, search)
+        verifier = await ExperiencePoints.find_user(interaction.user.id)
+        await verifier.increment_verified()
     else:
         data = rejected(interaction, search)
 

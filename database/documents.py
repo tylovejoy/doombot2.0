@@ -78,6 +78,12 @@ class ExperiencePoints(Document):
     rank: EXPRanks = EXPRanks()
     xp: int = 0
     xp_avg: List[Optional[int]] = [0, 0, 0, 0, 0]
+    verified_count: int = 0
+
+    async def increment_verified(self) -> int:
+        self.verified_count += 1
+        await self.save()
+        return self.verified_count
 
     @classmethod
     async def find_user(cls, user_id) -> ExperiencePoints:
