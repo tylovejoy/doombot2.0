@@ -645,7 +645,8 @@ async def end_tournament(client: discord.Client, tournament: Tournament):
         user.xp_avg.append(data["xp"])
         await user.save()
         # Find current average for ending summary
-        xp_store[user_id]["cur_avg"] = sum([xp for xp in user.xp_avg if xp != 0])
+        usable_user_xps = [xp for xp in user.xp_avg if xp != 0]
+        xp_store[user_id]["cur_avg"] = sum(usable_user_xps) / len(usable_user_xps)
 
     tournament.xp = xp_store
     await init_workbook(tournament)

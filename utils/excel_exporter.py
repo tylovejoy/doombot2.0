@@ -35,6 +35,47 @@ async def init_workbook(tournament: Tournament):
         worksheet.merge_range("J1:L1", "Bonus", merge_format)
         # Name, Time, Points titles
         worksheet.write_row("A2", ["Name", "Time", "Points"] * 4)
+
+    # Format missions worksheet
+    missions_ws.write_row(
+        "A" + str(1),
+        [
+            "Names",
+            "Easy",
+            "Medium",
+            "Hard",
+            "Expert",
+            "General",
+            "Missions Total",
+            "Total XP",
+            "Average XP",
+        ],
+    )
+    for i, (user_id, data) in enumerate(tournament.xp.items(), start=2):
+        user = await ExperiencePoints.find_user(user_id)
+        missions_total = (
+            data["easy"] * 500
+            + data["medium"] * 1000
+            + data["hard"] * 1500
+            + data["expert"] * 2000
+            + data["general"] * 2000
+        )
+
+        missions_ws.write_row(
+            "A" + str(i),
+            [
+                user.alias,
+                data["easy"],
+                data["medium"],
+                data["hard"],
+                data["expert"],
+                data["general"],
+                missions_total,
+                data["xp"],
+                data["cur_avg"],
+            ],
+        )
+
     # fmt: off
     column_map = {
         "ta": (0,  1,  2, 0),
