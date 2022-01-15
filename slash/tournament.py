@@ -4,7 +4,7 @@ from math import ceil
 import operator
 from typing import Dict, Optional, Tuple, Union, List
 
-from discord import Embed
+from discord import Embed, File
 from discord.utils import MISSING
 import dateparser
 import discord
@@ -33,8 +33,10 @@ from utils.constants import (
     GUILD_ID,
     TOURNAMENT_INFO_ID,
     TOURNAMENT_SUBMISSION_ID,
+    TOURNAMENT_ORG_ID,
 )
 from utils.embed import create_embed, records_tournament_embed_fields, split_embeds
+from utils.excel_exporter import init_workbook
 from utils.utilities import (
     check_roles,
     display_record,
@@ -645,7 +647,19 @@ async def end_tournament(client: discord.Client, tournament: Tournament):
         # Find current average for ending summary
         xp_store[user_id]["cur_avg"] = sum([xp for xp in user.xp_avg if xp != 0])
 
+    tournament.xp = xp_store
+    await init_workbook(tournament)
+    await client.get_channel(TOURNAMENT_ORG_ID).send(
+        file=File(
+            fp=r"DPK_Tournament.xlsx",
+            filename=f"DPK_Tournament_{datetime.datetime.today().strftime('%d-%m-%Y')}.xlsx",
+        )
+    )
+
+    tournament.xp = {str(k): v for k, v in tournament.xp.items()}
+
     await tournament.save()
+
     embed = create_embed(
         "Tournament Announcement",
         "",
@@ -672,7 +686,8 @@ async def split_leaderboard_ranks(
 ) -> Dict[str, List[TournamentRecords]]:
     """Split leaderboard into individual ranks."""
 
-    sorted_records = sorted(records, key=operator.itemgetter("record"))
+    sorted_records = sorted(records, key=operator.attrgetter("record"))
+
     split_ranks = {
         "Unranked": [],
         "Gold": [],
