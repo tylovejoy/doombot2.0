@@ -42,7 +42,7 @@ class TournamentMissionsParent(
     """Tournament missions slash command parent class."""
 
 
-class TournamentSubmitParent(
-    discord.SlashCommand, guilds=[GUILD_ID], name="submit", parent=TournamentParent
-):
-    """Tournament slash command parent class."""
+# class TournamentSubmitParent(
+#     discord.SlashCommand, guilds=[GUILD_ID], name="submit", parent=TournamentParent
+# ):
+#     """Tournament slash command parent class."""

@@ -3,10 +3,12 @@ from logging import getLogger
 from math import ceil
 import operator
 from typing import Dict, Optional, Tuple, Union, List
-from discord.partial_emoji import PartialEmoji
+
+from discord import Embed
 from discord.utils import MISSING
 import dateparser
 import discord
+from re import compile, match
 from discord.app import AutoCompleteResponse
 from discord.utils import format_dt
 from database.documents import ExperiencePoints
@@ -24,7 +26,7 @@ from database.tournament import (
 from slash.parents import (
     TournamentMissionsParent,
     TournamentParent,
-    TournamentSubmitParent,
+    SubmitParent,
 )
 from utils.constants import (
     BOT_ID,
@@ -43,6 +45,7 @@ from utils.utilities import (
     time_convert,
     tournament_category_map,
     tournament_category_map_reverse,
+    preprocess_map_code,
 )
 from views.basic import ConfirmView
 from views.paginator import Paginator
@@ -50,6 +53,9 @@ from views.paginator import Paginator
 from views.tournament import TournamentCategoryView, TournamentStartView
 
 logger = getLogger(__name__)
+
+
+map_data_regex = compile(r"(.+)\s-\s(.+)\s-\s(.+)")
 
 
 def setup(bot):
@@ -186,16 +192,18 @@ class TournamentStart(
         else:
             last_id = 0
 
-        self.schedule_start = dateparser.parse(
+        self.schedule_start: datetime.datetime = dateparser.parse(
             self.schedule_start, settings={"PREFER_DATES_FROM": "future"}
         )
-        self.schedule_end = (
+        self.schedule_end: datetime.datetime = (
             dateparser.parse(
                 self.schedule_end, settings={"PREFER_DATES_FROM": "future"}
             )
             - datetime.datetime.now()
             + self.schedule_start
         )
+        category_abbr = ["ta", "mc", "hc", "bo"]
+        category_args = [self.time_attack, self.mildcore, self.hardcore, self.bonus]
 
         tournament_document = Tournament(
             tournament_id=last_id + 1,
@@ -204,25 +212,26 @@ class TournamentStart(
             bracket=False,
             schedule_start=self.schedule_start,
             schedule_end=self.schedule_end,
-            ta=TournamentData(
-                map_data=TournamentMaps(code="ASSE9", creator="Sven", level="LEVEL 1"),
-                missions=TournamentMissionsCategories(),
-            ),
-            mc=TournamentData(
-                map_data=TournamentMaps(code="29Y0P", creator="Sky", level="LEVEL 6"),
-                missions=TournamentMissionsCategories(),
-            ),
-            hc=TournamentData(
-                map_data=TournamentMaps(code="5EMMA", creator="Opare", level="LEVEL 9"),
-                missions=TournamentMissionsCategories(),
-            ),
-            # bo=TournamentData(
-            #     map_data=TournamentMaps(
-            #         code="code1", creator="creator", level="bing"
-            #     ),
-            #     missions=TournamentMissionsCategories(),
-            # ),
         )
+
+        for arg, abbr in zip(category_args, category_abbr):
+            if arg is MISSING:
+                continue
+            arg_regex = match(map_data_regex, arg)
+            code = preprocess_map_code(arg_regex.group(1))
+            level_name = arg_regex.group(2).upper()
+            setattr(
+                tournament_document,
+                abbr,
+                TournamentData(
+                    map_data=TournamentMaps(
+                        code=code,
+                        level=level_name,
+                        creator=arg_regex.group(3),
+                    )
+                ),
+            )
+
         embed = create_embed(
             tournament_document.name,
             (
@@ -232,19 +241,21 @@ class TournamentStart(
             self.interaction.user,
         )
 
-        for category in ["ta", "mc", "hc", "bo"]:
+        for category in category_abbr:
             data = getattr(
                 getattr(tournament_document, category, None), "map_data", None
             )
             if getattr(data, "code", None):
                 embed.add_field(
-                    name=f"{tournament_category_map(category)} ({data.code})",
-                    value=f"***{data.level}*** by {data.creator}",
+                    name=f"{tournament_category_map(category)}",
+                    value=f"Code: {data.code} | {data.level} by {data.creator}",
                     inline=False,
                 )
         view = TournamentCategoryView(self.interaction)
         await self.interaction.edit_original_message(
-            content="Select any mentions and confirm data is correct.", embed=embed
+            content="Select any mentions and confirm data is correct.",
+            embed=embed,
+            view=view,
         )
         await view.wait()
 
@@ -255,13 +266,13 @@ class TournamentStart(
             ]
         )
         tournament_document.mentions = mentions
-
+        tournament_document.embed = embed.to_dict()
         if not view.confirm.value:
             return
 
         await tournament_document.insert()
         await self.interaction.edit_original_message(
-            content="Tournament scheduled.",
+            content="Tournament scheduled.", view=view
         )
 
 
@@ -269,7 +280,7 @@ class TimeAttackSubmission(
     discord.SlashCommand,
     guilds=[GUILD_ID],
     name="timeattack",
-    parent=TournamentSubmitParent,
+    parent=SubmitParent,
 ):
     """Time Attack tournament submission."""
 
@@ -286,7 +297,7 @@ class MildcoreSubmission(
     discord.SlashCommand,
     guilds=[GUILD_ID],
     name="mildcore",
-    parent=TournamentSubmitParent,
+    parent=SubmitParent,
 ):
     """Mildcore tournament submission."""
 
@@ -303,7 +314,7 @@ class HardcoreSubmission(
     discord.SlashCommand,
     guilds=[GUILD_ID],
     name="hardcore",
-    parent=TournamentSubmitParent,
+    parent=SubmitParent,
 ):
     """Hardcore tournament submission."""
 
@@ -320,7 +331,7 @@ class BonusSubmission(
     discord.SlashCommand,
     guilds=[GUILD_ID],
     name="bonus",
-    parent=TournamentSubmitParent,
+    parent=SubmitParent,
 ):
     """Bonus tournament submission."""
 
@@ -646,17 +657,21 @@ async def end_tournament(client: discord.Client, tournament: Tournament):
     )
     await client.get_channel(TOURNAMENT_INFO_ID).send(tournament.mentions, embed=embed)
 
-    # TODO: Send summary to #org
 
+async def start_tournament(client: discord.Client, tournament: Tournament):
+    tournament.schedule_start = datetime.datetime(year=1, month=1, day=1)
 
-async def start_tournament(tournament: Tournament):
-    pass
+    await client.get_channel(TOURNAMENT_INFO_ID).send(
+        tournament.mentions, embed=Embed.from_dict(tournament.embed)
+    )
+    await tournament.save()
 
 
 async def split_leaderboard_ranks(
     records: List[Optional[TournamentRecords]], category: str
-) -> dict[str, List[TournamentRecords]]:
+) -> Dict[str, List[TournamentRecords]]:
     """Split leaderboard into individual ranks."""
+
     sorted_records = sorted(records, key=operator.itemgetter("record"))
     split_ranks = {
         "Unranked": [],
@@ -672,8 +687,8 @@ async def split_leaderboard_ranks(
 
 
 async def compute_leaderboard_xp(
-    tournament: Tournament, store: dict[int, dict[str, int]]
-) -> Tuple[dict[int, dict], dict[str, dict[str, list[TournamentRecords]]]]:
+    tournament: Tournament, store: Dict[int, Dict[str, int]]
+) -> Tuple[Dict[int, Dict], Dict[str, Dict[str, List[TournamentRecords]]]]:
     """Compute the XP for each leaderboard (rank/category)."""
     multipler = {
         "ta": 0.8352,
@@ -687,6 +702,7 @@ async def compute_leaderboard_xp(
         all_records = getattr(tournament, category, [])
         if not all_records:
             continue
+        all_records = all_records.records
 
         split_sorted_records = await split_leaderboard_ranks(all_records, category)
         all_split_records[category] = split_sorted_records
@@ -710,12 +726,12 @@ async def compute_leaderboard_xp(
                         xp = 100
                     else:
                         xp = formula
-
+                store[record.posted_by][category] += xp
                 store[record.posted_by]["xp"] += xp
     return store, all_split_records
 
 
-async def init_xp_store(tournament: Tournament) -> dict[int, dict[str, int]]:
+async def init_xp_store(tournament: Tournament) -> Dict[int, Dict[str, int]]:
     """Initialize the XP dictionary. Fill with all active players."""
     store = {}
     for category in ["ta", "mc", "hc", "bo"]:
@@ -733,13 +749,17 @@ async def init_xp_store(tournament: Tournament) -> dict[int, dict[str, int]]:
                     "hard": 0,
                     "expert": 0,
                     "general": 0,
+                    "ta": 0,
+                    "mc": 0,
+                    "hc": 0,
+                    "bo": 0,
                     "xp": 0,
                     "cur_avg": 0,
                 }
     return store
 
 
-async def compute_mission_xp(tournament: Tournament) -> dict[int, dict]:
+async def compute_mission_xp(tournament: Tournament) -> Dict[int, Dict]:
     """Compute the XP from difficulty based missions."""
     store, all_records = await compute_leaderboard_xp(
         tournament, await init_xp_store(tournament)
@@ -781,8 +801,10 @@ async def compute_mission_xp(tournament: Tournament) -> dict[int, dict]:
 
 
 async def compute_general_missions(
-    tournament: Tournament, store: dict[int, dict], all_records: dict[str, dict[str, list[TournamentRecords]]]
-) -> dict[int, dict]:
+    tournament: Tournament,
+    store: Dict[int, Dict],
+    all_records: Dict[str, Dict[str, List[TournamentRecords]]],
+) -> Dict[int, Dict]:
     general_missions = tournament.general
 
     for user_id, data in store.items():

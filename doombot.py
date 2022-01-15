@@ -3,11 +3,13 @@ from logging import getLogger
 import aiohttp
 
 import discord
+from discord import PermissionOverwrite
 from discord.ext import commands, tasks
 
 from database.documents import ExperiencePoints, Starboard, VerificationViews
 from database.records import Record
 from database.tournament import Announcement, Tournament
+from slash.tournament import end_tournament, start_tournament
 
 from utils.constants import (
     BOT_ID,
@@ -17,6 +19,8 @@ from utils.constants import (
     TOP_RECORDS_ID,
     TOP_SUGGESTIONS_ID,
     TOURNAMENT_INFO_ID,
+    TOURNAMENT_SUBMISSION_ID,
+    GUILD_ID,
 )
 from utils.utilities import display_record, star_emoji, logging_util
 from views.records import VerificationView
@@ -68,6 +72,12 @@ class DoomBot(discord.Client):
         }
         self.ws_list = None
         self.verification_views_added = False
+        self.guild = None
+
+        self.everyone = None
+        self.submissions_channel = None
+        self.allow_submissions = None
+        self.disallow_submissions = None
 
     async def on_ready(self):
         """Display bot info on ready event."""
@@ -78,6 +88,16 @@ class DoomBot(discord.Client):
             f"Using discord.py version: {discord.__version__}\n"
             f"Owner: {app_info.owner}\n"
         )
+        self.guild = self.get_guild(GUILD_ID)
+        self.everyone = self.guild.default_role
+        self.submissions_channel = self.guild.get_channel(TOURNAMENT_SUBMISSION_ID)
+        self.allow_submissions = self.submissions_channel.overwrites_for(self.everyone)
+        self.disallow_submissions = self.submissions_channel.overwrites_for(
+            self.everyone
+        )
+        self.allow_submissions.update(send_messages=True)
+        self.disallow_submissions.update(send_messages=False)
+
         logger.info(logging_util("Task Initialize", "ANNOUNCEMENTS"))
         self.annoucement_checker.start()
         logger.info(logging_util("Task Initialize", "TOURNAMENT"))
@@ -120,13 +140,25 @@ class DoomBot(discord.Client):
         # Check to start tournament
         if datetime.datetime.now() >= tournament.schedule_start != sentinel:
             logger.info(logging_util("Task Start", "STARTING TOURNAMENT"))
-            # TODO: start_round func
+            await self.submissions_channel.set_permissions(
+                self.everyone,
+                overwrite=self.allow_submissions,
+                reason="Tournament Started.",
+            )
+            await start_tournament(self, tournament)
             return
 
         # Check to end tournament
         if datetime.datetime.now() >= tournament.schedule_end != sentinel:
             logger.info(logging_util("Task Start", "ENDING TOURNAMENT"))
-            # TODO: end_round func
+            await self.submissions_channel.set_permissions(
+                self.everyone,
+                overwrite=self.disallow_submissions,
+                reason="Tournament Ended.",
+            )
+            await end_tournament(self, tournament)
+            # TODO: Exporter
+            # TODO: Summary
             return
 
     @tasks.loop(seconds=30)

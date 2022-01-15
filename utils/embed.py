@@ -13,7 +13,12 @@ from utils.enums import Emoji
 from utils.utilities import display_record
 
 
-def create_embed(title: str, desc: str, user: discord.Member, color: hex = 0x000001):
+def create_embed(
+    title: str,
+    desc: str,
+    user: Union[discord.Member, discord.User],
+    color: hex = 0x000001,
+):
     """Create a standardized embed."""
     embed = discord.Embed(title=title, description=desc, color=color)
     embed.set_author(name=user, icon_url=user.avatar.url)
