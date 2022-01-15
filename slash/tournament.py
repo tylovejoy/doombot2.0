@@ -2,7 +2,7 @@ import datetime
 from logging import getLogger
 from math import ceil
 import operator
-from typing import Dict, Optional, Tuple, Union, List
+from typing import Dict, Optional, Tuple, Union, List, Literal
 
 from discord import Embed, File
 from discord.utils import MISSING
@@ -22,6 +22,7 @@ from database.tournament import (
     TournamentMissions,
     TournamentMissionsCategories,
     TournamentRecords,
+    ShortRecordData,
 )
 from slash.parents import (
     TournamentMissionsParent,
@@ -34,8 +35,14 @@ from utils.constants import (
     TOURNAMENT_INFO_ID,
     TOURNAMENT_SUBMISSION_ID,
     TOURNAMENT_ORG_ID,
+    HALL_OF_FAME_ID,
 )
-from utils.embed import create_embed, records_tournament_embed_fields, split_embeds
+from utils.embed import (
+    create_embed,
+    records_tournament_embed_fields,
+    split_embeds,
+    hall_of_fame,
+)
 from utils.excel_exporter import init_workbook
 from utils.utilities import (
     check_roles,
@@ -48,6 +55,7 @@ from utils.utilities import (
     tournament_category_map,
     tournament_category_map_reverse,
     preprocess_map_code,
+    make_ordinal,
 )
 from views.basic import ConfirmView
 from views.paginator import Paginator
@@ -63,6 +71,58 @@ map_data_regex = compile(r"(.+)\s-\s(.+)\s-\s(.+)")
 def setup(bot):
     logger.info(logging_util("Loading", "TOURNAMENT"))
     bot.application_command(Test)
+
+
+class ChangeRank(
+    discord.SlashCommand, guilds=[GUILD_ID], name="changerank", parent=TournamentParent
+):
+    """Change a users rank in a particular category."""
+
+    user: discord.Member = discord.Option(
+        description="Which user do you want to alter?"
+    )
+
+    category: Literal["Time Attack", "Mildcore", "Hardcore", "Bonus"] = discord.Option(
+        description="Which category?"
+    )
+
+    rank: Literal["Gold", "Diamond", "Grandmaster"] = discord.Option(
+        description="Which rank?"
+    )
+
+    async def callback(self) -> None:
+        if not check_roles(self.interaction):
+            await no_perms_warning(self.interaction)
+            return
+        await self.interaction.response.defer(ephemeral=True)
+
+        category = tournament_category_map_reverse(self.category)
+        user = await ExperiencePoints.find_user(self.user.id)
+        ranks = user.rank
+        rank = getattr(ranks, category)
+
+        view = ConfirmView()
+        await self.interaction.edit_original_message(
+            content=(
+                f"Changing {user.alias}'s **{self.category}** rank from **{rank}** to **{self.rank}**.\n"
+                "Is this correct?"
+            ),
+            view=view,
+        )
+        await view.wait()
+        if not view.confirm.value:
+            return
+
+        setattr(user.rank, category, self.rank)
+        await user.save()
+
+        await self.interaction.edit_original_message(
+            content=(
+                f"Changing {user.alias}'s **{self.category}** rank from **{rank}** to **{self.rank}**.\n"
+                "Confirmed."
+            ),
+            view=view,
+        )
 
 
 class ViewTournamentRecords(
@@ -672,6 +732,58 @@ async def end_tournament(client: discord.Client, tournament: Tournament):
     )
     await client.get_channel(TOURNAMENT_INFO_ID).send(tournament.mentions, embed=embed)
 
+    # Hall of Fame
+    embed = await create_hall_of_fame(tournament)
+    hof_msg = await client.get_channel(HALL_OF_FAME_ID).send(embed=embed)
+    hof_thread = await hof_msg.create_thread(name="Records Archive")
+    # Post export in thread
+    await export_records(tournament, hof_thread)
+
+
+async def export_records(tournament: Tournament, thread: discord.Thread):
+    for category in ["ta", "mc", "hc", "bo"]:
+        data: TournamentData = getattr(tournament, category, None)
+        await thread.send(
+            f"***{10 * '-'} {tournament_category_map(category)} {10 * '-'}***"
+        )
+        if not data:
+            await thread.send(
+                f"No times exist for the {tournament_category_map(category)} category!"
+            )
+            continue
+
+        records = await Tournament.get_records(category)
+
+        embed = create_embed(
+            title=f"{tournament_category_map(category)}",
+            desc="",
+            user="",
+        )
+        embeds = await split_embeds(
+            embed,
+            records,
+            records_tournament_embed_fields,
+            category=category,
+        )
+        while embeds:
+            await thread.send(embeds=embeds[:10])
+            embeds = embeds[10:]
+
+        embeds = []
+        for record in records:
+            t_cat: ShortRecordData = getattr(record, category)
+            embed = create_embed("Screenshot Link", "", "")
+            embed.add_field(
+                name=record.user_data.alias, value=display_record(t_cat.records.record)
+            )
+            # TODO:
+            # embed.set_image(url=t_cat.records.attachment_url)
+            embeds.append(embed)
+
+        while embeds:
+            await thread.send(embeds=embeds[:10])
+            embeds = embeds[10:]
+
 
 async def start_tournament(client: discord.Client, tournament: Tournament):
     tournament.schedule_start = datetime.datetime(year=1, month=1, day=1)
@@ -680,6 +792,29 @@ async def start_tournament(client: discord.Client, tournament: Tournament):
         tournament.mentions, embed=Embed.from_dict(tournament.embed)
     )
     await tournament.save()
+
+
+async def create_hall_of_fame(tournament: Tournament):
+    embed = hall_of_fame(tournament.name + " - Top 3", "")
+    for category in ["ta", "mc", "hc", "bo"]:
+        data: TournamentData = getattr(tournament, category, None)
+        if not data:
+            continue
+        map_data = data.map_data
+        records = sorted(data.records, key=operator.attrgetter("record"))
+
+        top_three_list = ""
+
+        for pos, record in enumerate(records, start=1):
+            if pos > 3:
+                break
+            user = await ExperiencePoints.find_user(record.posted_by)
+            top_three_list += f"{make_ordinal(pos)} - {user.alias}\n"
+        embed.add_field(
+            name=tournament_category_map(category) + f" ({map_data.code})",
+            value=top_three_list,
+        )
+    return embed
 
 
 async def split_leaderboard_ranks(

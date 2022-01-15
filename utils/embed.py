@@ -16,16 +16,26 @@ from utils.utilities import display_record
 def create_embed(
     title: str,
     desc: str,
-    user: Union[discord.Member, discord.User],
+    user: Union[discord.Member, discord.User, str],
     color: hex = 0x000001,
-):
+) -> discord.Embed:
     """Create a standardized embed."""
     embed = discord.Embed(title=title, description=desc, color=color)
-    embed.set_author(name=user, icon_url=user.avatar.url)
+    if not isinstance(user, str):
+        embed.set_author(name=user.name, icon_url=user.avatar.url)
+    else:
+        embed.set_author(name=user)
 
     embed.set_thumbnail(
         url="https://cdn.discordapp.com/app-icons/801483463642841150/4316132ab7deebe9b1bc93fc2fea576b.png"
     )
+    return embed
+
+
+def hall_of_fame(title: str, desc: str = "") -> discord.Embed:
+    embed = discord.Embed(title=title, description=desc, color=0xF7BD00)
+    embed.set_author(name="Hall of Fame")
+    embed.set_thumbnail(url="https://clipartart.com/images/dog-trophy-clipart-2.png")
     return embed
 
 
@@ -125,7 +135,7 @@ async def records_wr_user_embed_fields(r: Record, *args, **kwargs) -> dict:
 
 async def split_embeds(
     initial_embed: discord.Embed,
-    documents: List[Union[Map, Record, WorldRecordsAggregate]],
+    documents: List[Union[Map, Record, WorldRecordsAggregate, TournamentRecordsLookup]],
     field_opts,
     category=None,
     rank=None,

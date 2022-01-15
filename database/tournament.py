@@ -116,8 +116,12 @@ class Tournament(Document):
         return (await cls.find().sort("-tournament_id").limit(1).to_list())[0]
 
     @classmethod
-    async def get_records(cls, category, rank=MISSING):
+    async def get_records(
+        cls, category, rank=MISSING
+    ) -> List[Optional[TournamentRecordsLookup]]:
         aggregation = [
+            {"$sort": {"tournament_id": -1}},
+            {"$limit": 1},
             {"$project": {f"{category}.records": 1}},
             {"$unwind": {"path": f"${category}.records"}},
             {"$sort": {f"{category}.records": 1}},
@@ -142,7 +146,7 @@ class Tournament(Document):
             aggregation.append({"$match": {f"user_data.rank.{category}": f"{rank}"}})
 
         return (
-            await cls.find(cls.active == True)
+            await cls.find()
             .aggregate(aggregation, projection_model=TournamentRecordsLookup)
             .to_list()
         )
