@@ -149,7 +149,7 @@ class SubmitRecord(
 
         correct_msg = "Is this correct?"
         if code_changed:
-            correct_msg += " **MAP CODE CHANGED TO ALIAS**"
+            correct_msg += " **MAP CODE CHANGED TO KNOWN ALIAS**"
 
         await self.interaction.response.send_message(
             correct_msg, ephemeral=True, view=view, embed=embed

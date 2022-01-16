@@ -1,6 +1,6 @@
 import datetime
 from logging import getLogger
-from math import ceil
+
 import operator
 from typing import Dict, Optional, Tuple, Union, List, Literal
 
@@ -12,15 +12,14 @@ from re import compile, match
 from discord.app import AutoCompleteResponse
 from discord.utils import format_dt
 from database.documents import ExperiencePoints
+from database.records import Record
 
 from database.tournament import (
     Announcement,
-    DifficultyLiteral,
     Tournament,
     TournamentData,
     TournamentMaps,
     TournamentMissions,
-    TournamentMissionsCategories,
     TournamentRecords,
     ShortRecordData,
 )
@@ -60,7 +59,7 @@ from utils.utilities import (
 from views.basic import ConfirmView
 from views.paginator import Paginator
 
-from views.tournament import TournamentCategoryView, TournamentStartView
+from views.tournament import TournamentCategoryView
 
 logger = getLogger(__name__)
 
@@ -738,6 +737,28 @@ async def end_tournament(client: discord.Client, tournament: Tournament):
     hof_thread = await hof_msg.create_thread(name="Records Archive")
     # Post export in thread
     await export_records(tournament, hof_thread)
+    # TODO: Test and enable
+    # await send_records_to_db(tournament)
+
+
+async def send_records_to_db(tournament: Tournament):
+    """Send tournament records to the standard personal records database collection."""
+    for category in ["ta", "mc", "hc", "bo"]:
+        data: TournamentData = getattr(tournament, category, None)
+        if not data:
+            continue
+        code = data.map_data.code
+        level = data.map_data.level
+
+        for record in data.records:
+            await Record(
+                posted_by=record.posted_by,
+                code=code,
+                level=level,
+                record=record.record,
+                verified=True,
+                # attachment_url= TODO: attachment
+            ).insert()
 
 
 async def export_records(tournament: Tournament, thread: discord.Thread):

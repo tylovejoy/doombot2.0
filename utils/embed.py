@@ -77,7 +77,7 @@ async def records_tournament_embed_fields(
 
     return {
         "name": f"#{count + 1} - {alias}{rank_str}",
-        "value": (f"> **Record**: {display_record(cat.records.record)}\n"),
+        "value": f"> **Record**: {display_record(cat.records.record)}\n",
     }
 
 
@@ -98,7 +98,7 @@ async def records_basic_embed_fields(r: Record, *args, **kwargs) -> dict:
         "name": f"{await ExperiencePoints.get_alias(r.posted_by)}",
         "value": (
             f"> **Map Code:** {r.code}\n"
-            f"> **Level name:** {r.level}\n"
+            f"> **Level name:** {discord.utils.escape_markdown(r.level)}\n"
             f"> **Record:** {display_record(r.record)}\n"
         ),
     }
@@ -110,7 +110,7 @@ async def records_basic_embed_fields_verification(r: Record, *args, **kwargs) ->
         "name": f"{await ExperiencePoints.get_alias(r.posted_by)}",
         "value": (
             f"> **Map Code:** {r.code}\n"
-            f"> **Level name:** {r.level}\n"
+            f"> **Level name:** {discord.utils.escape_markdown(r.level)}\n"
             f"> **Record:** {display_record(r.record)}\n"
             f"> **Verified**: {Emoji.is_verified(r.verified)}\n"
         ),
@@ -120,7 +120,7 @@ async def records_basic_embed_fields_verification(r: Record, *args, **kwargs) ->
 async def records_wr_embed_fields(r: Record, *args, **kwargs) -> dict:
     """Embed fields for world records among multiple levels."""
     return {
-        "name": f"{r.id.level} - {await ExperiencePoints.get_alias(r.posted_by)}",
+        "name": f"{discord.utils.escape_markdown(r.id.level)} - {await ExperiencePoints.get_alias(r.posted_by)}",
         "value": f"> **Record**: {display_record(r.record)}\n",
     }
 
@@ -128,7 +128,7 @@ async def records_wr_embed_fields(r: Record, *args, **kwargs) -> dict:
 async def records_wr_user_embed_fields(r: Record, *args, **kwargs) -> dict:
     """Embed fields for world records among multiple levels."""
     return {
-        "name": f"{r.id.code} - {r.id.level} - {await ExperiencePoints.get_alias(r.posted_by)}",
+        "name": f"{r.id.code} - {discord.utils.escape_markdown(r.id.level)} - {await ExperiencePoints.get_alias(r.posted_by)}",
         "value": f"> **Record**: {display_record(r.record)}\n",
     }
 

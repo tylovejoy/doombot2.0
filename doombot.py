@@ -157,8 +157,6 @@ class DoomBot(discord.Client):
                 reason="Tournament Ended.",
             )
             await end_tournament(self, tournament)
-            # TODO: Exporter
-            # TODO: Summary
             return
 
     @tasks.loop(seconds=30)

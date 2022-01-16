@@ -67,8 +67,9 @@ class Record(Document):
     level: str
     record: float
     verified: bool
-    message_id: int
-    hidden_id: int
+    message_id: Optional[int]
+    hidden_id: Optional[int]
+    attachment_url: Optional[str]
 
     @classmethod
     async def find_rec_map_info(cls, user_id):
