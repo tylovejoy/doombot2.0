@@ -13,6 +13,7 @@ from utils.embed import (
 from utils.constants import (
     GUILD_ID,
     NEWEST_MAPS_ID,
+    MAP_MAKER_ID,
 )
 from utils.utilities import (
     logging_util,
@@ -336,6 +337,11 @@ class EditMap(discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=EditPa
         )
         await map_document.save()
         await self.interaction.edit_original_message(content=preview, view=view)
+        if MAP_MAKER_ID not in self.interaction.user.roles:
+            await self.interaction.user.add_roles(
+                self.interaction.guild.get_role(MAP_MAKER_ID),
+                reason="User submitted a map to the bot.",
+            )
 
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
