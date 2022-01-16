@@ -54,7 +54,7 @@ def display_record(record: float) -> str:
     """Display record in HH:MM:SS.ss format."""
     negative = "-" if is_negative(record) else ""
     dt = datetime.datetime.min + datetime.timedelta(seconds=abs(record))
-    return negative + dt.strftime(f"%H:%M:%S.%f")[:-4]
+    return negative + dt.strftime("%H:%M:%S.%f")[:-4]
 
 
 def is_negative(s: Union[float, int]) -> bool:

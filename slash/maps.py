@@ -312,7 +312,7 @@ class EditMap(discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=EditPa
             f"**Description:** {map_document.description}\n"
         )
 
-        view = MapSubmitView(confirm_disabled=False)
+        view = MapSubmitView(self.interaction, confirm_disabled=False)
         for x in view.select_menu.options:
             if x.label in map_document.map_type:
                 x.default = True

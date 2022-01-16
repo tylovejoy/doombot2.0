@@ -54,7 +54,7 @@ class DeleteTag(
             await no_perms_warning(self.interaction)
             return
 
-        tag = Tags.find_one(Tags.name == self.name)
+        tag = await Tags.find_one(Tags.name == self.name)
 
         if not tag:
             await self.interaction.edit_original_message(content="Tag does not exist.")
@@ -89,7 +89,7 @@ class CreateTag(
 
     async def callback(self) -> None:
         if not check_roles(self.interaction):
-            await no_perms_warning()
+            await no_perms_warning(self.interaction)
             return
 
         view = ConfirmView()

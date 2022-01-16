@@ -7,7 +7,7 @@ from typing import Dict, Optional, Tuple, Union, List, Literal
 from discord.utils import MISSING, format_dt
 import dateparser
 import discord
-from re import compile, match
+import re
 
 from database.documents import ExperiencePoints
 from database.records import Record
@@ -62,7 +62,7 @@ from views.tournament import TournamentCategoryView
 logger = getLogger(__name__)
 
 
-map_data_regex = compile(r"(.+)\s-\s(.+)\s-\s(.+)")
+map_data_regex = re.compile(r"(.+)\s-\s(.+)\s-\s(.+)")
 
 
 def setup(bot):
@@ -276,7 +276,7 @@ class TournamentStart(
         for arg, abbr in zip(category_args, category_abbr):
             if arg is MISSING:
                 continue
-            arg_regex = match(map_data_regex, arg)
+            arg_regex = re.match(map_data_regex, arg)
             code = preprocess_map_code(arg_regex.group(1))
             level_name = arg_regex.group(2).upper()
             setattr(
