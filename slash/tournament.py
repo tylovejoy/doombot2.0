@@ -4,13 +4,11 @@ from logging import getLogger
 import operator
 from typing import Dict, Optional, Tuple, Union, List, Literal
 
-from discord import Embed, File
-from discord.utils import MISSING
+from discord.utils import MISSING, format_dt
 import dateparser
 import discord
 from re import compile, match
-from discord.app import AutoCompleteResponse
-from discord.utils import format_dt
+
 from database.documents import ExperiencePoints
 from database.records import Record
 
@@ -183,7 +181,7 @@ class ViewTournamentRecords(
         self, options: Dict[str, Union[int, float, str]], focused: str
     ):
         if focused == "category":
-            return AutoCompleteResponse(
+            return discord.AutoCompleteResponse(
                 {
                     "Time Attack": "ta",
                     "Mildcore": "mc",
@@ -192,7 +190,7 @@ class ViewTournamentRecords(
                 }
             )
         if focused == "rank":
-            return AutoCompleteResponse(
+            return discord.AutoCompleteResponse(
                 {k: k for k in ["Unranked", "Gold", "Diamond", "Grandmaster"]}
             )
 
@@ -546,7 +544,7 @@ class TournamentAddMissions(
         self, options: Dict[str, Union[int, float, str]], focused: str
     ):
         if focused == "category":
-            return AutoCompleteResponse(
+            return discord.AutoCompleteResponse(
                 {
                     "Time Attack": "ta",
                     "Mildcore": "mc",
@@ -556,7 +554,7 @@ class TournamentAddMissions(
                 }
             )
         if focused == "difficulty":
-            return AutoCompleteResponse(
+            return discord.AutoCompleteResponse(
                 {
                     "Easy": "easy",
                     "Medium": "medium",
@@ -568,7 +566,7 @@ class TournamentAddMissions(
         if focused == "type":
             diff = options.get("difficulty")
             if diff == "general":
-                return AutoCompleteResponse(
+                return discord.AutoCompleteResponse(
                     {
                         "XP Threshold": "xp",
                         "Mission Threshold": "missions",
@@ -576,7 +574,7 @@ class TournamentAddMissions(
                     }
                 )
             if diff != "general":
-                return AutoCompleteResponse(
+                return discord.AutoCompleteResponse(
                     {
                         "Sub x time": "sub",
                         "Complete entire level": "complete",
@@ -710,7 +708,7 @@ async def end_tournament(client: discord.Client, tournament: Tournament):
     tournament.xp = xp_store
     await init_workbook(tournament)
     await client.get_channel(TOURNAMENT_ORG_ID).send(
-        file=File(
+        file=discord.File(
             fp=r"DPK_Tournament.xlsx",
             filename=f"DPK_Tournament_{datetime.datetime.today().strftime('%d-%m-%Y')}.xlsx",
         )
@@ -810,7 +808,7 @@ async def start_tournament(client: discord.Client, tournament: Tournament):
     tournament.schedule_start = datetime.datetime(year=1, month=1, day=1)
 
     await client.get_channel(TOURNAMENT_INFO_ID).send(
-        tournament.mentions, embed=Embed.from_dict(tournament.embed)
+        tournament.mentions, embed=discord.Embed.from_dict(tournament.embed)
     )
     await tournament.save()
 

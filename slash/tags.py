@@ -2,7 +2,6 @@ from logging import getLogger
 from typing import Optional
 import aiohttp
 import discord
-from discord.app import AutoCompleteResponse
 
 from database.documents import Tags
 from slash.parents import CreateParent, DeleteParent
@@ -27,7 +26,7 @@ def setup(bot):
 
 async def _autocomplete(options, focused, list_obj):
     if options[focused] == "":
-        return AutoCompleteResponse({k: k for k in list_obj[:25]})
+        return discord.AutoCompleteResponse({k: k for k in list_obj[:25]})
 
     if focused in ["name", "search"]:
         count = 0
@@ -37,7 +36,7 @@ async def _autocomplete(options, focused, list_obj):
                 autocomplete_[k] = k
                 count += 1
 
-        return AutoCompleteResponse(autocomplete_)
+        return discord.AutoCompleteResponse(autocomplete_)
 
 
 class DeleteTag(

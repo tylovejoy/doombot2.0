@@ -1,6 +1,5 @@
 import operator
 from logging import getLogger
-from typing import List, Optional
 
 import xlsxwriter
 

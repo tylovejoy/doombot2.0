@@ -5,7 +5,7 @@ from typing import Optional
 
 import discord
 from PIL import Image, ImageDraw, ImageFont
-from discord.guild import MISSING
+from discord.utils import MISSING
 
 from database.documents import ExperiencePoints
 from slash.records import check_user

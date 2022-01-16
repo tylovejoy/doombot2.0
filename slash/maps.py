@@ -2,7 +2,6 @@ from logging import getLogger
 from typing import Dict, Optional, Union
 
 import discord
-from discord.app import AutoCompleteResponse
 
 from database.maps import Map, MapAlias
 from slash.parents import SubmitParent, DeleteParent, EditParent
@@ -46,8 +45,8 @@ def autocomplete_maps(options, focused):
     """Display autocomplete for map names and types."""
     if focused == "map_name":
         if options[focused] == "":
-            return AutoCompleteResponse({k: k for k in MapNames.list()[:25]})
-        response = AutoCompleteResponse(
+            return discord.AutoCompleteResponse({k: k for k in MapNames.list()[:25]})
+        response = discord.AutoCompleteResponse(
             {
                 k: k
                 for k in MAPS_AUTOCOMPLETE
@@ -57,7 +56,7 @@ def autocomplete_maps(options, focused):
         return response
 
     if focused == "map_type":
-        response = AutoCompleteResponse(
+        response = discord.AutoCompleteResponse(
             {
                 k: k
                 for k in MAP_TYPES_AUTOCOMPLETE

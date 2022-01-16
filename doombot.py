@@ -3,7 +3,7 @@ from logging import getLogger
 import aiohttp
 
 import discord
-from discord import PermissionOverwrite
+
 from discord.ext import commands, tasks
 
 from database.documents import ExperiencePoints, Starboard, VerificationViews

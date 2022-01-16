@@ -2,7 +2,6 @@ from logging import getLogger
 from typing import Dict, Union, Optional
 
 import discord
-from discord.app import AutoCompleteResponse
 
 from database.documents import ExperiencePoints, VerificationViews
 from database.records import Record
@@ -65,9 +64,9 @@ async def _autocomplete(focused, options):
         map_code = options.get("map_code")
         map_code = map_code.upper() if map_code else "NULL"
         levels = await Record.get_level_names(map_code)
-        return AutoCompleteResponse({k: k for k in levels[:25]})
+        return discord.AutoCompleteResponse({k: k for k in levels[:25]})
     if focused == "map_code":
-        response = AutoCompleteResponse(
+        response = discord.AutoCompleteResponse(
             {k: v for k, v in await Record.get_codes(options[focused])}
         )
         return response

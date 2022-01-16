@@ -1,5 +1,4 @@
 import discord
-from discord import Interaction
 
 
 class ConfirmButton(discord.ui.Button):
@@ -12,7 +11,7 @@ class ConfirmButton(discord.ui.Button):
         )
         self.value = None
 
-    async def callback(self, interaction: Interaction):
+    async def callback(self, interaction: discord.Interaction):
         """Callback for confirm button."""
         self.value = True
         self.view.clear_items()

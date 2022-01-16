@@ -1,8 +1,6 @@
 from typing import List, Union
-from webbrowser import get
 
 import discord
-from discord.partial_emoji import PartialEmoji
 from discord.utils import MISSING
 
 from database.documents import ExperiencePoints
@@ -59,9 +57,11 @@ async def records_tournament_embed_fields(
         return
     rank_emoji = {
         "Unranked": "Unranked",
-        "Gold": PartialEmoji.from_str("<:gold:931317421862699118>"),
-        "Diamond": PartialEmoji.from_str("<:diamond:931317455639445524>"),
-        "Grandmaster": PartialEmoji.from_str("<:grandmaster:931317469396729876>"),
+        "Gold": discord.PartialEmoji.from_str("<:gold:931317421862699118>"),
+        "Diamond": discord.PartialEmoji.from_str("<:diamond:931317455639445524>"),
+        "Grandmaster": discord.PartialEmoji.from_str(
+            "<:grandmaster:931317469396729876>"
+        ),
     }
     rank_str = ""
 

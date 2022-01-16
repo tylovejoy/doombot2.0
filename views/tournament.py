@@ -1,6 +1,4 @@
 import discord
-from discord.enums import ButtonStyle
-from discord.interactions import Interaction
 from utils.utilities import select_button_enable
 
 from views.basic import ConfirmButton
@@ -9,27 +7,27 @@ from views.basic import ConfirmButton
 class TournamentStartView(discord.ui.View):
     """View for Tournament Start wizard."""
 
-    def __init__(self, interaction: Interaction):
+    def __init__(self, interaction: discord.Interaction):
         super().__init__(timeout=None)
         self.confirm_button = ConfirmButton()
         self.interaction = interaction
 
-    @discord.ui.button(label="TA", style=ButtonStyle.red)
+    @discord.ui.button(label="TA", style=discord.ButtonStyle.red)
     async def ta(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Time Attack button."""
         await self.enable_accept_button()
 
-    @discord.ui.button(label="MC", style=ButtonStyle.red)
+    @discord.ui.button(label="MC", style=discord.ButtonStyle.red)
     async def mc(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Mildcore button."""
         await self.enable_accept_button()
 
-    @discord.ui.button(label="HC", style=ButtonStyle.red)
+    @discord.ui.button(label="HC", style=discord.ButtonStyle.red)
     async def hc(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Hardcore button."""
         await self.enable_accept_button()
 
-    @discord.ui.button(label="BO", style=ButtonStyle.red)
+    @discord.ui.button(label="BO", style=discord.ButtonStyle.red)
     async def bo(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Bonus button."""
         await self.enable_accept_button()
