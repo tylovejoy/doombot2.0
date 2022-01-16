@@ -67,7 +67,6 @@ map_data_regex = re.compile(r"(.+)\s-\s(.+)\s-\s(.+)")
 
 def setup(bot):
     logger.info(logging_util("Loading", "TOURNAMENT"))
-    bot.application_command(Test)
 
 
 class ChangeRank(
@@ -127,26 +126,16 @@ class ViewTournamentRecords(
 ):
     """View leaderboard for a particular tournament category and optionally tournament rank."""
 
-    category: str = discord.Option(
+    category: Literal["Time Attack", "Mildcore", "Hardcore", "Bonus"] = discord.Option(
         description="Which tournament category?",
-        autocomplete=True,
     )
-    rank: Optional[str] = discord.Option(
+    rank: Literal["Unranked", "Gold", "Diamond", "Grandmaster"] = discord.Option(
         description="Which rank to display?",
-        autocomplete=True,
     )
 
     async def callback(self) -> None:
         await self.interaction.response.defer(ephemeral=True)
-        if self.category not in ["ta", "mc", "hc", "bo"] or self.rank not in [
-            "Unranked",
-            "Gold",
-            "Diamond",
-            "Grandmaster",
-            MISSING,
-        ]:
-            await self.interaction.edit_original_message(content="Invalid arguments.")
-            return
+        self.category = tournament_category_map_reverse(self.category)
 
         records = await Tournament.get_records(self.category, rank=self.rank)
 
@@ -176,35 +165,6 @@ class ViewTournamentRecords(
             embed=view.formatted_pages[0], view=view
         )
         await view.wait()
-
-    async def autocomplete(
-        self, options: Dict[str, Union[int, float, str]], focused: str
-    ):
-        if focused == "category":
-            return discord.AutoCompleteResponse(
-                {
-                    "Time Attack": "ta",
-                    "Mildcore": "mc",
-                    "Hardcore": "hc",
-                    "Bonus": "bo",
-                }
-            )
-        if focused == "rank":
-            return discord.AutoCompleteResponse(
-                {k: k for k in ["Unranked", "Gold", "Diamond", "Grandmaster"]}
-            )
-
-
-class Test(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
-    category: str = discord.Option()
-    rank: str = discord.Option()
-
-    async def callback(self) -> None:
-        await self.interaction.response.defer(ephemeral=True)
-        records = await Tournament.get_records(self.category, self.rank)
-        for x in records:
-            print(x)
-        await self.interaction.edit_original_message(content="Done.")
 
 
 class TournamentStart(
@@ -582,13 +542,16 @@ class TournamentAddMissions(
                 )
 
 
-class TournamentViewMissions(
+class TournamentPublishMissions(
     discord.SlashCommand,
     guilds=[GUILD_ID],
     name="publish",
     parent=TournamentMissionsParent,
 ):
     async def callback(self) -> None:
+        if not check_roles(self.interaction):
+            await no_perms_warning(self.interaction)
+            return
         await self.interaction.response.defer(ephemeral=True)
 
         tournament = await Tournament.find_active()
@@ -682,6 +645,13 @@ async def tournament_submissions(
     await tournament.save()
 
     await interaction.guild.get_channel(TOURNAMENT_SUBMISSION_ID).send(embed=embed)
+
+    user = await ExperiencePoints.find_user(interaction.user.id)
+    if user.check_if_unranked(category):
+        await interaction.guild.get_channel(TOURNAMENT_ORG_ID).send(
+            f"**ALERT:** {user.alias}/{interaction.user} is Unranked in {tournament_category_map(category)}!\n"
+            "Please select their rank before the tournament is over!"
+        )
 
 
 async def end_tournament(client: discord.Client, tournament: Tournament):

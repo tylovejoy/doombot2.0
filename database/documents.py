@@ -85,6 +85,9 @@ class ExperiencePoints(Document):
         await self.save()
         return self.verified_count
 
+    async def check_if_unranked(self, category: str) -> bool:
+        return getattr(self.rank, category) == "Unranked"
+
     @classmethod
     async def find_user(cls, user_id) -> ExperiencePoints:
         """Find a user."""
