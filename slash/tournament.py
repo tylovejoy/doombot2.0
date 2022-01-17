@@ -73,34 +73,41 @@ def setup(bot):
 
 class TestSlash(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
     async def callback(self):
-        user_list: List[Optional[ExperiencePoints]] = []
+        # user_list: List[Optional[ExperiencePoints]] = []
         tournament = await Tournament.find_active()
         cats = ["ta", "mc", "hc", "bo"]
         ranks = ["Gold", "Diamond", "Grandmaster"]
 
-        for i in range(25):
-            user = ExperiencePoints(
-                user_id=i, 
-                alerts_enabled=False, 
-                alias=f"User{i}", 
-                rank=EXPRanks(
-                    ta=ranks[random.randint(0, 2)],
-                    mc=ranks[random.randint(0, 2)],
-                    hc=ranks[random.randint(0, 2)],
-                    bo=ranks[random.randint(0, 2)],
-                )
+        # for i in range(25):
+        #     user = ExperiencePoints(
+        #         user_id=i, 
+        #         alerts_enabled=False, 
+        #         alias=f"User{i}", 
+        #         rank=EXPRanks(
+        #             ta=ranks[random.randint(0, 2)],
+        #             mc=ranks[random.randint(0, 2)],
+        #             hc=ranks[random.randint(0, 2)],
+        #             bo=ranks[random.randint(0, 2)],
+        #         )
 
-            )
-            user_list.append(user)
-        await ExperiencePoints.insert_many(user_list)
+        #     )
+        #     user_list.append(user)
+        # await ExperiencePoints.insert_many(user_list)
+        user_list = await ExperiencePoints.find_all().to_list()
+        for x in user_list:
+            x.xp = 0
+            x.xp_avg = [0, 0, 0, 0, 0]
+            await x.save()
         
-        for i, user in enumerate(user_list):
-            category = getattr(tournament, cats[i % 4], None)
-            submission = TournamentRecords(
-                record=random.randint(1, 20), posted_by=user.user_id, attachment_url=""
-            )
-            category.records.append(submission)
-        await tournament.save()
+
+        # for user in user_list:
+        #     for c in cats:
+        #         category = getattr(tournament, c, None)
+        #         submission = TournamentRecords(
+        #             record=random.randint(1, 20), posted_by=user.user_id, attachment_url=""
+        #         )
+        #         category.records.append(submission)
+        # await tournament.save()
 
 
 
@@ -508,7 +515,7 @@ class TournamentAddMissions(
             category = category.missions
             difficulty = getattr(category, self.difficulty)
             difficulty.type = self.type
-            difficulty.target = float(self.target)
+            difficulty.target = self.target
 
         embed = create_embed(
             "Add missions",
@@ -960,8 +967,9 @@ async def compute_mission_xp(tournament: Tournament) -> Dict[int, Dict]:
 
             # Goes hardest to easiest, because highest mission only
             for mission_category in ["expert", "hard", "medium", "easy"]:
+
                 mission: TournamentMissions = getattr(missions, mission_category, None)
-                if not mission or mission.type or mission.target:
+                if not mission:
                     continue
 
                 type_ = mission.type
@@ -986,14 +994,27 @@ async def compute_general_missions(
 
     for user_id, data in store.items():
         for mission in general_missions:
+
             total_missions = (
                 data["easy"] + data["medium"] + data["hard"] + data["expert"]
             )
-            if (mission.type == "xp" and data["xp"] > mission.target) or (
-                mission.type == "missions" and total_missions >= mission.target
-            ):
+            if mission.type == "xp" and data["xp"] > int(mission.target):
                 store[user_id]["general"] += 1
                 store[user_id]["xp"] += 2000
+                
+            if mission.type == "missions":
+                split = mission.target.split()
+                if len(split) != 2:
+                    continue
+
+                target_amt = int(split[0])
+                target_difficulty = split[1].lower()
+            
+                # TODO: higher missions must count for lower mission completion for this general mission.
+                if data[target_difficulty] >= target_amt:
+                    store[user_id]["general"] += 1
+                    store[user_id]["xp"] += 2000
+
 
             if mission.type == "top":
                 temp_store = {
@@ -1015,7 +1036,7 @@ async def compute_general_missions(
                             if record.posted_by == user_id:
                                 temp_store[category] += 1
                                 break
-                if sum(temp_store.values()) >= mission.target:
+                if sum(temp_store.values()) >= int(mission.target):
                     store[user_id]["general"] += 1
                     store[user_id]["xp"] += 2000
     return store
