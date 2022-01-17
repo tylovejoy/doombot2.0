@@ -8,8 +8,8 @@ from discord.utils import MISSING, format_dt
 import dateparser
 import discord
 import re
-
-from database.documents import ExperiencePoints
+import random
+from database.documents import EXPRanks, ExperiencePoints
 from database.records import Record
 
 from database.tournament import (
@@ -67,6 +67,42 @@ map_data_regex = re.compile(r"(.+)\s-\s(.+)\s-\s(.+)")
 
 def setup(bot):
     logger.info(logging_util("Loading", "TOURNAMENT"))
+    bot.application_command(TestSlash)
+
+
+
+class TestSlash(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
+    async def callback(self):
+        user_list: List[Optional[ExperiencePoints]] = []
+        tournament = await Tournament.find_active()
+        cats = ["ta", "mc", "hc", "bo"]
+        ranks = ["Gold", "Diamond", "Grandmaster"]
+
+        for i in range(25):
+            user = ExperiencePoints(
+                user_id=i, 
+                alerts_enabled=False, 
+                alias=f"User{i}", 
+                rank=EXPRanks(
+                    ta=ranks[random.randint(0, 2)],
+                    mc=ranks[random.randint(0, 2)],
+                    hc=ranks[random.randint(0, 2)],
+                    bo=ranks[random.randint(0, 2)],
+                )
+
+            )
+            user_list.append(user)
+        await ExperiencePoints.insert_many(user_list)
+        
+        for i, user in enumerate(user_list):
+            category = getattr(tournament, cats[i % 4], None)
+            submission = TournamentRecords(
+                record=random.randint(1, 20), posted_by=user.user_id, attachment_url=""
+            )
+            category.records.append(submission)
+        await tournament.save()
+
+
 
 
 class ChangeRank(
@@ -472,7 +508,7 @@ class TournamentAddMissions(
             category = category.missions
             difficulty = getattr(category, self.difficulty)
             difficulty.type = self.type
-            difficulty.target = self.target
+            difficulty.target = float(self.target)
 
         embed = create_embed(
             "Add missions",
@@ -783,7 +819,7 @@ async def start_tournament(client: discord.Client, tournament: Tournament):
     await tournament.save()
 
 
-async def create_hall_of_fame(tournament: Tournament):
+async def create_hall_of_fame(tournament: Tournament) -> discord.Embed:
     embed = hall_of_fame(tournament.name + " - Top 3", "")
     for category in ["ta", "mc", "hc", "bo"]:
         data: TournamentData = getattr(tournament, category, None)
@@ -802,6 +838,7 @@ async def create_hall_of_fame(tournament: Tournament):
         embed.add_field(
             name=tournament_category_map(category) + f" ({map_data.code})",
             value=top_three_list,
+            inline=False,
         )
     return embed
 

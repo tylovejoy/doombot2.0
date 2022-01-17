@@ -113,7 +113,8 @@ class Tournament(Document):
 
     @classmethod
     async def find_latest(cls) -> Tournament:
-        return (await cls.find().sort("-tournament_id").limit(1).to_list())[0]
+        t = (await cls.find().sort("-tournament_id").limit(1).to_list())
+        return t[0] if t else None
 
     @classmethod
     async def get_records(
