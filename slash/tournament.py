@@ -690,6 +690,8 @@ async def tournament_submissions(
     await interaction.guild.get_channel(TOURNAMENT_SUBMISSION_ID).send(embed=embed)
 
     user = await ExperiencePoints.find_user(interaction.user.id)
+    if category == "bo":
+        return
     if user.check_if_unranked(category):
         await interaction.guild.get_channel(TOURNAMENT_ORG_ID).send(
             f"**ALERT:** {user.alias}/{interaction.user} is Unranked in {tournament_category_map(category)}!\n"
@@ -875,7 +877,7 @@ async def compute_leaderboard_xp(
 ) -> Tuple[Dict[int, Dict], Dict[str, Dict[str, List[TournamentRecords]]]]:
     """Compute the XP for each leaderboard (rank/category)."""
     multipler = {
-        "ta": 0.8352,
+        "ta": 0.14094,
         "mc": 0.3654,
         "hc": 0.8352,
         "bo": 0.3654,

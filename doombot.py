@@ -257,7 +257,7 @@ class DoomBot(discord.Client):
             embed = discord.Embed(
                 description=(
                     f"> **Code:** {record.code}\n"
-                    f"> **Level:** {record.level.upper()}\n"
+                    f"> **Level:** {discord.utils.escape_markdown(record.level)}\n"
                     f"> **Record:** {display_record(record.record)}\n"
                 ),
                 color=0xF7BD00,
