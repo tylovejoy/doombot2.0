@@ -1,6 +1,6 @@
 from enum import Enum
 from operator import itemgetter
-
+from discord import PartialEmoji
 from thefuzz import fuzz
 
 
@@ -94,6 +94,11 @@ class Emoji(Enum):
     NOT_VERIFIED = "❌"
     TIME = "⌛"
 
+    GOLD = "<:gold:931317421862699118>"
+    DIAMOND = "<:diamond:931317455639445524>"
+    GRANDMASTER = "<:grandmaster:931317469396729876>"
+
+
     @classmethod
     def is_verified(cls, value: bool):
         """Check for verification status. Return the proper emoji."""
@@ -104,3 +109,14 @@ class Emoji(Enum):
     def __str__(self) -> str:
         """String representation."""
         return self.value
+
+    @classmethod
+    def display_rank(cls, value: str):
+        if value == "Gold":
+            return str(cls.GOLD)
+        if value == "Diamond":
+            return str(cls.DIAMOND)
+        if value == "Grandmaster":
+            return str(cls.GRANDMASTER)
+        if value == "Unranked":
+            return ""

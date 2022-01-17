@@ -21,6 +21,7 @@ from database.tournament import (
     TournamentRecords,
     ShortRecordData,
 )
+from utils.enums import Emoji
 from slash.parents import (
     TournamentMissionsParent,
     TournamentParent,
@@ -843,9 +844,9 @@ async def create_hall_of_fame(tournament: Tournament) -> discord.Embed:
             if pos > 3:
                 break
             user = await ExperiencePoints.find_user(record.posted_by)
-            top_three_list += f"{make_ordinal(pos)} - {user.alias}\n"
+            top_three_list += f"`{make_ordinal(pos)}` - {user.alias} - {display_record(record.record)} - {Emoji.display_rank(getattr(user.rank, category))}\n"
         embed.add_field(
-            name=tournament_category_map(category) + f" ({map_data.code})",
+            name=tournament_category_map(category) + f" ({map_data.code} - {map_data.level})",
             value=top_three_list,
             inline=False,
         )
