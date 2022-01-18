@@ -71,7 +71,6 @@ def setup(bot):
     bot.application_command(TestSlash)
 
 
-
 class TestSlash(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
     async def callback(self):
         # user_list: List[Optional[ExperiencePoints]] = []
@@ -81,9 +80,9 @@ class TestSlash(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
 
         # for i in range(25):
         #     user = ExperiencePoints(
-        #         user_id=i, 
-        #         alerts_enabled=False, 
-        #         alias=f"User{i}", 
+        #         user_id=i,
+        #         alerts_enabled=False,
+        #         alias=f"User{i}",
         #         rank=EXPRanks(
         #             ta=ranks[random.randint(0, 2)],
         #             mc=ranks[random.randint(0, 2)],
@@ -99,7 +98,6 @@ class TestSlash(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
             x.xp = 0
             x.xp_avg = [0, 0, 0, 0, 0]
             await x.save()
-        
 
         # for user in user_list:
         #     for c in cats:
@@ -109,8 +107,6 @@ class TestSlash(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
         #         )
         #         category.records.append(submission)
         # await tournament.save()
-
-
 
 
 class ChangeRank(
@@ -713,9 +709,9 @@ async def end_tournament(client: discord.Client, tournament: Tournament):
 
     for user_id, data in xp_store.items():
         user = await ExperiencePoints.find_user(user_id)
-        user.xp += data["xp"]
+        user.xp += round(data["xp"])
         user.xp_avg.pop(0)
-        user.xp_avg.append(data["xp"])
+        user.xp_avg.append(round(data["xp"]))
         await user.save()
         # Find current average for ending summary
         usable_user_xps = [xp for xp in user.xp_avg if xp != 0]
@@ -844,9 +840,13 @@ async def create_hall_of_fame(tournament: Tournament) -> discord.Embed:
             if pos > 3:
                 break
             user = await ExperiencePoints.find_user(record.posted_by)
-            top_three_list += f"`{make_ordinal(pos)}` - {user.alias} - {display_record(record.record)} - {Emoji.display_rank(getattr(user.rank, category))}\n"
+            top_three_list += (
+                f"`{make_ordinal(pos)}` - {user.alias} - {display_record(record.record)} "
+                f"{Emoji.display_rank(getattr(user.rank, category))}\n"
+            )
         embed.add_field(
-            name=tournament_category_map(category) + f" ({map_data.code} - {map_data.level})",
+            name=tournament_category_map(category)
+            + f" ({map_data.code} - {map_data.level})",
             value=top_three_list,
             inline=False,
         )
@@ -886,7 +886,7 @@ async def compute_leaderboard_xp(
     all_split_records = {}
 
     for category in ["ta", "mc", "hc", "bo"]:
-        all_records = getattr(tournament, category, [])
+        all_records = getattr(tournament, category, None)
         if not all_records:
             continue
         all_records = all_records.records
@@ -998,13 +998,10 @@ async def compute_general_missions(
     for user_id, data in store.items():
         for mission in general_missions:
 
-            total_missions = (
-                data["easy"] + data["medium"] + data["hard"] + data["expert"]
-            )
             if mission.type == "xp" and data["xp"] > int(mission.target):
                 store[user_id]["general"] += 1
                 store[user_id]["xp"] += 2000
-                
+
             if mission.type == "missions":
                 split = mission.target.split()
                 if len(split) != 2:
@@ -1012,12 +1009,20 @@ async def compute_general_missions(
 
                 target_amt = int(split[0])
                 target_difficulty = split[1].lower()
-            
-                # TODO: higher missions must count for lower mission completion for this general mission.
-                if data[target_difficulty] >= target_amt:
+
+                encompass_missions = {
+                    "easy": data["easy"]
+                    + data["medium"]
+                    + data["hard"]
+                    + data["expert"],
+                    "medium": data["medium"] + data["hard"] + data["expert"],
+                    "hard": data["hard"] + data["expert"],
+                    "expert": data["expert"],
+                }
+
+                if encompass_missions[target_difficulty] >= target_amt:
                     store[user_id]["general"] += 1
                     store[user_id]["xp"] += 2000
-
 
             if mission.type == "top":
                 temp_store = {
