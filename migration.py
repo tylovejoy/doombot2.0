@@ -56,26 +56,26 @@ type_convert = {
     "FRAMEWORK": "Framework",
     "DIVERGE": "Diverge",
     "BONUS": "Bonus",
-    "TOURNAMENT": "Tournament"
+    "TOURNAMENT": "Tournament",
 }
 
 
 conversions_ = {
     "762198382676017200": "762198382676017212",
-    "353400377481232400": "353400377481232385", #
-    "402517838671249400": "402517838671249408", #
-    "362072248137416700": "362072248137416706", #
-    "252342653990076400": "252342653990076417", #
-    "574804014399750140": "574804014399750164", #
-    "693865610979049500": "693865610979049483", #
-    "754659767477207000": "754659767477207060", #
-    "657231013763743700": "657231013763743751", #
-    "652901872692101100": "652901872692101126", #
-    "371584174399946750": "371584174399946754", #
-    "345232492145672200": "345232492145672193", #
-    "203853691328004100": "203853691328004096", #
-    "139240029812686850": "139240029812686848", #
-    "445035241460203500": "445035241460203520", #
+    "353400377481232400": "353400377481232385",  #
+    "402517838671249400": "402517838671249408",  #
+    "362072248137416700": "362072248137416706",  #
+    "252342653990076400": "252342653990076417",  #
+    "574804014399750140": "574804014399750164",  #
+    "693865610979049500": "693865610979049483",  #
+    "754659767477207000": "754659767477207060",  #
+    "657231013763743700": "657231013763743751",  #
+    "652901872692101100": "652901872692101126",  #
+    "371584174399946750": "371584174399946754",  #
+    "345232492145672200": "345232492145672193",  #
+    "203853691328004100": "203853691328004096",  #
+    "139240029812686850": "139240029812686848",  #
+    "445035241460203500": "445035241460203520",  #
     "187340057462439940": "187340057462439951",
     "382183842796011500": "382183842796011530",
     "364735508385103900": "364735508385103883",
@@ -189,13 +189,13 @@ conversions_ = {
 
 print("Opening MapData.json")
 with open("MapData.json", encoding="utf8") as f:
-     data = json.load(f)
+    data = json.load(f)
 
 print("Beginning MapData.json conversion...")
 # Migrate MapData.json
 for doc in tqdm(data):
     # Change map
-    doc['map_name'] = map_convert[doc["map_name"]]
+    doc["map_name"] = map_convert[doc["map_name"]]
 
     # fix truncated IDs/convert to int
     id_fix = conversions_.get(str(doc["posted_by"]))
@@ -205,11 +205,10 @@ for doc in tqdm(data):
     else:
         doc["posted_by"] = int(doc["posted_by"])
 
-
     # Change types
     for i, type_ in enumerate(doc["type"]):
         doc["type"][i] = type_convert[type_]
-    
+
     # rename desc
     doc["description"] = doc.pop("desc")
     # rename posted_by
@@ -223,7 +222,7 @@ print("Complete.")
 # Records data migrate
 print("Opening WorldRecords.json")
 with open("WorldRecords.json", encoding="utf8") as f:
-     data = json.load(f)
+    data = json.load(f)
 
 print("Beginning WorldRecords.json conversion...")
 for doc in tqdm(data):

@@ -6,7 +6,10 @@ from utils.constants import GUILD_ID
 
 from slash.parents import CreateParent
 
-class CreateEvent(discord.SlashCommand, guilds=[GUILD_ID], name="event", parent=CreateParent):
+
+class CreateEvent(
+    discord.SlashCommand, guilds=[GUILD_ID], name="event", parent=CreateParent
+):
     """Create an event."""
 
     event_type: Literal["Movie", "Game"] = discord.Option(
@@ -19,4 +22,4 @@ class CreateEvent(discord.SlashCommand, guilds=[GUILD_ID], name="event", parent=
 
     async def callback(self) -> None:
         # TODO: wait for implementation of scheduled events
-        pass        
+        pass
