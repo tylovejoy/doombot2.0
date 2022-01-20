@@ -64,6 +64,8 @@ class MapNames(ExtendedEnum):
     WORKSHOP_EXPANSE = "Workshop Expanse"
     WORKSHOP_GREEN_SCREEN = "Workshop Green Screen"
     WORKSHOP_ISLAND = "Workshop Island"
+    FRAMEWORK = "Framework"
+    TOOLS = "Tools"
 
 
 class MapTypes(ExtendedEnum):
@@ -85,6 +87,8 @@ class MapTypes(ExtendedEnum):
     DIVERGE = "Diverge"
     BONUS = "Bonus"
     TOURNAMENT = "Tournament"
+    OUT_OF_MAP = "Out of Map"
+    TOOLS = "Tools"
 
 
 class Emoji(Enum):
