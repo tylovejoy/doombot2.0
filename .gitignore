@@ -140,3 +140,7 @@ dmypy.json
 cython_debug/
 .vscode
 /.idea/
+MapData.json
+WorldRecords_Converted.json
+WorldRecords.json
+MapData_Converted.json
