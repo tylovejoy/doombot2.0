@@ -98,10 +98,12 @@ class DoomBot(discord.Client):
         self.allow_submissions.update(send_messages=True)
         self.disallow_submissions.update(send_messages=False)
 
-        logger.info(logging_util("Task Initialize", "ANNOUNCEMENTS"))
-        self.annoucement_checker.start()
-        logger.info(logging_util("Task Initialize", "TOURNAMENT"))
-        self.tournament_checker.start()
+        if not self.annoucement_checker.is_running():
+            logger.info(logging_util("Task Initialize", "ANNOUNCEMENTS"))
+            self.annoucement_checker.start()
+        if not self.tournament_checker.is_running():
+            logger.info(logging_util("Task Initialize", "TOURNAMENT"))
+            self.tournament_checker.start()
 
         async with aiohttp.ClientSession() as session:
 
@@ -262,7 +264,7 @@ class DoomBot(discord.Client):
                 ),
                 color=0xF7BD00,
             )
-            user: discord.Member = self.get_user(record.posted_by)
+            user: discord.Member = self.get_user(record.user_id)
 
             embed.set_author(name=user.name, icon_url=user.avatar.url)
             embed.add_field(name="Original", value=f"[Jump!]({entry.jump})")
