@@ -21,6 +21,7 @@ from database.tournament import (
     TournamentRecords,
     ShortRecordData,
 )
+from utils.errors import InvalidTime
 from utils.enums import Emoji
 from slash.parents import (
     TournamentMissionsParent,
@@ -642,7 +643,15 @@ async def tournament_submissions(
         return
 
     category_attr = getattr(tournament, category)
-    record_seconds = time_convert(record)
+    if not category_attr:
+        await interaction.edit_original_message(content="This category is not active.")
+        return
+
+    try:
+        record_seconds = time_convert(record)
+    except InvalidTime as e:
+        await interaction.edit_original_message(content=e)
+        return
 
     already_posted = False
     submission = None
@@ -689,7 +698,7 @@ async def tournament_submissions(
     user = await ExperiencePoints.find_user(interaction.user.id)
     if category == "bo":
         return
-    if user.check_if_unranked(category):
+    if await user.check_if_unranked(category):
         await interaction.guild.get_channel(TOURNAMENT_ORG_ID).send(
             f"**ALERT:** {user.alias}/{interaction.user} is Unranked in {tournament_category_map(category)}!\n"
             "Please select their rank before the tournament is over!"

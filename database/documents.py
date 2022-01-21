@@ -86,6 +86,7 @@ class ExperiencePoints(Document):
         return self.verified_count
 
     async def check_if_unranked(self, category: str) -> bool:
+        """Return True if user is unranked in category."""
         return getattr(self.rank, category) == "Unranked"
 
     @classmethod
