@@ -1,7 +1,7 @@
 from __future__ import annotations
 from logging import getLogger
 from os import environ
-from typing import List, Optional
+from typing import Dict, List, Optional, Union
 from beanie.odm.fields import Indexed
 
 import motor
@@ -77,7 +77,12 @@ class ExperiencePoints(Document):
     alerts_enabled: bool
     rank: EXPRanks = EXPRanks()
     xp: int = 0
-    xp_avg: List[Optional[int]] = [0, 0, 0, 0, 0]
+    xp_avg: Union[Optional[List], Optional[Dict[str, List[int]]]] = {
+        "ta": [0, 0, 0, 0, 0],  # TA
+        "mc": [0, 0, 0, 0, 0],  # MC
+        "hc": [0, 0, 0, 0, 0],  # HC
+        "bo": [0, 0, 0, 0, 0],  # BO
+    }
     verified_count: int = 0
 
     async def increment_verified(self) -> int:

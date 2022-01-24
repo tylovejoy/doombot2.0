@@ -74,40 +74,17 @@ def setup(bot):
 
 class TestSlash(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
     async def callback(self):
-        # user_list: List[Optional[ExperiencePoints]] = []
-        tournament = await Tournament.find_active()
-        cats = ["ta", "mc", "hc", "bo"]
-        ranks = ["Gold", "Diamond", "Grandmaster"]
 
-        # for i in range(25):
-        #     user = ExperiencePoints(
-        #         user_id=i,
-        #         alerts_enabled=False,
-        #         alias=f"User{i}",
-        #         rank=EXPRanks(
-        #             ta=ranks[random.randint(0, 2)],
-        #             mc=ranks[random.randint(0, 2)],
-        #             hc=ranks[random.randint(0, 2)],
-        #             bo=ranks[random.randint(0, 2)],
-        #         )
-
-        #     )
-        #     user_list.append(user)
-        # await ExperiencePoints.insert_many(user_list)
         user_list = await ExperiencePoints.find_all().to_list()
         for x in user_list:
             x.xp = 0
-            x.xp_avg = [0, 0, 0, 0, 0]
+            x.xp_avg = {
+                "ta": [0, 0, 0, 0, 0],  # TA
+                "mc": [0, 0, 0, 0, 0],  # MC
+                "hc": [0, 0, 0, 0, 0],  # HC
+                "bo": [0, 0, 0, 0, 0],  # BO
+            }
             await x.save()
-
-        # for user in user_list:
-        #     for c in cats:
-        #         category = getattr(tournament, c, None)
-        #         submission = TournamentRecords(
-        #             record=random.randint(1, 20), posted_by=user.user_id, attachment_url=""
-        #         )
-        #         category.records.append(submission)
-        # await tournament.save()
 
 
 class ChangeRank(
@@ -719,12 +696,18 @@ async def end_tournament(client: discord.Client, tournament: Tournament):
     for user_id, data in xp_store.items():
         user = await ExperiencePoints.find_user(user_id)
         user.xp += round(data["xp"])
-        user.xp_avg.pop(0)
-        user.xp_avg.append(round(data["xp"]))
+
+        for key in user.xp_avg:
+            user.xp_avg[key].pop(0)
+            user.xp_avg[key].append(round(data[key]))
+
+            # Find current average for ending summary
+            usable_user_xps = [xp for xp in user.xp_avg[key] if xp != 0]
+            xp_store[user_id][f"{key}_cur_avg"] = sum(usable_user_xps) / (
+                len(usable_user_xps) or 1
+            )
+
         await user.save()
-        # Find current average for ending summary
-        usable_user_xps = [xp for xp in user.xp_avg if xp != 0]
-        xp_store[user_id]["cur_avg"] = sum(usable_user_xps) / len(usable_user_xps)
 
     tournament.xp = xp_store
     await init_workbook(tournament)
@@ -950,7 +933,10 @@ async def init_xp_store(tournament: Tournament) -> Dict[int, Dict[str, int]]:
                     "hc": 0,
                     "bo": 0,
                     "xp": 0,
-                    "cur_avg": 0,
+                    "ta_cur_avg": 0,
+                    "mc_cur_avg": 0,
+                    "hc_cur_avg": 0,
+                    "bo_cur_avg": 0,
                 }
     return store
 

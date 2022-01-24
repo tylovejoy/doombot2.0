@@ -3,6 +3,7 @@ import discord
 
 from utils.constants import GUILD_ID
 
+
 class OpenStore(discord.SlashCommand, guilds=[GUILD_ID], name="store"):
     """View the XP store."""
 
@@ -18,4 +19,3 @@ class OpenStore(discord.SlashCommand, guilds=[GUILD_ID], name="store"):
         if self.category == "Roles":
             # Shop Roles View
             return
-            

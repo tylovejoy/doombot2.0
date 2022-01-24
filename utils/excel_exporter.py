@@ -1,3 +1,4 @@
+from math import ceil
 import operator
 from logging import getLogger
 
@@ -24,16 +25,33 @@ async def init_workbook(tournament: Tournament):
 
     for worksheet in ranks:
         # Rank titles
-        merge_format = workbook.add_format({"align": "center", "bg_color": "#93c47d"})
+        merge_format = workbook.add_format(
+            {"align": "center", "bg_color": "#93c47d", "border": 1}
+        )
         worksheet.merge_range("A1:C1", "Time Attack", merge_format)
-        merge_format = workbook.add_format({"align": "center", "bg_color": "#ff9900"})
-        worksheet.merge_range("D1:F1", "Mildcore", merge_format)
-        merge_format = workbook.add_format({"align": "center", "bg_color": "#ff0000"})
-        worksheet.merge_range("G1:I1", "Hardcore", merge_format)
-        merge_format = workbook.add_format({"align": "center", "bg_color": "#ffff00"})
-        worksheet.merge_range("J1:L1", "Bonus", merge_format)
+        merge_format = workbook.add_format(
+            {"align": "center", "bg_color": "#ff9900", "border": 1}
+        )
+        worksheet.merge_range("E1:G1", "Mildcore", merge_format)
+        merge_format = workbook.add_format(
+            {"align": "center", "bg_color": "#ff0000", "border": 1}
+        )
+        worksheet.merge_range("I1:K1", "Hardcore", merge_format)
+        merge_format = workbook.add_format(
+            {"align": "center", "bg_color": "#ffff00", "border": 1}
+        )
+        worksheet.merge_range("M1:O1", "Bonus", merge_format)
         # Name, Time, Points titles
-        worksheet.write_row("A2", ["Name", "Time", "Points"] * 4)
+        worksheet.write_row(
+            "A2",
+            ["Name", "Time", "Points", None] * 4,
+            cell_format=workbook.add_format({"align": "left", "border": 1}),
+        )
+        worksheet.set_column_pixels(0, 15, width=105)
+        worksheet.write(1, 3, "", workbook.add_format({"border": 0}))
+        worksheet.write(1, 7, "", workbook.add_format({"border": 0}))
+        worksheet.write(1, 11, "", workbook.add_format({"border": 0}))
+        worksheet.write(1, 15, "", workbook.add_format({"border": 0}))
 
     # Format missions worksheet
     missions_ws.write_row(
@@ -47,9 +65,17 @@ async def init_workbook(tournament: Tournament):
             "General",
             "Missions Total",
             "Total XP",
-            "Average XP",
+            "TA Average XP",
+            "MC Average XP",
+            "HC Average XP",
+            "BO Average XP",
         ],
+        cell_format=workbook.add_format({"border": 1}),
     )
+    center_fmt = workbook.add_format({"align": "center"})
+
+    missions_ws.set_column_pixels(0, 19, width=105)
+    missions_ws.set_column(1, 5, cell_format=center_fmt)
     for i, (user_id, data) in enumerate(tournament.xp.items(), start=2):
         user = await ExperiencePoints.find_user(user_id)
         missions_total = (
@@ -63,24 +89,28 @@ async def init_workbook(tournament: Tournament):
         missions_ws.write_row(
             "A" + str(i),
             [
-                user.alias,
+                f"{user.alias} ({user.user_id})",
                 data["easy"],
                 data["medium"],
                 data["hard"],
                 data["expert"],
                 data["general"],
                 missions_total,
-                data["xp"],
-                data["cur_avg"],
+                ceil(data["xp"]),
+                ceil(data["ta_cur_avg"]),
+                ceil(data["mc_cur_avg"]),
+                ceil(data["hc_cur_avg"]),
+                ceil(data["bo_cur_avg"]),
             ],
         )
+    missions_ws.set_column(1, 5, cell_format=center_fmt)
 
     # fmt: off
     column_map = {
         "ta": (0,  1,  2, 0),
-        "mc": (3,  4,  5, 1),
-        "hc": (6,  7,  8, 2),
-        "bo": (9, 10, 11, 3),
+        "mc": (4,  5,  6, 1),
+        "hc": (8,  9,  10, 2),
+        "bo": (12, 13, 14, 3),
     }
     ws_map = {
         "Unranked": (unranked_ws, 0),
@@ -111,7 +141,9 @@ async def init_workbook(tournament: Tournament):
             tracker_y = column_map[category][3]
 
             worksheet.write(
-                row_tracker[tracker_x][tracker_y], column_map[category][0], user.alias
+                row_tracker[tracker_x][tracker_y],
+                column_map[category][0],
+                f"{user.alias} ({user.user_id})",
             )
             worksheet.write(
                 row_tracker[tracker_x][tracker_y],
@@ -119,7 +151,9 @@ async def init_workbook(tournament: Tournament):
                 record.record,
             )
             worksheet.write(
-                row_tracker[tracker_x][tracker_y], column_map[category][2], user_cat_xp
+                row_tracker[tracker_x][tracker_y],
+                column_map[category][2],
+                ceil(user_cat_xp),
             )
 
             row_tracker[tracker_x][tracker_y] += 1
