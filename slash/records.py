@@ -127,7 +127,7 @@ class SubmitRecord(
         # Create initial document if none found.
         if not record_document:
             record_document = Record(
-                posted_by=self.interaction.user.id,
+                user_id=self.interaction.user.id,
                 code=self.map_code,
                 level=self.map_level,
                 verified=False,

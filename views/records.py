@@ -67,8 +67,8 @@ async def verification(interaction: discord.Interaction, verified: bool):
         data = rejected(interaction, search)
 
     await orig_message.edit(content=data["edit"])
-    if await ExperiencePoints.is_alertable(search.posted_by):
-        user = interaction.guild.get_member(search.posted_by)
+    if await ExperiencePoints.is_alertable(search.user_id):
+        user = interaction.guild.get_member(search.user_id)
         await user.send(data["direct_message"])
     await delete_hidden(interaction, search)
     search.verified = data["bool"]

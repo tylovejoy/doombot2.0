@@ -1,3 +1,4 @@
+from asyncio.log import logger
 import datetime
 import re
 from typing import Union
@@ -50,11 +51,25 @@ def time_convert(time_input: str) -> float:
         raise InvalidTime("Record is not in the correct format! HH:MM:SS.ss")
 
 
-def display_record(record: float) -> str:
+def display_record(record: float, tournament: bool = False) -> str:
     """Display record in HH:MM:SS.ss format."""
     negative = "-" if is_negative(record) else ""
     dt = datetime.datetime.min + datetime.timedelta(seconds=abs(record))
-    return negative + dt.strftime("%H:%M:%S.%f")[:-4]
+    hour_remove = 0
+    seconds_remove = -4
+    
+    if tournament:
+        if dt.hour == 0 and dt.minute == 0:
+            hour_remove = 6
+        elif dt.hour == 0:
+            hour_remove = 3
+            if dt.minute < 10:
+                hour_remove = 4
+        
+        if dt.microsecond == 0:
+            seconds_remove = -7
+        
+    return negative + dt.strftime("%H:%M:%S.%f")[hour_remove:seconds_remove]
 
 
 def is_negative(s: Union[float, int]) -> bool:
@@ -158,7 +173,7 @@ def tournament_category_map_reverse(category: str) -> str:
     }.get(category, None)
 
 
-def format_missions(type_: str, target: str) -> str:
+def format_missions(type_: str, target: Union[str, int, float]) -> str:
     """Format missions into user friendly strings."""
     formatted = ""
     # General missions
@@ -170,7 +185,7 @@ def format_missions(type_: str, target: str) -> str:
         formatted += f"Get Top 3 in {target} categories.\n"
     # Category Missions
     elif type_ == "sub":
-        formatted += f"Get {type_} {target} seconds.\n"
+        formatted += f"Get {type_} {display_record(float(target), tournament=True)}\n"
     elif type_ == "complete":
         formatted += "Complete the level.\n"
 

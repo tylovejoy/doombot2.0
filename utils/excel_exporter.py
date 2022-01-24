@@ -133,7 +133,7 @@ async def init_workbook(tournament: Tournament):
         records = sorted(data.records, key=operator.attrgetter("record"))
 
         for record in records:
-            user = await ExperiencePoints.find_user(record.posted_by)
+            user = await ExperiencePoints.find_user(record.user_id)
             user_cat_xp = tournament.xp[user.user_id][category]
             rank = user.rank
             rank = getattr(rank, category)

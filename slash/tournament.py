@@ -71,7 +71,7 @@ def setup(bot):
     logger.info(logging_util("Loading", "TOURNAMENT"))
     bot.application_command(TestSlash)
 
-
+# TODO: Delete before production.
 class TestSlash(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
     async def callback(self):
 
@@ -490,6 +490,8 @@ class TournamentAddMissions(
             category = category.missions
             difficulty = getattr(category, self.difficulty)
             difficulty.type = self.type
+            if self.type == "sub":
+                self.target = time_convert(self.target)
             difficulty.target = self.target
 
         embed = create_embed(
@@ -633,7 +635,7 @@ async def tournament_submissions(
     already_posted = False
     submission = None
     for r in category_attr.records:
-        if r.posted_by == interaction.user.id:
+        if r.user_id == interaction.user.id:
             if record_seconds >= r.record:
                 await interaction.edit_original_message(
                     content="Record must be faster than previously submitted record."
@@ -646,7 +648,7 @@ async def tournament_submissions(
 
     if not already_posted:
         submission = TournamentRecords(
-            record=record_seconds, posted_by=interaction.user.id, attachment_url=""
+            record=record_seconds, user_id=interaction.user.id, attachment_url=""
         )
         category_attr.records.append(submission)
 
@@ -754,7 +756,7 @@ async def send_records_to_db(tournament: Tournament):
 
         for record in data.records:
             await Record(
-                posted_by=record.posted_by,
+                user_id=record.user_id,
                 code=code,
                 level=level,
                 record=record.record,
@@ -764,6 +766,12 @@ async def send_records_to_db(tournament: Tournament):
 
 
 async def export_records(tournament: Tournament, thread: discord.Thread):
+    await thread.send(
+        file=discord.File(
+            fp=r"DPK_Tournament.xlsx",
+            filename=f"XP_Spreadsheet.xlsx",
+        )
+    )
     for category in ["ta", "mc", "hc", "bo"]:
         data: TournamentData = getattr(tournament, category, None)
         await thread.send(
@@ -831,9 +839,9 @@ async def create_hall_of_fame(tournament: Tournament) -> discord.Embed:
         for pos, record in enumerate(records, start=1):
             if pos > 3:
                 break
-            user = await ExperiencePoints.find_user(record.posted_by)
+            user = await ExperiencePoints.find_user(record.user_id)
             top_three_list += (
-                f"`{make_ordinal(pos)}` - {user.alias} - {display_record(record.record)} "
+                f"`{make_ordinal(pos)}` - {user.alias} - {display_record(record.record, tournament=True)} "
                 f"{Emoji.display_rank(getattr(user.rank, category))}\n"
             )
         embed.add_field(
@@ -859,7 +867,7 @@ async def split_leaderboard_ranks(
         "Grandmaster": [],
     }
     for record in sorted_records:
-        user_ranks = (await ExperiencePoints.find_user(record.posted_by)).rank
+        user_ranks = (await ExperiencePoints.find_user(record.user_id)).rank
         rank = getattr(user_ranks, category)
         split_ranks[rank].append(record)
     return split_ranks
@@ -905,8 +913,8 @@ async def compute_leaderboard_xp(
                         xp = 100
                     else:
                         xp = formula
-                store[record.posted_by][category] += xp
-                store[record.posted_by]["xp"] += xp
+                store[record.user_id][category] += xp
+                store[record.user_id]["xp"] += xp
     return store, all_split_records
 
 
@@ -921,8 +929,8 @@ async def init_xp_store(tournament: Tournament) -> Dict[int, Dict[str, int]]:
         records = category_attr.records
 
         for record in records:
-            if not store.get(record.posted_by):
-                store[record.posted_by] = {
+            if not store.get(record.user_id):
+                store[record.user_id] = {
                     "easy": 0,
                     "medium": 0,
                     "hard": 0,
@@ -976,8 +984,8 @@ async def compute_mission_xp(tournament: Tournament) -> Dict[int, Dict]:
                 if (type_ == "sub" and record.record < float(target)) or (
                     type_ == "complete" and record.record
                 ):
-                    store[record.posted_by][mission_category] += 1
-                    store[record.posted_by]["xp"] += mission_points[mission_category]
+                    store[record.user_id][mission_category] += 1
+                    store[record.user_id]["xp"] += mission_points[mission_category]
                     break
 
     return await compute_general_missions(tournament, store, all_records)
@@ -1036,7 +1044,7 @@ async def compute_general_missions(
                         for i, record in enumerate(rank_records):
                             if i > 2:
                                 break
-                            if record.posted_by == user_id:
+                            if record.user_id == user_id:
                                 temp_store[category] += 1
                                 break
                 if sum(temp_store.values()) >= int(mission.target):

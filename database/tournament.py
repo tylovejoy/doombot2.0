@@ -1,7 +1,7 @@
 from __future__ import annotations
 from datetime import datetime
 from logging import getLogger
-from typing import Generator, Optional, List, Literal
+from typing import Generator, Optional, List, Literal, Union
 
 from beanie import Document
 from discord.utils import MISSING
@@ -36,7 +36,7 @@ class TournamentRecords(BaseModel):
     """Base model for tournament records."""
 
     record: float
-    posted_by: int
+    user_id: int
     attachment_url: str
 
 
@@ -44,7 +44,7 @@ class TournamentMissions(BaseModel):
     """Base model for tournament missions."""
 
     type: Optional[str]
-    target: Optional[str]
+    target: Optional[Union[str, int, float]]
 
 
 class TournamentMissionsCategories(BaseModel):
@@ -66,7 +66,7 @@ class TournamentData(BaseModel):
 
 class ShorterRecordData(BaseModel):
     record: float
-    posted_by: int
+    user_id: int
     attachment_url: str
 
 
@@ -129,7 +129,7 @@ class Tournament(Document):
             {
                 "$lookup": {
                     "from": "ExperiencePoints",
-                    "localField": f"{category}.records.posted_by",
+                    "localField": f"{category}.records.user_id",
                     "foreignField": "user_id",
                     "as": "user_data",
                 }
@@ -176,11 +176,13 @@ class Tournament(Document):
         missions = ""
         for difficulty in ["easy", "medium", "hard", "expert"]:
             mission = getattr(obj, difficulty, None)
+            if not mission.type:
+                continue
             missions += f"- {difficulty.capitalize()}: " + format_missions(
                 mission.type, mission.target
             )
 
-        return missions
+        return missions + "\n"
 
     def get_all_missions(self) -> str:
         missions = ""
@@ -191,7 +193,7 @@ class Tournament(Document):
         for category in categories:
             missions += f"**{tournament_category_map(category)} {self.get_map_str_short(category)}**\n"
             missions += self.get_category_missions(category)
-        missions += self.get_general()
+
         return missions
 
     def get_general(self) -> str:

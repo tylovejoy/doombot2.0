@@ -19,7 +19,7 @@ class WorldRecordsAggregate(BaseModel):
     """Projection model for World Records aggregation."""
 
     id: Link[WorldRecordsSubAggregate] = Field(None, alias="_id")
-    posted_by: int
+    user_id: int
     record: float
 
 
@@ -27,17 +27,17 @@ class UniquePlayers(BaseModel):
     """Projection model for unique players in a Record aggregation."""
 
     name: str
-    posted_by: int
+    user_id: int
 
     def __str__(self) -> str:
         """String representation."""
-        return f"{self.name}, {self.posted_by}"
+        return f"{self.name}, {self.user_id}"
 
 
 class CurrentRecordPlacement(BaseModel):
     """Projection model for $rank mongo aggregation."""
 
-    posted_by: int
+    user_id: int
     rank: int
 
 
@@ -51,7 +51,7 @@ class MapDataLookup(BaseModel):
 class RecordMapLookup(BaseModel):
     """Projection model for Record and Map data."""
 
-    posted_by: int
+    user_id: int
     code: str
     level: str
     record: float
@@ -62,7 +62,7 @@ class RecordMapLookup(BaseModel):
 class Record(Document):
     """Collection of personal best records."""
 
-    posted_by: int  # TODO: user_id
+    user_id: int  # TODO: user_id
     code: str
     level: str
     record: float
@@ -75,7 +75,7 @@ class Record(Document):
     async def find_rec_map_info(cls, user_id):
         """Find record data as well as corresponding map data."""
         return (
-            await cls.find(cls.posted_by == user_id)
+            await cls.find(cls.user_id == user_id)
             .aggregate(
                 [
                     {
@@ -94,7 +94,7 @@ class Record(Document):
                     },
                     {
                         "$project": {
-                            "posted_by": 1,
+                            "user_id": 1,
                             "code": 1,
                             "level": 1,
                             "record": 1,
@@ -123,7 +123,7 @@ class Record(Document):
                         "$setWindowFields": {"sortBy": {"record": 1}},
                         "output": {"rank": {"$rank": {}}},
                     },
-                    {"$match": {"posted_by": user_id}},
+                    {"$match": {"user_id": user_id}},
                 ],
                 projection_model=CurrentRecordPlacement,
             )
@@ -148,10 +148,10 @@ class Record(Document):
                         "$group": {
                             "_id": {"code": "$code", "level": "$level"},
                             "record": {"$first": "$record"},
-                            "posted_by": {"$first": "$posted_by"},
+                            "user_id": {"$first": "$user_id"},
                         }
                     },
-                    {"$match": {"posted_by": user_id}},
+                    {"$match": {"user_id": user_id}},
                     {"$sort": {"_id.code": 1, "_id.level": 1}},
                 ],
                 projection_model=WorldRecordsAggregate,
@@ -182,7 +182,7 @@ class Record(Document):
                         "$group": {
                             "_id": {"code": "$code", "level": "$level"},
                             "record": {"$first": "$record"},
-                            "posted_by": {"$first": "$posted_by"},
+                            "user_id": {"$first": "$user_id"},
                         }
                     },
                     {"$sort": {"_id.level": 1}},
@@ -215,7 +215,7 @@ class Record(Document):
         if map_level:
             search_filter.update(RegEx("level", f"^{map_level}$"))
         if user_id:
-            search_filter.update({"posted_by": user_id})
+            search_filter.update({"user_id": user_id})
         if verified:
             search_filter.update({"verified": verified})
         return search_filter
