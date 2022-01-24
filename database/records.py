@@ -3,6 +3,7 @@ from typing import List, Any, Optional, Set, Generator
 
 from beanie import Document, Link
 from beanie.odm.operators.find.evaluation import RegEx
+import discord
 from pydantic import BaseModel, Field
 
 from database.maps import MapLevels, MapCodes
@@ -69,7 +70,7 @@ class Record(Document):
     verified: bool
     message_id: Optional[int]
     hidden_id: Optional[int]
-    attachment_url: Optional[str]
+    attachment_url: Optional[str] = Field("", alias="url")
 
     @classmethod
     async def find_rec_map_info(cls, user_id):
@@ -213,7 +214,8 @@ class Record(Document):
         if map_code:
             search_filter.update({"code": map_code})
         if map_level:
-            search_filter.update(RegEx("level", f"^{map_level}$"))
+            discord.utils.escape_markdown
+            search_filter.update(RegEx("level", f"^{discord.utils.escape_markdown(map_level)}$"))
         if user_id:
             search_filter.update({"user_id": user_id})
         if verified:

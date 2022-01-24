@@ -270,7 +270,7 @@ class ViewRecords(discord.SlashCommand, guilds=[GUILD_ID], name="leaderboard"):
             self.map_level = self.map_level.upper()
 
         embed = create_embed(
-            title=f"Records for {self.map_code} {self.map_level}",
+            title=f"Records for {self.map_code} {discord.utils.escape_markdown(self.map_level)}",
             desc="",
             user=self.interaction.user,
         )

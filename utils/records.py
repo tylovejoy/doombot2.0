@@ -62,7 +62,7 @@ async def personal_best(interaction: discord.Interaction, target: discord.Member
                 "value": "",
             }
         embed_dict[r.code]["value"] += (
-            f"> **{r.level}**\n"
+            f"> **{discord.utils.escape_markdown(r.level)}**\n"
             f"> Record: {display_record(r.record)}\n"
             f"> Verified: {Emoji.is_verified(r.verified)}\n"
             f"━━━━━━━━━━━━\n"
