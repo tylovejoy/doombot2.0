@@ -193,6 +193,13 @@ class SubmitMap(
 
         new_map = await new_maps_channel.send(embed=embed)
         await new_map.create_thread(name=f"Discuss {self.map_code} here.")
+        # Add map maker role
+        map_maker_role = self.interaction.guild.get_role(MAP_MAKER_ID)
+        if map_maker_role not in self.interaction.user.roles:
+            await self.interaction.user.add_roles(
+                map_maker_role,
+                reason="User submitted a map to the bot.",
+            )
 
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
@@ -337,11 +344,6 @@ class EditMap(discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=EditPa
         )
         await map_document.save()
         await self.interaction.edit_original_message(content=preview, view=view)
-        if MAP_MAKER_ID not in self.interaction.user.roles:
-            await self.interaction.user.add_roles(
-                self.interaction.guild.get_role(MAP_MAKER_ID),
-                reason="User submitted a map to the bot.",
-            )
 
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str

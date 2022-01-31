@@ -215,7 +215,9 @@ class Record(Document):
             search_filter.update({"code": map_code})
         if map_level:
             discord.utils.escape_markdown
-            search_filter.update(RegEx("level", f"^{discord.utils.escape_markdown(map_level)}$"))
+            search_filter.update(
+                RegEx("level", f"^{discord.utils.escape_markdown(map_level)}$")
+            )
         if user_id:
             search_filter.update({"user_id": user_id})
         if verified:

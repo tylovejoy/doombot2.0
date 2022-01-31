@@ -71,6 +71,7 @@ def setup(bot):
     logger.info(logging_util("Loading", "TOURNAMENT"))
     bot.application_command(TestSlash)
 
+
 # TODO: Delete before production.
 class TestSlash(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
     async def callback(self):

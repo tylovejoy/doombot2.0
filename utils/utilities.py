@@ -57,7 +57,7 @@ def display_record(record: float, tournament: bool = False) -> str:
     dt = datetime.datetime.min + datetime.timedelta(seconds=abs(record))
     hour_remove = 0
     seconds_remove = -4
-    
+
     if tournament:
         if dt.hour == 0 and dt.minute == 0:
             hour_remove = 6
@@ -65,10 +65,10 @@ def display_record(record: float, tournament: bool = False) -> str:
             hour_remove = 3
             if dt.minute < 10:
                 hour_remove = 4
-        
+
         if dt.microsecond == 0:
             seconds_remove = -7
-        
+
     return negative + dt.strftime("%H:%M:%S.%f")[hour_remove:seconds_remove]
 
 
