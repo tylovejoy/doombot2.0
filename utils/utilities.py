@@ -93,7 +93,8 @@ async def find_alt_map_code(map_code: str) -> str:
 
 def case_ignore_compare(string1: str, string2: str) -> bool:
     """Compare two strings, case insensitive."""
-    return string1.casefold().startswith(string2.casefold())
+    return string2.casefold() in string1.casefold()
+
 
 
 def check_roles(interaction: discord.Interaction) -> bool:
