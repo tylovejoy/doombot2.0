@@ -6,12 +6,12 @@ Doombot 2.0 is a complete rework/overhaul of all Doombot functionality.
 - All commands converted into Slash Commands.
 - Simplified logic behind most commands.
 - Simplified command usage across the board.
- - Tournaments
-  - Automated many tournament functions
-  - Improved tournament start
-  - Added tournament mission support
-  - Added automatic XP calculation
-  - Added custom XP rank cards
+- Tournaments
+    - Automated many tournament functions
+    - Improved tournament start
+    - Added tournament mission support
+    - Added automatic XP calculation
+    - Added custom XP rank cards
 - Added Overwatch workshop wiki (workshop.codes) commands
 - Added tags command for easy access to a common knowledgebase.
  
