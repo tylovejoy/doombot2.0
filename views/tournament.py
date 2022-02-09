@@ -1,8 +1,14 @@
 import discord
 from utils.utilities import select_button_enable
+from discord.ui import InputText
 
 from views.basic import ConfirmButton
 
+class TournamentStartModal(discord.ui.Modal):
+    def __init__(self) -> None:
+        super().__init__("Tournament Submit Wizard")
+
+        self.add_item(InputText(label="What is your name?", placeholder="Reveal your secrets!"))
 
 class TournamentStartView(discord.ui.View):
     """View for Tournament Start wizard."""
@@ -11,10 +17,13 @@ class TournamentStartView(discord.ui.View):
         super().__init__(timeout=None)
         self.confirm_button = ConfirmButton()
         self.interaction = interaction
+        self.modal = TournamentStartModal()
+        
 
     @discord.ui.button(label="TA", style=discord.ButtonStyle.red)
     async def ta(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Time Attack button."""
+        await self.interaction.response.send_modal(self.modal)
         await self.enable_accept_button()
 
     @discord.ui.button(label="MC", style=discord.ButtonStyle.red)
