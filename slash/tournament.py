@@ -59,7 +59,7 @@ from utils.utilities import (
 from views.basic import ConfirmView
 from views.paginator import Paginator
 
-from views.tournament import TournamentCategoryView
+from views.tournament import TournamentCategoryView, TournamentStartView
 
 logger = getLogger(__name__)
 
@@ -74,18 +74,11 @@ def setup(bot):
 
 # TODO: Delete before production.
 class TestSlash(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
-    async def callback(self):
 
-        user_list = await ExperiencePoints.find_all().to_list()
-        for x in user_list:
-            x.xp = 0
-            x.xp_avg = {
-                "ta": [0, 0, 0, 0, 0],  # TA
-                "mc": [0, 0, 0, 0, 0],  # MC
-                "hc": [0, 0, 0, 0, 0],  # HC
-                "bo": [0, 0, 0, 0, 0],  # BO
-            }
-            await x.save()
+    async def callback(self):
+        view = TournamentStartView(self.interaction)
+        await self.interaction.response.send_message("hello", view=view)
+        
 
 
 class ChangeRank(
@@ -322,13 +315,15 @@ class TimeAttackSubmission(
 ):
     """Time Attack tournament submission."""
 
-    # TODO: Attachment arg
+    screenshot: discord.Attachment = discord.Option(
+        description="Screenshot of your record."
+    )
     record: str = discord.Option(
         description="What is the record you'd like to submit? HH:MM:SS.ss format. "
     )
 
     async def callback(self) -> None:
-        await tournament_submissions(self.interaction, self.record, "ta")
+        await tournament_submissions(self.interaction, self.screenshot, self.record, "ta")
 
 
 class MildcoreSubmission(
@@ -339,13 +334,15 @@ class MildcoreSubmission(
 ):
     """Mildcore tournament submission."""
 
-    # TODO: Attachment arg
+    screenshot: discord.Attachment = discord.Option(
+        description="Screenshot of your record."
+    )
     record: str = discord.Option(
         description="What is the record you'd like to submit? HH:MM:SS.ss format. "
     )
 
     async def callback(self) -> None:
-        await tournament_submissions(self.interaction, self.record, "mc")
+        await tournament_submissions(self.interaction, self.screenshot, self.record, "mc")
 
 
 class HardcoreSubmission(
@@ -356,13 +353,15 @@ class HardcoreSubmission(
 ):
     """Hardcore tournament submission."""
 
-    # TODO: Attachment arg
+    screenshot: discord.Attachment = discord.Option(
+        description="Screenshot of your record."
+    )
     record: str = discord.Option(
         description="What is the record you'd like to submit? HH:MM:SS.ss format. "
     )
 
     async def callback(self) -> None:
-        await tournament_submissions(self.interaction, self.record, "hc")
+        await tournament_submissions(self.interaction, self.screenshot, self.record, "hc")
 
 
 class BonusSubmission(
@@ -373,13 +372,15 @@ class BonusSubmission(
 ):
     """Bonus tournament submission."""
 
-    # TODO: Attachment arg
+    screenshot: discord.Attachment = discord.Option(
+        description="Screenshot of your record."
+    )
     record: str = discord.Option(
         description="What is the record you'd like to submit? HH:MM:SS.ss format. "
     )
 
     async def callback(self) -> None:
-        await tournament_submissions(self.interaction, self.record, "bo")
+        await tournament_submissions(self.interaction, self.screenshot, self.record, "bo")
 
 
 class TournamentAnnouncement(
@@ -613,7 +614,7 @@ class TournamentPublishMissions(
 
 
 async def tournament_submissions(
-    interaction: discord.Interaction, record: str, category: str
+    interaction: discord.Interaction, screenshot: discord.Attachment, record: str, category: str
 ):
     """Tournament submissions."""
     await interaction.response.defer(ephemeral=True)
@@ -649,7 +650,7 @@ async def tournament_submissions(
 
     if not already_posted:
         submission = TournamentRecords(
-            record=record_seconds, user_id=interaction.user.id, attachment_url=""
+            record=record_seconds, user_id=interaction.user.id, attachment_url=screenshot.url
         )
         category_attr.records.append(submission)
 
@@ -660,8 +661,9 @@ async def tournament_submissions(
         f"> **Record:** {display_record(submission.record)}",
         interaction.user,
     )
+    embed.set_image(url=screenshot.url)
     await interaction.edit_original_message(
-        content="Is this correct?", embed=embed, view=view
+        content="Is this correct?", embed=embed, view=view,
     )
 
     await view.wait()
@@ -742,8 +744,7 @@ async def end_tournament(client: discord.Client, tournament: Tournament):
     hof_thread = await hof_msg.create_thread(name="Records Archive")
     # Post export in thread
     await export_records(tournament, hof_thread)
-    # TODO: Test and enable
-    # await send_records_to_db(tournament)
+    await send_records_to_db(tournament)
 
 
 async def send_records_to_db(tournament: Tournament):
@@ -762,7 +763,7 @@ async def send_records_to_db(tournament: Tournament):
                 level=level,
                 record=record.record,
                 verified=True,
-                # attachment_url= TODO: attachment
+                attachment_url=record.attachment_url,
             ).insert()
 
 
@@ -808,8 +809,7 @@ async def export_records(tournament: Tournament, thread: discord.Thread):
             embed.add_field(
                 name=record.user_data.alias, value=display_record(t_cat.records.record)
             )
-            # TODO:
-            # embed.set_image(url=t_cat.records.attachment_url)
+            embed.set_image(url=t_cat.records.attachment_url)
             embeds.append(embed)
 
         while embeds:

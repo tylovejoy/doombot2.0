@@ -1,3 +1,4 @@
+from cmath import phase
 from logging import getLogger
 from typing import Dict, Union, Optional
 
@@ -76,7 +77,9 @@ class SubmitRecord(
     discord.SlashCommand, guilds=[GUILD_ID], name="record", parent=SubmitParent
 ):
     """Submit personal records to the database."""
-
+    screenshot: discord.Attachment = discord.Option(
+        description="Screenshot of your record."
+    )
     map_code: str = discord.Option(
         description="Workshop code for this parkour record.",
         autocomplete=True,
@@ -91,18 +94,17 @@ class SubmitRecord(
 
     async def callback(self) -> None:
         """Callback for submitting records slash command."""
+        
         if self.interaction.channel_id not in [SPR_RECORDS_ID, NON_SPR_RECORDS_ID]:
             await self.interaction.response.send_message(
                 "You can't submit records in this channel.", ephemeral=True
             )
             return
-
+        await self.interaction.response.defer(ephemeral=True)
         self.map_code = preprocess_map_code(self.map_code)
         self.map_code, code_changed = await find_alt_map_code(self.map_code)
 
         self.map_level = self.map_level.upper()
-
-        # TODO: Attachment implementation
 
         record_seconds = time_convert(self.record)
         await check_user(self.interaction)
@@ -119,8 +121,8 @@ class SubmitRecord(
             and record_seconds >= record_document.record
             and record_document.verified
         ):
-            await self.interaction.response.send_message(
-                "Personal best needs to be faster to update.", ephemeral=True
+            await self.interaction.edit_original_message(
+                content="Personal best needs to be faster to update.",
             )
             return
 
@@ -134,6 +136,7 @@ class SubmitRecord(
                 message_id=0,
                 hidden_id=0,
                 record=0.0,
+                attachment_url=self.screenshot.url
             )
 
         record_document.record = record_seconds
@@ -142,7 +145,7 @@ class SubmitRecord(
             title="New submission", desc="", user=self.interaction.user
         )
         embed.add_field(**await records_basic_embed_fields(record_document))
-        # TODO: Add image/attachment to embed
+        embed.set_image(url=self.screenshot.url)
         # TODO: Find rank using $rank aggregation mongo 5.0 only
         view = RecordSubmitView()
 
@@ -150,8 +153,8 @@ class SubmitRecord(
         if code_changed:
             correct_msg += " **MAP CODE CHANGED TO KNOWN ALIAS**"
 
-        await self.interaction.response.send_message(
-            correct_msg, ephemeral=True, view=view, embed=embed
+        await self.interaction.edit_original_message(
+            content=correct_msg, view=view, embed=embed
         )
         await view.wait()
 
