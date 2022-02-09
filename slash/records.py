@@ -77,6 +77,7 @@ class SubmitRecord(
     discord.SlashCommand, guilds=[GUILD_ID], name="record", parent=SubmitParent
 ):
     """Submit personal records to the database."""
+
     screenshot: discord.Attachment = discord.Option(
         description="Screenshot of your record."
     )
@@ -94,7 +95,7 @@ class SubmitRecord(
 
     async def callback(self) -> None:
         """Callback for submitting records slash command."""
-        
+
         if self.interaction.channel_id not in [SPR_RECORDS_ID, NON_SPR_RECORDS_ID]:
             await self.interaction.response.send_message(
                 "You can't submit records in this channel.", ephemeral=True
@@ -136,7 +137,7 @@ class SubmitRecord(
                 message_id=0,
                 hidden_id=0,
                 record=0.0,
-                attachment_url=self.screenshot.url
+                attachment_url=self.screenshot.url,
             )
 
         record_document.record = record_seconds

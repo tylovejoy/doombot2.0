@@ -25,6 +25,7 @@ from utils.errors import InvalidTime
 from utils.enums import Emoji
 from slash.parents import (
     TournamentMissionsParent,
+    TournamentOrgParent,
     TournamentParent,
     SubmitParent,
 )
@@ -59,7 +60,11 @@ from utils.utilities import (
 from views.basic import ConfirmView
 from views.paginator import Paginator
 
-from views.tournament import TournamentCategoryView, TournamentStartView
+from views.tournament import (
+    TournamentCategoryView,
+    TournamentStartModal,
+    TournamentStartView,
+)
 
 logger = getLogger(__name__)
 
@@ -69,20 +74,13 @@ map_data_regex = re.compile(r"(.+)\s-\s(.+)\s-\s(.+)")
 
 def setup(bot):
     logger.info(logging_util("Loading", "TOURNAMENT"))
-    bot.application_command(TestSlash)
-
-
-# TODO: Delete before production.
-class TestSlash(discord.SlashCommand, guilds=[GUILD_ID], name="test"):
-
-    async def callback(self):
-        view = TournamentStartView(self.interaction)
-        await self.interaction.response.send_message("hello", view=view)
-        
 
 
 class ChangeRank(
-    discord.SlashCommand, guilds=[GUILD_ID], name="changerank", parent=TournamentParent
+    discord.SlashCommand,
+    guilds=[GUILD_ID],
+    name="changerank",
+    parent=TournamentOrgParent,
 ):
     """Change a users rank in a particular category."""
 
@@ -141,7 +139,9 @@ class ViewTournamentRecords(
     category: Literal["Time Attack", "Mildcore", "Hardcore", "Bonus"] = discord.Option(
         description="Which tournament category?",
     )
-    rank: Literal["Unranked", "Gold", "Diamond", "Grandmaster"] = discord.Option(
+    rank: Optional[
+        Literal["Unranked", "Gold", "Diamond", "Grandmaster"]
+    ] = discord.Option(
         description="Which rank to display?",
     )
 
@@ -180,7 +180,7 @@ class ViewTournamentRecords(
 
 
 class TournamentStart(
-    discord.SlashCommand, guilds=[GUILD_ID], name="start", parent=TournamentParent
+    discord.SlashCommand, guilds=[GUILD_ID], name="start", parent=TournamentOrgParent
 ):
     """Create and start a new tournament."""
 
@@ -323,7 +323,9 @@ class TimeAttackSubmission(
     )
 
     async def callback(self) -> None:
-        await tournament_submissions(self.interaction, self.screenshot, self.record, "ta")
+        await tournament_submissions(
+            self.interaction, self.screenshot, self.record, "ta"
+        )
 
 
 class MildcoreSubmission(
@@ -342,7 +344,9 @@ class MildcoreSubmission(
     )
 
     async def callback(self) -> None:
-        await tournament_submissions(self.interaction, self.screenshot, self.record, "mc")
+        await tournament_submissions(
+            self.interaction, self.screenshot, self.record, "mc"
+        )
 
 
 class HardcoreSubmission(
@@ -361,7 +365,9 @@ class HardcoreSubmission(
     )
 
     async def callback(self) -> None:
-        await tournament_submissions(self.interaction, self.screenshot, self.record, "hc")
+        await tournament_submissions(
+            self.interaction, self.screenshot, self.record, "hc"
+        )
 
 
 class BonusSubmission(
@@ -380,14 +386,16 @@ class BonusSubmission(
     )
 
     async def callback(self) -> None:
-        await tournament_submissions(self.interaction, self.screenshot, self.record, "bo")
+        await tournament_submissions(
+            self.interaction, self.screenshot, self.record, "bo"
+        )
 
 
 class TournamentAnnouncement(
     discord.SlashCommand,
     guilds=[GUILD_ID],
     name="announcement",
-    parent=TournamentParent,
+    parent=TournamentOrgParent,
 ):
     """Send annoucement."""
 
@@ -614,7 +622,10 @@ class TournamentPublishMissions(
 
 
 async def tournament_submissions(
-    interaction: discord.Interaction, screenshot: discord.Attachment, record: str, category: str
+    interaction: discord.Interaction,
+    screenshot: discord.Attachment,
+    record: str,
+    category: str,
 ):
     """Tournament submissions."""
     await interaction.response.defer(ephemeral=True)
@@ -650,7 +661,9 @@ async def tournament_submissions(
 
     if not already_posted:
         submission = TournamentRecords(
-            record=record_seconds, user_id=interaction.user.id, attachment_url=screenshot.url
+            record=record_seconds,
+            user_id=interaction.user.id,
+            attachment_url=screenshot.url,
         )
         category_attr.records.append(submission)
 
@@ -663,7 +676,9 @@ async def tournament_submissions(
     )
     embed.set_image(url=screenshot.url)
     await interaction.edit_original_message(
-        content="Is this correct?", embed=embed, view=view,
+        content="Is this correct?",
+        embed=embed,
+        view=view,
     )
 
     await view.wait()
@@ -757,14 +772,26 @@ async def send_records_to_db(tournament: Tournament):
         level = data.map_data.level
 
         for record in data.records:
-            await Record(
-                user_id=record.user_id,
-                code=code,
-                level=level,
-                record=record.record,
-                verified=True,
-                attachment_url=record.attachment_url,
-            ).insert()
+            search = await Record.filter_search_single(
+                map_code=code, map_level=level, user_id=record.user_id
+            )
+            if not search:
+                search = Record(
+                    user_id=record.user_id,
+                    code=code,
+                    level=level,
+                    record=record.record,
+                    verified=True,
+                    attachment_url=record.attachment_url,
+                )
+            else:
+                if search.record <= record.record:
+                    continue
+                else:
+                    search.record = record.record
+                    search.attachment_url = record.attachment_url
+                    search.verified = True
+            await search.save()
 
 
 async def export_records(tournament: Tournament, thread: discord.Thread):
@@ -805,7 +832,7 @@ async def export_records(tournament: Tournament, thread: discord.Thread):
         embeds = []
         for record in records:
             t_cat: ShortRecordData = getattr(record, category)
-            embed = create_embed("Screenshot Link", "", "")
+            embed = create_embed("Submission", "", "")
             embed.add_field(
                 name=record.user_data.alias, value=display_record(t_cat.records.record)
             )
