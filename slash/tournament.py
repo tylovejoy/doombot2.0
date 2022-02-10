@@ -100,7 +100,6 @@ class ChangeRank(
     bonus: Optional[Literal["Gold", "Diamond", "Grandmaster"]] = discord.Option(
         description="Which rank?"
     )
-    
 
     async def callback(self) -> None:
         if not check_roles(self.interaction):
