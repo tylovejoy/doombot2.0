@@ -116,6 +116,7 @@ class Record(Document):
         cls, map_code: str, map_level: str, user_id: int
     ) -> List[CurrentRecordPlacement]:
         """Find the current rank placement of a record."""
+        # TODO: Needs to be tested when Mongo is updated to 5.0
         return (
             await cls.find(cls.code == map_code, cls.level == map_level)
             .aggregate(
