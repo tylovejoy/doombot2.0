@@ -20,13 +20,21 @@ class MigrationTasks(discord.SlashCommand, guilds=[GUILD_ID], name="migrate"):
         logger.info(logging_util("Migration", "BEGIN EXP TRANSFER"))
         members = self.interaction.guild.members
         member_list = []
+        mee6_xp = {
+            "nebula": 127090,
+            
+        }
         for member in members:
+            xp = 0
+            if member.name in mee6_xp.keys():
+                xp = mee6_xp[member.name]
+
             member_list.append(
                 ExperiencePoints(
                     user_id=member.id,
                     alias=member.name,
                     alerts_enabled=True,
+                    xp=xp,
                 )
             )
-            # TODO: add XP here ez
         await ExperiencePoints.insert_many(member_list)
