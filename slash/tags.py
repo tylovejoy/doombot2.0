@@ -112,10 +112,7 @@ class CreateTag(
         except pymongo.errors.DuplicateKeyError:
             content = f"**{tag.name}** already exists! This tag was not created."
 
-        await self.interaction.edit_original_message(
-            content=content, view=view
-        )
-        
+        await self.interaction.edit_original_message(content=content, view=view)
 
 
 class TagsCommand(discord.SlashCommand, guilds=[GUILD_ID], name="tag"):

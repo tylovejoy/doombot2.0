@@ -66,9 +66,10 @@ rank_convert = {
 }
 
 
-#FakeContext = namedtuple("FakeContext", ["guild", "bot"])
+# FakeContext = namedtuple("FakeContext", ["guild", "bot"])
 
-#from ..main import bot
+# from ..main import bot
+
 
 class MigrationTasks(discord.SlashCommand, guilds=[GUILD_ID], name="migrate"):
     """Migrate to doombot2.0"""
@@ -82,9 +83,7 @@ class MigrationTasks(discord.SlashCommand, guilds=[GUILD_ID], name="migrate"):
             # TODO: This needs to be an actual dict from mee6_xp file
         }
 
-        #ctx = FakeContext(guild=self.interaction.guild, bot=bot)
-
-        
+        # ctx = FakeContext(guild=self.interaction.guild, bot=bot)
 
         for member in members:
             xp = 0
