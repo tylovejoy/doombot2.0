@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 from logging import getLogger
 
@@ -62,6 +63,7 @@ from views.basic import ConfirmView
 from views.paginator import Paginator
 
 from views.tournament import (
+    TournamentAnnouncementModal,
     TournamentCategoryView,
     TournamentStartModal,
     TournamentStartView,
@@ -235,7 +237,9 @@ class TournamentStart(
 
 
 class NotTournamentStart(
-    discord.SlashCommand, guilds=[GUILD_ID], name="start", parent=TournamentOrgParent
+    discord.SlashCommand,
+    guilds=[GUILD_ID],
+    name="donotuse",
 ):
     """Create and start a new tournament."""
 
@@ -569,10 +573,10 @@ class TournamentAnnouncement(
 ):
     """Send annoucement."""
 
-    title: str = discord.Option(description="Title of the announcement.")
-    content: str = discord.Option(
-        description="Contents of the announcement.",
-    )
+    # title: str = discord.Option(description="Title of the announcement.")
+    # content: str = discord.Option(
+    #     description="Contents of the announcement.",
+    # )
     scheduled_start: Optional[str] = discord.Option(
         description="Optional annoucement schedule start time.",
     )
@@ -581,10 +585,16 @@ class TournamentAnnouncement(
         if not check_roles(self.interaction):
             await no_perms_warning(self.interaction)
             return
+        modal = TournamentAnnouncementModal()
 
-        await self.interaction.response.defer(ephemeral=True)
+        await self.interaction.response.send_modal(modal)
+        # await self.interaction.response.defer(ephemeral=True)
+
+        while not modal.done:
+            await asyncio.sleep(1)
+
         embed = create_embed(title="Announcement", desc="", user=self.interaction.user)
-        embed.add_field(name=self.title, value=self.content, inline=False)
+        embed.add_field(name=modal.title_, value=modal.content, inline=False)
 
         if self.scheduled_start:
             self.scheduled_start = dateparser.parse(
@@ -596,8 +606,8 @@ class TournamentAnnouncement(
                 inline=False,
             )
 
-        view = TournamentCategoryView(self.interaction)
-        await self.interaction.edit_original_message(
+        view = TournamentCategoryView(modal.interaction)
+        await modal.interaction.edit_original_message(
             content="Select any mentions and confirm announcement is correct.",
             embed=embed,
             view=view,
@@ -616,7 +626,7 @@ class TournamentAnnouncement(
 
         if self.scheduled_start:
 
-            await self.interaction.edit_original_message(
+            await modal.interaction.edit_original_message(
                 content="Scheduled.", embed=embed, view=view
             )
             embed.remove_field(-1)
@@ -628,7 +638,7 @@ class TournamentAnnouncement(
 
             return
 
-        await self.interaction.edit_original_message(content="Done.", view=view)
+        await modal.interaction.edit_original_message(content="Done.", view=view)
         await self.interaction.guild.get_channel(TOURNAMENT_INFO_ID).send(
             f"{mentions}", embed=embed
         )

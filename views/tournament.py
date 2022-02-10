@@ -5,6 +5,29 @@ from discord.ui import TextInput
 from views.basic import ConfirmButton
 
 
+class TournamentAnnouncementModal(discord.ui.Modal):
+    def __init__(self) -> None:
+        super().__init__(title="Tournament Announcement Wizard")
+        self.done = False
+        self.title_ = None
+        self.content = None
+        self.interaction = None
+        self.add_item(TextInput(label="Title"))
+        self.add_item(
+            TextInput(
+                label="Announcement Content",
+                style=discord.TextInputStyle.long,
+            )
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.send_message("Please wait...", ephemeral=True)
+        self.interaction = interaction
+        self.done = True
+        self.title_ = self.children[0].value
+        self.content = self.children[1].value
+
+
 class TournamentStartModal(discord.ui.Modal):
     def __init__(self, category: str) -> None:
         super().__init__("Tournament Submit Wizard")
