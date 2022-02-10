@@ -45,7 +45,7 @@ def find_level(player_xp):
 
 def find_portrait(level) -> str:
     """Find which portrait to use."""
-    number = str(ceil(level % 20 / 4) + 1)
+    number = str(ceil(level % 20 / 4))
     if level <= 20:
         filename = "bronze" + number + ".png"
     elif 20 <= level < 40:
