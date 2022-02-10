@@ -63,7 +63,7 @@ class RecordMapLookup(BaseModel):
 class Record(Document):
     """Collection of personal best records."""
 
-    user_id: int  # TODO: user_id
+    user_id: int
     code: str
     level: str
     record: float
