@@ -1,3 +1,4 @@
+from collections import namedtuple
 import discord
 from logging import getLogger
 
@@ -53,8 +54,8 @@ all_ranks = {  #         TA MC HC BO
     543720258112978947: (1, 1, 0),  # Shadow_
     696014144964395069: (1, 1, 1),  # Viney
     307287887873835020: (1, 0, 0),  # superior chad/kirbey griffin
-    571717879419109417: (),  # Legolas
-    140259458348482560: (),  # Alayy
+    571717879419109417: (2, 3, 2),  # Legolas
+    140259458348482560: (1, 0, 0),  # Alayy
 }
 
 rank_convert = {
@@ -64,6 +65,10 @@ rank_convert = {
     3: "Grandmaster",
 }
 
+
+#FakeContext = namedtuple("FakeContext", ["guild", "bot"])
+
+#from ..main import bot
 
 class MigrationTasks(discord.SlashCommand, guilds=[GUILD_ID], name="migrate"):
     """Migrate to doombot2.0"""
@@ -76,6 +81,11 @@ class MigrationTasks(discord.SlashCommand, guilds=[GUILD_ID], name="migrate"):
             "nebula": 127090,
             # TODO: This needs to be an actual dict from mee6_xp file
         }
+
+        #ctx = FakeContext(guild=self.interaction.guild, bot=bot)
+
+        
+
         for member in members:
             xp = 0
             if member.name in mee6_xp.keys():
