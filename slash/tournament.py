@@ -32,6 +32,7 @@ from slash.parents import (
 from utils.constants import (
     BOT_ID,
     GUILD_ID,
+    ORG_ROLE_ID,
     TOURNAMENT_INFO_ID,
     TOURNAMENT_SUBMISSION_ID,
     TOURNAMENT_ORG_ID,
@@ -74,124 +75,166 @@ map_data_regex = re.compile(r"(.+)\s-\s(.+)\s-\s(.+)")
 
 def setup(bot):
     logger.info(logging_util("Loading", "TOURNAMENT"))
-
-
-class ChangeRank(
-    discord.SlashCommand,
-    guilds=[GUILD_ID],
-    name="changerank",
-    parent=TournamentOrgParent,
-):
-    """Change a users rank in a particular category."""
-
-    user: discord.Member = discord.Option(
-        description="Which user do you want to alter?"
-    )
-
-    timeattack: Optional[Literal["Gold", "Diamond", "Grandmaster"]] = discord.Option(
-        description="Which rank?"
-    )
-    mildcore: Optional[Literal["Gold", "Diamond", "Grandmaster"]] = discord.Option(
-        description="Which rank?"
-    )
-    hardcore: Optional[Literal["Gold", "Diamond", "Grandmaster"]] = discord.Option(
-        description="Which rank?"
-    )
-    bonus: Optional[Literal["Gold", "Diamond", "Grandmaster"]] = discord.Option(
-        description="Which rank?"
-    )
-
-    async def callback(self) -> None:
-        if not check_roles(self.interaction):
-            await no_perms_warning(self.interaction)
-            return
-        await self.interaction.response.defer(ephemeral=True)
-
-        user = await ExperiencePoints.find_user(self.user.id)
-
-        message_content = f"Changing rank(s) for {user.alias}\n"
-
-        if self.timeattack is not MISSING:
-            user.rank.ta = self.timeattack
-            message_content += f"**Time Attack** rank to **{self.timeattack}**.\n"
-        if self.mildcore is not MISSING:
-            user.rank.mc = self.mildcore
-            message_content += f"**Mildcore** rank to **{self.mildcore}**.\n"
-        if self.hardcore is not MISSING:
-            user.rank.hc = self.hardcore
-            message_content += f"**Hardcore** rank to **{self.hardcore}**.\n"
-        if self.bonus is not MISSING:
-            user.rank.bo = self.bonus
-            message_content += f"**Bonus** rank to **{self.bonus}**.\n"
-
-        message_content += "Is this correct?"
-
-        view = ConfirmView()
-        await self.interaction.edit_original_message(
-            content=message_content,
-            view=view,
-        )
-        await view.wait()
-        if not view.confirm.value:
-            return
-
-        await user.save()
-
-        await self.interaction.edit_original_message(
-            content="Confirmed.",
-            view=view,
-        )
-
-
-class ViewTournamentRecords(
-    discord.SlashCommand, guilds=[GUILD_ID], name="leaderboard", parent=TournamentParent
-):
-    """View leaderboard for a particular tournament category and optionally tournament rank."""
-
-    category: Literal["Time Attack", "Mildcore", "Hardcore", "Bonus"] = discord.Option(
-        description="Which tournament category?",
-    )
-    rank: Optional[
-        Literal["Unranked", "Gold", "Diamond", "Grandmaster"]
-    ] = discord.Option(
-        description="Which rank to display?",
-    )
-
-    async def callback(self) -> None:
-        await self.interaction.response.defer(ephemeral=True)
-        self.category = tournament_category_map_reverse(self.category)
-
-        records = await Tournament.get_records(self.category, rank=self.rank)
-
-        if self.rank is MISSING:
-            rank_str = "- Overall"
-        else:
-            rank_str = "- " + self.rank
-
-        embed = create_embed(
-            title=f"{tournament_category_map(self.category)} {rank_str}",
-            desc="",
-            user=self.interaction.user,
-        )
-        embeds = await split_embeds(
-            embed,
-            records,
-            records_tournament_embed_fields,
-            category=self.category,
-            rank=self.rank,
-        )
-        view = Paginator(embeds, self.interaction.user, timeout=None)
-        if not view.formatted_pages:
-            await self.interaction.edit_original_message(content="No records found.")
-            return
-
-        await self.interaction.edit_original_message(
-            embed=view.formatted_pages[0], view=view
-        )
-        await view.wait()
+    # bot.application_command(TestStart)
 
 
 class TournamentStart(
+    discord.SlashCommand, guilds=[GUILD_ID], name="start", parent=TournamentOrgParent
+):
+    """Create and start a new tournament."""
+
+    schedule_start: str = discord.Option(
+        description="When should the tournament start?",
+    )
+    schedule_end: str = discord.Option(
+        description="When should the tournament end?",
+    )
+
+    async def callback(self) -> None:
+        """Callback for submitting records slash command."""
+        if not check_roles(self.interaction):
+            await no_perms_warning(self.interaction)
+            return
+
+        await self.interaction.response.defer(ephemeral=True)
+
+        if await Tournament.find_active():
+            await self.interaction.edit_original_message(
+                content="Tournament already active!"
+            )
+            return
+
+        last_tournament = await Tournament.find_latest()
+        if last_tournament:
+            last_id = last_tournament.tournament_id
+        else:
+            last_id = 0
+
+        self.schedule_start: datetime.datetime = dateparser.parse(
+            self.schedule_start, settings={"PREFER_DATES_FROM": "future"}
+        )
+        self.schedule_end: datetime.datetime = (
+            dateparser.parse(
+                self.schedule_end, settings={"PREFER_DATES_FROM": "future"}
+            )
+            - datetime.datetime.now()
+            + self.schedule_start
+        )
+        category_abbr = ["ta", "mc", "hc", "bo"]
+
+        tournament_document = Tournament(
+            tournament_id=last_id + 1,
+            name="Doomfist Parkour Tournament",
+            active=True,
+            bracket=False,
+            schedule_start=self.schedule_start,
+            schedule_end=self.schedule_end,
+        )
+
+        view = TournamentStartView(self.interaction)
+        await self.interaction.edit_original_message(
+            content="Click on the buttons to add necessary info.", view=view
+        )
+        await view.wait()
+
+        if view.ta_modal:
+            setattr(
+                tournament_document,
+                "ta",
+                TournamentData(
+                    map_data=TournamentMaps(
+                        code=preprocess_map_code(view.ta_modal.code),
+                        level=view.ta_modal.level.upper(),
+                        creator=view.ta_modal.creator,
+                    )
+                ),
+            )
+
+        if view.mc_modal:
+            setattr(
+                tournament_document,
+                "mc",
+                TournamentData(
+                    map_data=TournamentMaps(
+                        code=preprocess_map_code(view.mc_modal.code),
+                        level=view.mc_modal.level.upper(),
+                        creator=view.mc_modal.creator,
+                    )
+                ),
+            )
+        if view.hc_modal:
+            setattr(
+                tournament_document,
+                "hc",
+                TournamentData(
+                    map_data=TournamentMaps(
+                        code=preprocess_map_code(view.hc_modal.code),
+                        level=view.hc_modal.level.upper(),
+                        creator=view.hc_modal.creator,
+                    )
+                ),
+            )
+        if view.bo_modal:
+            setattr(
+                tournament_document,
+                "bo",
+                TournamentData(
+                    map_data=TournamentMaps(
+                        code=preprocess_map_code(view.bo_modal.code),
+                        level=view.bo_modal.level.upper(),
+                        creator=view.bo_modal.creator,
+                    )
+                ),
+            )
+
+        embed = create_embed(
+            tournament_document.name,
+            (
+                f"Start: {format_dt(self.schedule_start, style='R')} - {format_dt(self.schedule_start, style='F')}\n"
+                f"End: {format_dt(self.schedule_end, style='R')} - {format_dt(self.schedule_end, style='F')}\n"
+            ),
+            self.interaction.user,
+        )
+
+        for category in category_abbr:
+            data = getattr(
+                getattr(tournament_document, category, None), "map_data", None
+            )
+            if getattr(data, "code", None):
+                embed.add_field(
+                    name=f"{tournament_category_map(category)}",
+                    value=f"Code: {data.code} | {data.level} by {data.creator}",
+                    inline=False,
+                )
+        view = TournamentCategoryView(self.interaction)
+        await self.interaction.edit_original_message(
+            content="Select any mentions and confirm data is correct.",
+            embed=embed,
+            view=view,
+        )
+        await view.wait()
+
+        mentions = "".join(
+            [
+                get_mention(tournament_category_map_reverse(m), self.interaction)
+                for m in view.mentions
+            ]
+        )
+        tournament_document.mentions = mentions
+        tournament_document.embed = embed.to_dict()
+        if not view.confirm.value:
+            return
+
+        await tournament_document.insert()
+        await self.interaction.edit_original_message(
+            content="Tournament scheduled.", view=view
+        )
+        await self.interaction.guild.get_channel(TOURNAMENT_ORG_ID).send(
+            "Tournament Scheduled...", embed=embed
+        )
+
+
+class NotTournamentStart(
     discord.SlashCommand, guilds=[GUILD_ID], name="start", parent=TournamentOrgParent
 ):
     """Create and start a new tournament."""
@@ -317,6 +360,121 @@ class TournamentStart(
         await self.interaction.edit_original_message(
             content="Tournament scheduled.", view=view
         )
+
+
+class ChangeRank(
+    discord.SlashCommand,
+    guilds=[GUILD_ID],
+    name="changerank",
+    parent=TournamentOrgParent,
+):
+    """Change a users rank in a particular category."""
+
+    user: discord.Member = discord.Option(
+        description="Which user do you want to alter?"
+    )
+
+    timeattack: Optional[Literal["Gold", "Diamond", "Grandmaster"]] = discord.Option(
+        description="Which rank?"
+    )
+    mildcore: Optional[Literal["Gold", "Diamond", "Grandmaster"]] = discord.Option(
+        description="Which rank?"
+    )
+    hardcore: Optional[Literal["Gold", "Diamond", "Grandmaster"]] = discord.Option(
+        description="Which rank?"
+    )
+    # bonus: Optional[Literal["Gold", "Diamond", "Grandmaster"]] = discord.Option(
+    #     description="Which rank?"
+    # )
+
+    async def callback(self) -> None:
+        if not check_roles(self.interaction):
+            await no_perms_warning(self.interaction)
+            return
+        await self.interaction.response.defer(ephemeral=True)
+
+        user = await ExperiencePoints.find_user(self.user.id)
+
+        message_content = f"Changing rank(s) for {user.alias}\n"
+
+        if self.timeattack is not MISSING:
+            user.rank.ta = self.timeattack
+            message_content += f"**Time Attack** rank to **{self.timeattack}**.\n"
+        if self.mildcore is not MISSING:
+            user.rank.mc = self.mildcore
+            message_content += f"**Mildcore** rank to **{self.mildcore}**.\n"
+        if self.hardcore is not MISSING:
+            user.rank.hc = self.hardcore
+            message_content += f"**Hardcore** rank to **{self.hardcore}**.\n"
+        # if self.bonus is not MISSING:
+        #     user.rank.bo = self.bonus
+        #     message_content += f"**Bonus** rank to **{self.bonus}**.\n"
+
+        message_content += "Is this correct?"
+
+        view = ConfirmView()
+        await self.interaction.edit_original_message(
+            content=message_content,
+            view=view,
+        )
+        await view.wait()
+        if not view.confirm.value:
+            return
+
+        await user.save()
+
+        await self.interaction.edit_original_message(
+            content="Confirmed.",
+            view=view,
+        )
+
+
+class ViewTournamentRecords(
+    discord.SlashCommand, guilds=[GUILD_ID], name="leaderboard", parent=TournamentParent
+):
+    """View leaderboard for a particular tournament category and optionally tournament rank."""
+
+    category: Literal["Time Attack", "Mildcore", "Hardcore", "Bonus"] = discord.Option(
+        description="Which tournament category?",
+    )
+    rank: Optional[
+        Literal["Unranked", "Gold", "Diamond", "Grandmaster"]
+    ] = discord.Option(
+        description="Which rank to display?",
+    )
+
+    async def callback(self) -> None:
+        await self.interaction.response.defer(ephemeral=True)
+        self.category = tournament_category_map_reverse(self.category)
+
+        records = await Tournament.get_records(self.category, rank=self.rank)
+
+        if self.rank is MISSING:
+            rank_str = "- Overall"
+        else:
+            rank_str = "- " + self.rank
+
+        embed = create_embed(
+            title=f"{tournament_category_map(self.category)} {rank_str}",
+            desc="",
+            user=self.interaction.user,
+        )
+        embeds = await split_embeds(
+            embed,
+            records,
+            records_tournament_embed_fields,
+            category=self.category,
+            rank=self.rank,
+        )
+        view = Paginator(embeds, self.interaction.user, timeout=None)
+        if not view.formatted_pages:
+            await self.interaction.edit_original_message(content="No records found.")
+            return
+
+        await self.interaction.edit_original_message(
+            embed=view.formatted_pages[0], view=view
+        )
+        await view.wait()
 
 
 class TimeAttackSubmission(
@@ -887,7 +1045,7 @@ async def create_hall_of_fame(tournament: Tournament) -> discord.Embed:
         embed.add_field(
             name=tournament_category_map(category)
             + f" ({map_data.code} - {map_data.level})",
-            value=top_three_list,
+            value=top_three_list or "No times submitted! <:CHUMPY:829934452112752672>",
             inline=False,
         )
     return embed

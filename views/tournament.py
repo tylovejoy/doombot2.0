@@ -1,27 +1,30 @@
 import discord
 from utils.utilities import select_button_enable
-from discord.ui import InputText
+from discord.ui import TextInput
 
 from views.basic import ConfirmButton
 
 
 class TournamentStartModal(discord.ui.Modal):
-    def __init__(self) -> None:
+    def __init__(self, category: str) -> None:
         super().__init__("Tournament Submit Wizard")
-
-        self.add_item(InputText(label="Map Code"))
-        self.add_item(InputText(label="Level Name"))
-        self.add_item(InputText(label="Map Creator"))
+        self.category = category
+        self.add_item(TextInput(label="Map Code"))
+        self.add_item(TextInput(label="Level Name"))
+        self.add_item(TextInput(label="Map Creator"))
         self.code = None
         self.level = None
         self.creator = None
 
     async def callback(self, interaction: discord.Interaction):
-        print("yes")
+
         self.code = self.children[0].value
         self.level = self.children[1].value
         self.creator = self.children[2].value
-        await interaction.response.send_message(f"test\n")
+        await interaction.response.send_message(
+            f"{self.category} set.\nCode: {self.code}\nLevel: {self.level}\nCreator: {self.creator}",
+            ephemeral=True,
+        )
 
 
 class TournamentStartView(discord.ui.View):
@@ -39,28 +42,32 @@ class TournamentStartView(discord.ui.View):
     @discord.ui.button(label="TA", style=discord.ButtonStyle.red)
     async def ta(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Time Attack button."""
-        self.ta_modal = TournamentStartModal()
+        button.style = discord.ButtonStyle.green
+        self.ta_modal = TournamentStartModal("Time Attack")
         await interaction.response.send_modal(self.ta_modal)
         await self.enable_accept_button()
 
     @discord.ui.button(label="MC", style=discord.ButtonStyle.red)
     async def mc(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Mildcore button."""
-        self.mc_modal = TournamentStartModal()
+        button.style = discord.ButtonStyle.green
+        self.mc_modal = TournamentStartModal("Mildcore")
         await interaction.response.send_modal(self.mc_modal)
         await self.enable_accept_button()
 
     @discord.ui.button(label="HC", style=discord.ButtonStyle.red)
     async def hc(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Hardcore button."""
-        self.hc_modal = TournamentStartModal()
+        button.style = discord.ButtonStyle.green
+        self.hc_modal = TournamentStartModal("Hardcore")
         await interaction.response.send_modal(self.hc_modal)
         await self.enable_accept_button()
 
     @discord.ui.button(label="BO", style=discord.ButtonStyle.red)
     async def bo(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Bonus button."""
-        self.bo_modal = TournamentStartModal()
+        button.style = discord.ButtonStyle.green
+        self.bo_modal = TournamentStartModal("Bonus")
         await interaction.response.send_modal(self.bo_modal)
         await self.enable_accept_button()
 
@@ -68,7 +75,7 @@ class TournamentStartView(discord.ui.View):
         """Enable confirm button when other buttons are pressed."""
         if len(self.children) != 5:
             self.add_item(self.confirm_button)
-            await self.interaction.edit_original_message(view=self)
+        await self.interaction.edit_original_message(view=self)
 
 
 class TournamentCategoryView(discord.ui.View):
