@@ -88,13 +88,19 @@ class ChangeRank(
         description="Which user do you want to alter?"
     )
 
-    category: Literal["Time Attack", "Mildcore", "Hardcore", "Bonus"] = discord.Option(
-        description="Which category?"
-    )
-
-    rank: Literal["Gold", "Diamond", "Grandmaster"] = discord.Option(
+    timeattack: Optional[Literal["Gold", "Diamond", "Grandmaster"]] = discord.Option(
         description="Which rank?"
     )
+    mildcore: Optional[Literal["Gold", "Diamond", "Grandmaster"]] = discord.Option(
+        description="Which rank?"
+    )
+    hardcore: Optional[Literal["Gold", "Diamond", "Grandmaster"]] = discord.Option(
+        description="Which rank?"
+    )
+    bonus: Optional[Literal["Gold", "Diamond", "Grandmaster"]] = discord.Option(
+        description="Which rank?"
+    )
+    
 
     async def callback(self) -> None:
         if not check_roles(self.interaction):
@@ -102,31 +108,38 @@ class ChangeRank(
             return
         await self.interaction.response.defer(ephemeral=True)
 
-        category = tournament_category_map_reverse(self.category)
         user = await ExperiencePoints.find_user(self.user.id)
-        ranks = user.rank
-        rank = getattr(ranks, category)
+
+        message_content = f"Changing rank(s) for {user.alias}\n"
+
+        if self.timeattack is not MISSING:
+            user.rank.ta = self.timeattack
+            message_content += f"**Time Attack** rank to **{self.timeattack}**.\n"
+        if self.mildcore is not MISSING:
+            user.rank.mc = self.mildcore
+            message_content += f"**Mildcore** rank to **{self.mildcore}**.\n"
+        if self.hardcore is not MISSING:
+            user.rank.hc = self.hardcore
+            message_content += f"**Hardcore** rank to **{self.hardcore}**.\n"
+        if self.bonus is not MISSING:
+            user.rank.bo = self.bonus
+            message_content += f"**Bonus** rank to **{self.bonus}**.\n"
+
+        message_content += "Is this correct?"
 
         view = ConfirmView()
         await self.interaction.edit_original_message(
-            content=(
-                f"Changing {user.alias}'s **{self.category}** rank from **{rank}** to **{self.rank}**.\n"
-                "Is this correct?"
-            ),
+            content=message_content,
             view=view,
         )
         await view.wait()
         if not view.confirm.value:
             return
 
-        setattr(user.rank, category, self.rank)
         await user.save()
 
         await self.interaction.edit_original_message(
-            content=(
-                f"Changing {user.alias}'s **{self.category}** rank from **{rank}** to **{self.rank}**.\n"
-                "Confirmed."
-            ),
+            content="Confirmed.",
             view=view,
         )
 
