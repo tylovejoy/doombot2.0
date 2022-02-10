@@ -22,7 +22,7 @@ class MigrationTasks(discord.SlashCommand, guilds=[GUILD_ID], name="migrate"):
         member_list = []
         mee6_xp = {
             "nebula": 127090,
-            
+            # TODO: This needs to be an actual dict from mee6_xp file
         }
         for member in members:
             xp = 0
