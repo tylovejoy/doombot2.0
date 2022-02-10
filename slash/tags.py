@@ -1,6 +1,7 @@
 from logging import getLogger
 from typing import Optional
 import aiohttp
+import pymongo
 import discord
 
 from database.documents import Tags
@@ -93,7 +94,9 @@ class CreateTag(
             return
 
         view = ConfirmView()
+
         tag = Tags(name=self.name, content=self.content)
+
         await self.interaction.response.send_message(
             f"**{tag.name}**\n\n{tag.content}\n\nDo you want to create this tag?",
             view=view,
@@ -103,10 +106,16 @@ class CreateTag(
         if not view.confirm.value:
             return
 
+        content = f"**{tag.name}** has been added as a new tag."
+        try:
+            await tag.save()
+        except pymongo.errors.DuplicateKeyError:
+            content = f"**{tag.name}** already exists! This tag was not created."
+
         await self.interaction.edit_original_message(
-            content=f"**{tag.name}** has been added as a new tag.", view=view
+            content=content, view=view
         )
-        await tag.save()
+        
 
 
 class TagsCommand(discord.SlashCommand, guilds=[GUILD_ID], name="tag"):
