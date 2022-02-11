@@ -288,3 +288,10 @@ class DoomBot(discord.Client):
             await starboard_message.edit(
                 content=f"{star_emoji(entry.stars)} **{entry.stars}**"
             )
+
+    async def on_thread_update(self, before: discord.Thread, after: discord.Thread):
+        if after.archived and after.locked:
+            return  # Ignore if locked
+        
+        # Auto unarchive
+        await after.edit(archived=False)
