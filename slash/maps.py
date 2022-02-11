@@ -40,6 +40,7 @@ MAP_TYPES_AUTOCOMPLETE = {k: k for k in MapTypes.list()}
 def setup(bot):
     logger.info(logging_util("Loading", "MAPS"))
     bot.application_command(MapSearch)
+    bot.application_command(RandomMap)
 
 
 def autocomplete_maps(options, focused):
@@ -67,7 +68,7 @@ def autocomplete_maps(options, focused):
         return response
 
 
-class MapSearch(discord.SlashCommand, guilds=[GUILD_ID], name="map_search"):
+class MapSearch(discord.SlashCommand, guilds=[GUILD_ID], name="map-search"):
     """Search for maps using filters."""
 
     map_name: Optional[str] = discord.Option(
@@ -376,7 +377,7 @@ class RandomMap(discord.SlashCommand, guilds=[GUILD_ID], name="random_map"):
 
 
 class SubmitMapAlias(
-    discord.SlashCommand, guilds=[GUILD_ID], name="map_alias", parent=SubmitParent
+    discord.SlashCommand, guilds=[GUILD_ID], name="map-alias", parent=SubmitParent
 ):
     """Create an alias for a map code. For when multiple codes point to the same map."""
 
