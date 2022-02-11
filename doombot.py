@@ -294,4 +294,4 @@ class DoomBot(discord.Client):
             return  # Ignore if locked
         
         # Auto unarchive
-        await after.edit(archived=False)
+        await after.edit(archived=False, reason="Auto Unarchive.")
