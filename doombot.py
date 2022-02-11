@@ -6,7 +6,7 @@ import discord
 
 from discord.ext import commands, tasks
 
-from database.documents import ExperiencePoints, Starboard, VerificationViews
+from database.documents import EXPRanks, ExperiencePoints, Starboard, VerificationViews
 from database.records import Record
 from database.tournament import Announcement, Tournament
 from slash.tournament import end_tournament, start_tournament
@@ -177,6 +177,12 @@ class DoomBot(discord.Client):
             user_id=member.id,
             alias=member.name,
             alerts_enabled=True,
+            rank=EXPRanks(
+                ta="Unranked",
+                mc="Unranked",
+                hc="Unranked",
+                bo="Grandmaster",
+            )
         )
         await new_user.save()
         logger.info(f"Adding new user: {new_user.alias} {new_user.user_id}")
