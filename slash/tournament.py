@@ -358,7 +358,7 @@ class TimeAttackSubmission(
     discord.SlashCommand,
     guilds=[GUILD_ID],
     name="ta",
-    #parent=SubmitParent,
+    # parent=SubmitParent,
 ):
     """Time Attack tournament submission."""
 
@@ -379,7 +379,7 @@ class MildcoreSubmission(
     discord.SlashCommand,
     guilds=[GUILD_ID],
     name="mc",
-    #parent=SubmitParent,
+    # parent=SubmitParent,
 ):
     """Mildcore tournament submission."""
 
@@ -400,7 +400,7 @@ class HardcoreSubmission(
     discord.SlashCommand,
     guilds=[GUILD_ID],
     name="hc",
-    #parent=SubmitParent,
+    # parent=SubmitParent,
 ):
     """Hardcore tournament submission."""
 
@@ -421,7 +421,7 @@ class BonusSubmission(
     discord.SlashCommand,
     guilds=[GUILD_ID],
     name="bo",
-    #parent=SubmitParent,
+    # parent=SubmitParent,
 ):
     """Bonus tournament submission."""
 

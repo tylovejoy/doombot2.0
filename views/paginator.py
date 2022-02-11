@@ -29,7 +29,7 @@ class Paginator(discord.ui.View):
         """The embeds with formatted footers to act as pages."""
         if not self.pages:
             return None
-            
+
         if isinstance(self.pages[0], str):
             return self.pages
 

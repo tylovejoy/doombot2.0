@@ -182,7 +182,7 @@ class DoomBot(discord.Client):
                 mc="Unranked",
                 hc="Unranked",
                 bo="Grandmaster",
-            )
+            ),
         )
         await new_user.save()
         logger.info(f"Adding new user: {new_user.alias} {new_user.user_id}")
@@ -292,6 +292,6 @@ class DoomBot(discord.Client):
     async def on_thread_update(self, before: discord.Thread, after: discord.Thread):
         if after.archived and after.locked:
             return  # Ignore if locked
-        
+
         # Auto unarchive
         await after.edit(archived=False, reason="Auto Unarchive.")
