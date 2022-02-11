@@ -64,7 +64,7 @@ rank_convert = {
     2: "Diamond",
     3: "Grandmaster",
 }
-
+# TODO: This needs to be updated.
 mee6_xp = {
     "Blynq": 299900,
     "TaMaR": 172400,
@@ -229,10 +229,6 @@ mee6_xp = {
     "Dasani Water": 3,
 }
 
-# FakeContext = namedtuple("FakeContext", ["guild", "bot"])
-
-# from ..main import bot
-
 
 class MigrationTasks(discord.SlashCommand, guilds=[GUILD_ID], name="migrate"):
     """Migrate to doombot2.0"""
@@ -241,8 +237,6 @@ class MigrationTasks(discord.SlashCommand, guilds=[GUILD_ID], name="migrate"):
         logger.info(logging_util("Migration", "BEGIN EXP TRANSFER"))
         members = self.interaction.guild.members
         member_list = []
-
-        # ctx = FakeContext(guild=self.interaction.guild, bot=bot)
 
         for member in members:
             xp = 0
@@ -254,7 +248,7 @@ class MigrationTasks(discord.SlashCommand, guilds=[GUILD_ID], name="migrate"):
                 rank.ta = rank_convert[all_ranks[member.id][0]]
                 rank.mc = rank_convert[all_ranks[member.id][1]]
                 rank.hc = rank_convert[all_ranks[member.id][2]]
-                rank.bo = "Unranked"
+                rank.bo = "Grandmaster"
 
             member_list.append(
                 ExperiencePoints(
