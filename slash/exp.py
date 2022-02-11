@@ -102,7 +102,7 @@ class RankCard(discord.SlashCommand, guilds=[GUILD_ID], name="rank"):
         bo_logo.thumbnail((100, 100))
         old_x = 15
         old_y = 66
-        x = 1165
+        x = 1165 + 10
         y = 348
         # y_offset = 10
         x_offset = 10
@@ -110,7 +110,7 @@ class RankCard(discord.SlashCommand, guilds=[GUILD_ID], name="rank"):
 
         img = Image.new("RGBA", (x, y), color=(0, 0, 0, 0))
         d = ImageDraw.Draw(img, "RGBA")
-        rank_card = Image.open("data/rankcard.png").convert("RGBA")
+        rank_card = Image.open("data/rankcard_bg_stroke.png").convert("RGBA")
         img.paste(rank_card)
 
         with io.BytesIO() as avatar_binary:
@@ -215,6 +215,9 @@ class RankCard(discord.SlashCommand, guilds=[GUILD_ID], name="rank"):
 
         pos_portrait = Image.open("data/portraits/" + pos_portrait_f).convert("RGBA")
         img.paste(pos_portrait, (x - 350, -28), pos_portrait)
+
+        width, height = img.size
+        img = img.resize((width // 2, height // 2))
 
         with io.BytesIO() as image_binary:
             img.save(image_binary, "PNG")
