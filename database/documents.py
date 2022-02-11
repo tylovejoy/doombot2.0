@@ -122,8 +122,8 @@ class Guide(Document):
     """Collection of guides."""
 
     code: str
-    guide: Optional[List[str]]
-    guide_owner: Optional[List[int]]
+    guide: List[str] = []
+    guide_owner: List[int] = []
 
 
 DB_PASSWORD = environ["DB_PASSWORD"]
