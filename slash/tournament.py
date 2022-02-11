@@ -77,7 +77,10 @@ map_data_regex = re.compile(r"(.+)\s-\s(.+)\s-\s(.+)")
 
 def setup(bot):
     logger.info(logging_util("Loading", "TOURNAMENT"))
-    # bot.application_command(TestStart)
+    bot.application_command(TimeAttackSubmission)
+    bot.application_command(MildcoreSubmission)
+    bot.application_command(HardcoreSubmission)
+    bot.application_command(BonusSubmission)
 
 
 class TournamentStart(
@@ -236,136 +239,6 @@ class TournamentStart(
         )
 
 
-class NotTournamentStart(
-    discord.SlashCommand,
-    guilds=[GUILD_ID],
-    name="donotuse",
-):
-    """Create and start a new tournament."""
-
-    schedule_start: str = discord.Option(
-        description="When should the tournament start?",
-    )
-    schedule_end: str = discord.Option(
-        description="When should the tournament end?",
-    )
-    time_attack: Optional[str] = discord.Option(
-        description="CODE - LEVEL NAME - CREATOR",
-    )
-    mildcore: Optional[str] = discord.Option(
-        description="CODE - LEVEL NAME - CREATOR",
-    )
-    hardcore: Optional[str] = discord.Option(
-        description="CODE - LEVEL NAME - CREATOR",
-    )
-    bonus: Optional[str] = discord.Option(
-        description="CODE - LEVEL NAME - CREATOR",
-    )
-
-    async def callback(self) -> None:
-        """Callback for submitting records slash command."""
-        if not check_roles(self.interaction):
-            await no_perms_warning(self.interaction)
-            return
-
-        await self.interaction.response.defer(ephemeral=True)
-
-        if await Tournament.find_active():
-            await self.interaction.edit_original_message(
-                content="Tournament already active!"
-            )
-            return
-
-        last_tournament = await Tournament.find_latest()
-        if last_tournament:
-            last_id = last_tournament.tournament_id
-        else:
-            last_id = 0
-
-        self.schedule_start: datetime.datetime = dateparser.parse(
-            self.schedule_start, settings={"PREFER_DATES_FROM": "future"}
-        )
-        self.schedule_end: datetime.datetime = (
-            dateparser.parse(
-                self.schedule_end, settings={"PREFER_DATES_FROM": "future"}
-            )
-            - datetime.datetime.now()
-            + self.schedule_start
-        )
-        category_abbr = ["ta", "mc", "hc", "bo"]
-        category_args = [self.time_attack, self.mildcore, self.hardcore, self.bonus]
-
-        tournament_document = Tournament(
-            tournament_id=last_id + 1,
-            name="Doomfist Parkour Tournament",
-            active=True,
-            bracket=False,
-            schedule_start=self.schedule_start,
-            schedule_end=self.schedule_end,
-        )
-
-        for arg, abbr in zip(category_args, category_abbr):
-            if arg is MISSING:
-                continue
-            arg_regex = re.match(map_data_regex, arg)
-            code = preprocess_map_code(arg_regex.group(1))
-            level_name = arg_regex.group(2).upper()
-            setattr(
-                tournament_document,
-                abbr,
-                TournamentData(
-                    map_data=TournamentMaps(
-                        code=code,
-                        level=level_name,
-                        creator=arg_regex.group(3),
-                    )
-                ),
-            )
-
-        embed = create_embed(
-            tournament_document.name,
-            (
-                f"Start: {format_dt(self.schedule_start, style='R')} - {format_dt(self.schedule_start, style='F')}\n"
-                f"End: {format_dt(self.schedule_end, style='R')} - {format_dt(self.schedule_end, style='F')}\n"
-            ),
-            self.interaction.user,
-        )
-
-        for category in category_abbr:
-            data = getattr(
-                getattr(tournament_document, category, None), "map_data", None
-            )
-            if getattr(data, "code", None):
-                embed.add_field(
-                    name=f"{tournament_category_map(category)}",
-                    value=f"Code: {data.code} | {data.level} by {data.creator}",
-                    inline=False,
-                )
-        view = TournamentCategoryView(self.interaction)
-        await self.interaction.edit_original_message(
-            content="Select any mentions and confirm data is correct.",
-            embed=embed,
-            view=view,
-        )
-        await view.wait()
-
-        mentions = "".join(
-            [
-                get_mention(tournament_category_map_reverse(m), self.interaction)
-                for m in view.mentions
-            ]
-        )
-        tournament_document.mentions = mentions
-        tournament_document.embed = embed.to_dict()
-        if not view.confirm.value:
-            return
-
-        await tournament_document.insert()
-        await self.interaction.edit_original_message(
-            content="Tournament scheduled.", view=view
-        )
-
-
 class ChangeRank(
     discord.SlashCommand,
     guilds=[GUILD_ID],
@@ -484,8 +357,8 @@ class ViewTournamentRecords(
 class TimeAttackSubmission(
     discord.SlashCommand,
     guilds=[GUILD_ID],
-    name="timeattack",
-    parent=SubmitParent,
+    name="ta",
+    #parent=SubmitParent,
 ):
     """Time Attack tournament submission."""
 
@@ -505,8 +378,8 @@ class TimeAttackSubmission(
 class MildcoreSubmission(
     discord.SlashCommand,
     guilds=[GUILD_ID],
-    name="mildcore",
-    parent=SubmitParent,
+    name="mc",
+    #parent=SubmitParent,
 ):
     """Mildcore tournament submission."""
 
@@ -526,8 +399,8 @@ class MildcoreSubmission(
 class HardcoreSubmission(
     discord.SlashCommand,
     guilds=[GUILD_ID],
-    name="hardcore",
-    parent=SubmitParent,
+    name="hc",
+    #parent=SubmitParent,
 ):
     """Hardcore tournament submission."""
 
@@ -547,8 +420,8 @@ class HardcoreSubmission(
 class BonusSubmission(
     discord.SlashCommand,
     guilds=[GUILD_ID],
-    name="bonus",
-    parent=SubmitParent,
+    name="bo",
+    #parent=SubmitParent,
 ):
     """Bonus tournament submission."""
 
