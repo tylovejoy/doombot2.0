@@ -118,6 +118,14 @@ class ExperiencePoints(Document):
         return await cls.find_one(cls.user_id == user_id).exists()
 
 
+class Guide(Document):
+    """Collection of guides."""
+
+    code: str
+    guide: List[str]
+    guide_owner: List[int]
+
+
 DB_PASSWORD = environ["DB_PASSWORD"]
 
 

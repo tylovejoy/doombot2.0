@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import List
+from typing import List, Union
 
 import discord
 
@@ -8,7 +8,10 @@ class Paginator(discord.ui.View):
     """ "A view for paginating multiple embeds."""
 
     def __init__(
-        self, embeds: List[discord.Embed], author: discord.Member, timeout=120
+        self,
+        embeds: List[Union[discord.Embed, str]],
+        author: discord.Member,
+        timeout=120,
     ):
         """Init paginator."""
         super().__init__(timeout=timeout)
@@ -22,8 +25,11 @@ class Paginator(discord.ui.View):
             self.last.disabled = True
 
     @property
-    def formatted_pages(self) -> List[discord.Embed]:
+    def formatted_pages(self) -> List[Union[discord.Embed, str]]:
         """The embeds with formatted footers to act as pages."""
+        if isinstance(self.pages[0], str):
+            return self.pages
+
         pages = deepcopy(self.pages)  # copy by value not reference
         for page in pages:
             if page.footer.text == discord.Embed.Empty:
@@ -41,7 +47,7 @@ class Paginator(discord.ui.View):
                     )
         return pages
 
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+    async def interaction_check(self, item, interaction: discord.Interaction) -> bool:
         """Check if the interaction user is the original users who started the interaction."""
         if interaction.user == self.author:
             return True
@@ -58,6 +64,11 @@ class Paginator(discord.ui.View):
         if len(self.pages) == 1:
             button.disabled = True
         self._curr_page = 0
+        if isinstance(self.pages[0], str):
+            await interaction.response.edit_message(
+                content=self.formatted_pages[0], view=self
+            )
+            return
         await interaction.response.edit_message(
             embed=self.formatted_pages[0], view=self
         )
@@ -71,6 +82,12 @@ class Paginator(discord.ui.View):
             self._curr_page = len(self.pages) - 1
         else:
             self._curr_page -= 1
+
+        if isinstance(self.pages[0], str):
+            await interaction.response.edit_message(
+                content=self.formatted_pages[self._curr_page], view=self
+            )
+            return
         await interaction.response.edit_message(
             embed=self.formatted_pages[self._curr_page], view=self
         )
@@ -84,6 +101,12 @@ class Paginator(discord.ui.View):
             self._curr_page = 0
         else:
             self._curr_page += 1
+
+        if isinstance(self.pages[0], str):
+            await interaction.response.edit_message(
+                content=self.formatted_pages[self._curr_page], view=self
+            )
+            return
         await interaction.response.edit_message(
             embed=self.formatted_pages[self._curr_page], view=self
         )
@@ -94,6 +117,12 @@ class Paginator(discord.ui.View):
         if len(self.pages) == 1:
             button.disabled = True
         self._curr_page = len(self.pages) - 1
+
+        if isinstance(self.pages[0], str):
+            await interaction.response.edit_message(
+                content=self.formatted_pages[-1], view=self
+            )
+            return
         await interaction.response.edit_message(
             embed=self.formatted_pages[-1], view=self
         )

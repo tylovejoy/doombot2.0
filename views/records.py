@@ -31,7 +31,7 @@ class VerificationView(discord.ui.View):
         """Init view."""
         super().__init__(timeout=None)
 
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+    async def interaction_check(self, item, interaction: discord.Interaction) -> bool:
         """Check if user has verification permissions."""
         if not any(role.id in ROLE_WHITELIST for role in interaction.user.roles):
             return False
