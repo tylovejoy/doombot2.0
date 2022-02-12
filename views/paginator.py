@@ -11,7 +11,7 @@ class Paginator(discord.ui.View):
         self,
         embeds: List[Union[discord.Embed, str]],
         author: discord.Member,
-        timeout=120,
+        timeout=None,
     ):
         """Init paginator."""
         super().__init__(timeout=timeout)
@@ -23,6 +23,13 @@ class Paginator(discord.ui.View):
             self.back.disabled = True
             self.next.disabled = True
             self.last.disabled = True
+
+    async def start(self, interaction: discord.Interaction):
+        await interaction.edit_original_message(
+            embed=self.formatted_pages[0],
+            view=self,
+        )
+        await self.wait()
 
     @property
     def formatted_pages(self) -> List[Union[discord.Embed, str]]:

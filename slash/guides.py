@@ -40,12 +40,8 @@ class ViewGuide(
             return
 
         links = [link for link in search.guide]
-        view = Paginator(links, self.interaction.user, timeout=None)
-
-        await self.interaction.edit_original_message(
-            content=view.formatted_pages[0], view=view
-        )
-        await view.wait()
+        view = Paginator(links, self.interaction.user)
+        await view.start(self.interaction)
 
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str

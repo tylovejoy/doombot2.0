@@ -32,24 +32,28 @@ async def world_records(interaction: discord.Interaction, target: discord.Member
 
     embed = create_embed(title="World Records", desc="", user=target)
     records = await Record.find_world_records_user(target.id)
+    if not records:
+        await interaction.edit_original_message(content="No records found.")
+        return
+
     embeds = await split_embeds(embed, records, records_wr_user_embed_fields)
 
-    view = Paginator(embeds, interaction.user, timeout=None)
-    await interaction.edit_original_message(
-        embed=view.formatted_pages[0],
-        view=view,
-    )
-    await view.wait()
+    view = Paginator(embeds, interaction.user)
+    await view.start(interaction)
 
 
 async def personal_best(interaction: discord.Interaction, target: discord.Member):
     """Find and display personal bests of a specific member."""
     await interaction.response.defer(ephemeral=True)
     records = await Record.find_rec_map_info(user_id=target.id)
+    if not records:
+        await interaction.edit_original_message(content="No records found.")
+        return
+
     embed = create_embed(title="Personal Bests", desc="", user=target)
     embed_dict = {}
     cur_map = None
-
+    map_name, creator = None, None
     for r in records:
         if r.code != cur_map:
             cur_map = r.code
@@ -99,9 +103,5 @@ async def personal_best(interaction: discord.Interaction, target: discord.Member
                 embeds.append(embed)
                 embed = discord.Embed(title=target.name)
 
-    view = Paginator(embeds, interaction.user, timeout=None)
-    await interaction.edit_original_message(
-        embed=view.formatted_pages[0],
-        view=view,
-    )
-    await view.wait()
+    view = Paginator(embeds, interaction.user)
+    await view.start(interaction)

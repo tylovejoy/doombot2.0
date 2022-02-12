@@ -83,6 +83,7 @@ class MapSearch(discord.SlashCommand, name="map-search"):
 
     async def callback(self) -> None:
         """Callback for map search slash command."""
+        await self.interaction.response.defer(ephemeral=True)
         fuzzy_name, fuzzy_type = None, None
         if self.map_name:
             fuzzy_name = MapNames.fuzz(self.map_name)
@@ -96,19 +97,16 @@ class MapSearch(discord.SlashCommand, name="map-search"):
         )
 
         if not search:
-            await self.interaction.response.send_message(
-                content="Nothing found with the selected filters.", ephemeral=True
+            await self.interaction.edit_original_message(
+                content="Nothing found with the selected filters.",
             )
             return
 
         embed = create_embed(title="Map Search", desc="", user=self.interaction.user)
         embeds = await split_embeds(embed, search, maps_embed_fields)
 
-        view = Paginator(embeds, self.interaction.user, timeout=None)
-        await self.interaction.response.send_message(
-            embed=view.formatted_pages[0], view=view, ephemeral=True
-        )
-        await view.wait()
+        view = Paginator(embeds, self.interaction.user)
+        await view.start(self.interaction)
 
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
@@ -362,6 +360,7 @@ class RandomMap(discord.SlashCommand, name="random_map"):
 
     async def callback(self) -> None:
         """Callback for random map slash command."""
+        await self.interaction.response.defer(ephemeral=True)
         search = await Map.random(self.number or 1)
 
         embed = create_embed(
@@ -369,11 +368,8 @@ class RandomMap(discord.SlashCommand, name="random_map"):
         )
         embeds = await split_embeds(embed, search, maps_embed_fields)
 
-        view = Paginator(embeds, self.interaction.user, timeout=None)
-        await self.interaction.response.send_message(
-            embed=view.formatted_pages[0], view=view, ephemeral=True
-        )
-        await view.wait()
+        view = Paginator(embeds, self.interaction.user)
+        await view.start(self.interaction)
 
 
 class SubmitMapAlias(

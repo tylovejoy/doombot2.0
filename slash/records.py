@@ -279,6 +279,7 @@ class ViewRecords(discord.SlashCommand, name="leaderboard"):
             user=self.interaction.user,
         )
 
+        records, embeds = None, None
         if self.map_code and self.map_level:
             records = await Record.filter_search(
                 map_code=self.map_code,
@@ -293,16 +294,12 @@ class ViewRecords(discord.SlashCommand, name="leaderboard"):
             )
             embeds = await split_embeds(embed, records, records_wr_embed_fields)
 
-        view = Paginator(embeds, self.interaction.user, timeout=None)
-
-        if not view.formatted_pages:
+        if not records:
             await self.interaction.edit_original_message(content="No records found.")
             return
 
-        await self.interaction.edit_original_message(
-            embed=view.formatted_pages[0], view=view
-        )
-        await view.wait()
+        view = Paginator(embeds, self.interaction.user)
+        await view.start(self.interaction)
 
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str

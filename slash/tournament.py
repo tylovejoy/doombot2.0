@@ -325,6 +325,9 @@ class ViewTournamentRecords(
         self.category = tournament_category_map_reverse(self.category)
 
         records = await Tournament.get_records(self.category, rank=self.rank)
+        if not records:
+            await self.interaction.edit_original_message(content="No records found.")
+            return
 
         if self.rank is MISSING:
             rank_str = "- Overall"
@@ -343,15 +346,8 @@ class ViewTournamentRecords(
             category=self.category,
             rank=self.rank,
         )
-        view = Paginator(embeds, self.interaction.user, timeout=None)
-        if not view.formatted_pages:
-            await self.interaction.edit_original_message(content="No records found.")
-            return
-
-        await self.interaction.edit_original_message(
-            embed=view.formatted_pages[0], view=view
-        )
-        await view.wait()
+        view = Paginator(embeds, self.interaction.user)
+        await view.start(self.interaction)
 
 
 class TimeAttackSubmission(
