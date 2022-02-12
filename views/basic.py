@@ -30,3 +30,27 @@ class ConfirmView(discord.ui.View):
         super().__init__(timeout=None)
         self.confirm = ConfirmButton()
         self.add_item(self.confirm)
+
+    async def start(
+        self,
+        interaction: discord.Interaction,
+        first_msg: str,
+        second_msg: str,
+        embed: discord.Embed = discord.Embed.Empty,
+    ) -> bool:
+        await interaction.edit_original_message(
+            content=first_msg,
+            view=self,
+            embed=embed,
+        )
+        await self.wait()
+
+        if not self.confirm.value:
+            return False
+
+        await interaction.edit_original_message(
+            content=second_msg,
+            view=self,
+            embed=embed,
+        )
+        return True

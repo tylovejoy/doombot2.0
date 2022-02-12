@@ -33,6 +33,11 @@ class Tags(Document):
         tags = await cls.find().project(TagNamesProjection).to_list()
         return [x.name for x in tags]
 
+    @classmethod
+    async def exists(cls, name: str) -> bool:
+        """Check if document exists."""
+        return bool(await cls.find_one(cls.name == name))
+
 
 class Starboard(Document):
     """Collection of suggestions."""

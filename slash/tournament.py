@@ -290,20 +290,8 @@ class ChangeRank(
         message_content += "Is this correct?"
 
         view = ConfirmView()
-        await self.interaction.edit_original_message(
-            content=message_content,
-            view=view,
-        )
-        await view.wait()
-        if not view.confirm.value:
-            return
-
-        await user.save()
-
-        await self.interaction.edit_original_message(
-            content="Confirmed.",
-            view=view,
-        )
+        if await view.start(self.interaction, message_content, "Confirmed."):
+            await user.save()
 
 
 class ViewTournamentRecords(
@@ -562,22 +550,13 @@ class TournamentAddMissions(
             self.interaction.user,
         )
         view = ConfirmView()
-        await self.interaction.edit_original_message(
-            content="Is this correct?",
+        if await view.start(
+            self.interaction,
+            "Is this correct?",
+            "Added.",
             embed=embed,
-            view=view,
-        )
-        await view.wait()
-
-        if not view.confirm.value:
-            return
-
-        await self.interaction.edit_original_message(
-            content="Added.",
-            embed=embed,
-            view=view,
-        )
-        await tournament.save()
+        ):
+            await tournament.save()
 
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
@@ -716,39 +695,32 @@ async def tournament_submissions(
         )
         category_attr.records.append(submission)
 
-    view = ConfirmView()
-
     embed = create_embed(
         f"{tournament_category_map(category)} Submission",
         f"> **Record:** {display_record(submission.record)}",
         interaction.user,
     )
     embed.set_image(url=screenshot.url)
-    await interaction.edit_original_message(
-        content="Is this correct?",
+
+    view = ConfirmView()
+    if await view.start(
+        interaction,
+        "Is this correct?",
+        "Submitted.",
         embed=embed,
-        view=view,
-    )
+    ):
+        await tournament.save()
 
-    await view.wait()
-    if not view.confirm.value:
-        return
+        await interaction.guild.get_channel(TOURNAMENT_SUBMISSION_ID).send(embed=embed)
 
-    await interaction.edit_original_message(
-        content="Submitted.", embed=embed, view=view
-    )
-    await tournament.save()
-
-    await interaction.guild.get_channel(TOURNAMENT_SUBMISSION_ID).send(embed=embed)
-
-    user = await ExperiencePoints.find_user(interaction.user.id)
-    if category == "bo":
-        return
-    if await user.check_if_unranked(category):
-        await interaction.guild.get_channel(TOURNAMENT_ORG_ID).send(
-            f"**ALERT:** {user.alias}/{interaction.user} is Unranked in {tournament_category_map(category)}!\n"
-            "Please select their rank before the tournament is over!"
-        )
+        user = await ExperiencePoints.find_user(interaction.user.id)
+        if category == "bo":
+            return
+        if await user.check_if_unranked(category):
+            await interaction.guild.get_channel(TOURNAMENT_ORG_ID).send(
+                f"**ALERT:** {user.alias}/{interaction.user} is Unranked in {tournament_category_map(category)}!\n"
+                "Please select their rank before the tournament is over!"
+            )
 
 
 async def end_tournament(client: discord.Client, tournament: Tournament):

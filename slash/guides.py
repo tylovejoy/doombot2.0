@@ -82,19 +82,12 @@ class SubmitGuide(
         search.guide_owner.append(self.interaction.user.id)
 
         view = ConfirmView()
-        await self.interaction.edit_original_message(
-            content=(
-                f"Code: {self.map_code}\n" f"URL: {self.link}\n\n" "Is this correct?"
-            ),
-            view=view,
-        )
-        await view.wait()
-
-        if not view.confirm.value:
-            return
-
-        await self.interaction.edit_original_message(content="Added.", view=view)
-        await search.save()
+        if await view.start(
+            self.interaction,
+            f"Code: {self.map_code}\n" f"URL: {self.link}\n\n" "Is this correct?",
+            "Added.",
+        ):
+            await search.save()
 
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str

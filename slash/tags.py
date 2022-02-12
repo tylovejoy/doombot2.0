@@ -50,10 +50,10 @@ class DeleteTag(
     )
 
     async def callback(self) -> None:
-        await self.interaction.response.defer(ephemeral=True)
         if not check_roles(self.interaction):
             await no_perms_warning(self.interaction)
             return
+        await self.interaction.response.defer(ephemeral=True)
 
         tag = await Tags.find_one(Tags.name == self.name)
 
@@ -62,18 +62,12 @@ class DeleteTag(
             return
 
         view = ConfirmView()
-        await self.interaction.edit_original_message(
-            content=f"**{tag.name}**\n\n{tag.content}\n\nDo you want to create this tag?",
-            view=view,
-        )
-        await view.wait()
-        if not view.confirm.value:
-            return
-
-        await self.interaction.edit_original_message(
-            content=f"**{tag.name}** has been deleted.", view=view
-        )
-        await tag.delete()
+        if await view.start(
+            self.interaction,
+            f"**{tag.name}**\n\n{tag.content}\n\nDo you want to create this tag?",
+            f"**{tag.name}** has been deleted.",
+        ):
+            await tag.delete()
 
     async def autocomplete(self, options, focused):
         tag_names = await Tags.find_all_tag_names()
@@ -92,27 +86,21 @@ class CreateTag(
         if not check_roles(self.interaction):
             await no_perms_warning(self.interaction)
             return
+        await self.interaction.response.defer(ephemeral=True)
+        tag = Tags(name=self.name, content=self.content)
+        if not Tags.exists(self.name):
+            await self.interaction.edit_original_message(
+                content=f"**{tag.name}** already exists! This tag was not created."
+            )
 
         view = ConfirmView()
 
-        tag = Tags(name=self.name, content=self.content)
-
-        await self.interaction.response.send_message(
+        if await view.start(
+            self.interaction,
             f"**{tag.name}**\n\n{tag.content}\n\nDo you want to create this tag?",
-            view=view,
-            ephemeral=True,
-        )
-        await view.wait()
-        if not view.confirm.value:
-            return
-
-        content = f"**{tag.name}** has been added as a new tag."
-        try:
+            f"**{tag.name}** has been added as a new tag.",
+        ):
             await tag.save()
-        except pymongo.errors.DuplicateKeyError:
-            content = f"**{tag.name}** already exists! This tag was not created."
-
-        await self.interaction.edit_original_message(content=content, view=view)
 
 
 class TagsCommand(discord.SlashCommand, name="tag"):
