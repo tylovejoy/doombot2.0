@@ -61,7 +61,7 @@ def find_portrait(level) -> str:
     return filename
 
 
-class RankCard(discord.SlashCommand, guilds=[GUILD_ID], name="rank"):
+class RankCard(discord.SlashCommand, name="rank"):
     """Display either your rank card or another users."""
 
     user: Optional[discord.Member] = discord.Option(
@@ -228,7 +228,7 @@ class RankCard(discord.SlashCommand, guilds=[GUILD_ID], name="rank"):
             )
 
 
-class Alerts(discord.SlashCommand, guilds=[GUILD_ID], name="alerts"):
+class Alerts(discord.SlashCommand, name="alerts"):
     """Enable/disable verification alerts."""
 
     value: bool = discord.Option(
@@ -250,7 +250,7 @@ class Alerts(discord.SlashCommand, guilds=[GUILD_ID], name="alerts"):
         await user.save()
 
 
-class ChangeName(discord.SlashCommand, guilds=[GUILD_ID], name="name"):
+class ChangeName(discord.SlashCommand, name="name"):
     """Change your display name for DoomBot commands."""
 
     name: str = discord.Option(
@@ -267,7 +267,7 @@ class ChangeName(discord.SlashCommand, guilds=[GUILD_ID], name="name"):
         await user.save()
 
 
-class VerificationStats(discord.SlashCommand, guilds=[GUILD_ID], name="verified"):
+class VerificationStats(discord.SlashCommand, name="verified"):
     """Display how many records a user has verified."""
 
     user: discord.Member = discord.Option(

@@ -307,7 +307,7 @@ class ChangeRank(
 
 
 class ViewTournamentRecords(
-    discord.SlashCommand, guilds=[GUILD_ID], name="leaderboard", parent=TournamentParent
+    discord.SlashCommand, name="leaderboard", parent=TournamentParent
 ):
     """View leaderboard for a particular tournament category and optionally tournament rank."""
 

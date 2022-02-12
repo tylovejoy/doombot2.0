@@ -33,7 +33,7 @@ class DeleteParent(discord.SlashCommand, guilds=[GUILD_ID], name="delete"):
     """Delete slash command parent class."""
 
 
-class TournamentParent(discord.SlashCommand, guilds=[GUILD_ID], name="tournament"):
+class TournamentParent(discord.SlashCommand, name="tournament"):
     """Tournament slash command parent class."""
 
 

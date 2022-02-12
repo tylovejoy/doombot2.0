@@ -255,7 +255,7 @@ class DeleteRecord(
         return await _autocomplete(focused, options)
 
 
-class ViewRecords(discord.SlashCommand, guilds=[GUILD_ID], name="leaderboard"):
+class ViewRecords(discord.SlashCommand, name="leaderboard"):
     """View leaderboard for a particular map code and/or map level."""
 
     map_code: str = discord.Option(
@@ -311,7 +311,7 @@ class ViewRecords(discord.SlashCommand, guilds=[GUILD_ID], name="leaderboard"):
         return await _autocomplete(focused, options)
 
 
-class WorldRecords(discord.SlashCommand, guilds=[GUILD_ID], name="worldrecords"):
+class WorldRecords(discord.SlashCommand, name="worldrecords"):
     """View a specific users world records."""
 
     user: discord.Member = discord.Option(
@@ -331,7 +331,7 @@ class WorldRecordsUserCommand(
         await world_records(self.interaction, self.target)
 
 
-class PersonalRecords(discord.SlashCommand, guilds=[GUILD_ID], name="personalrecords"):
+class PersonalRecords(discord.SlashCommand, name="personalrecords"):
     """View a specific users personal records."""
 
     user: discord.Member = discord.Option(

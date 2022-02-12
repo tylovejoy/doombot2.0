@@ -21,7 +21,6 @@ def setup(bot):
 
 class ViewGuide(
     discord.SlashCommand,
-    guilds=[GUILD_ID],
     name="guide",
 ):
     map_code: str = discord.Option(

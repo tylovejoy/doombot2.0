@@ -68,7 +68,7 @@ def autocomplete_maps(options, focused):
         return response
 
 
-class MapSearch(discord.SlashCommand, guilds=[GUILD_ID], name="map-search"):
+class MapSearch(discord.SlashCommand, name="map-search"):
     """Search for maps using filters."""
 
     map_name: Optional[str] = discord.Option(
@@ -353,7 +353,7 @@ class EditMap(discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=EditPa
         return autocomplete_maps(options, focused)
 
 
-class RandomMap(discord.SlashCommand, guilds=[GUILD_ID], name="random_map"):
+class RandomMap(discord.SlashCommand, name="random_map"):
     """Find random maps."""
 
     number: Optional[int] = discord.Option(

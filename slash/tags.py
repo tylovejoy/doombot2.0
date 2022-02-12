@@ -115,7 +115,7 @@ class CreateTag(
         await self.interaction.edit_original_message(content=content, view=view)
 
 
-class TagsCommand(discord.SlashCommand, guilds=[GUILD_ID], name="tag"):
+class TagsCommand(discord.SlashCommand, name="tag"):
     """Display answers for commonly asked questions."""
 
     name: str = discord.Option(description="Which tag to display?", autocomplete=True)
@@ -132,7 +132,7 @@ class TagsCommand(discord.SlashCommand, guilds=[GUILD_ID], name="tag"):
         return await _autocomplete(options, focused, tag_names)
 
 
-class WorkshopHelp(discord.SlashCommand, guilds=[GUILD_ID], name="workshop"):
+class WorkshopHelp(discord.SlashCommand, name="workshop"):
     """Display Overwatch Workshop information."""
 
     search: str = discord.Option(description="What to search?", autocomplete=True)
