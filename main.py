@@ -16,8 +16,6 @@ consoleHandle.setFormatter(
 )
 logger.addHandler(consoleHandle)
 
-# Discord setup
-
 bot = DoomBot()
 
 
