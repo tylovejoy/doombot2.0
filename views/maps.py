@@ -1,7 +1,7 @@
 import discord
-from utils.utilities import select_button_enable
 
 from utils.enums import MapTypes
+from utils.utilities import select_button_enable
 from views.basic import ConfirmButton
 
 

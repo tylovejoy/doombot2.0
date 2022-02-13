@@ -1,18 +1,17 @@
 import datetime
 from logging import getLogger
+
 import aiohttp
-
 import discord
-
 from discord.ext import commands, tasks
 
-from database.documents import EXPRanks, ExperiencePoints, Starboard, VerificationViews
+from database.documents import ExperiencePoints, EXPRanks, Starboard, VerificationViews
 from database.records import Record
 from database.tournament import Announcement, Tournament
 from slash.tournament import end_tournament, start_tournament
-
 from utils.constants import (
     BOT_ID,
+    GUILD_ID,
     NON_SPR_RECORDS_ID,
     SPR_RECORDS_ID,
     SUGGESTIONS_ID,
@@ -20,9 +19,8 @@ from utils.constants import (
     TOP_SUGGESTIONS_ID,
     TOURNAMENT_INFO_ID,
     TOURNAMENT_SUBMISSION_ID,
-    GUILD_ID,
 )
-from utils.utilities import display_record, star_emoji, logging_util
+from utils.utilities import display_record, logging_util, star_emoji
 from views.records import VerificationView
 
 logger = getLogger(__name__)
@@ -230,7 +228,7 @@ class DoomBot(discord.Client):
             return
 
         message = (
-            self.channel_map[payload.channel_id]
+            await self.channel_map[payload.channel_id]
             .get_partial_message(payload.message_id)
             .fetch()
         )
@@ -244,7 +242,7 @@ class DoomBot(discord.Client):
                 name=message.author.name, icon_url=message.author.avatar.url
             )
             embed.add_field(name="Original", value=f"[Jump!]({entry.jump})")
-            starboard_message: discord.Message = await self.top_suggestions.send(
+            starboard_message = await self.top_suggestions.send(
                 f"{star_emoji(entry.stars)} **{entry.stars}**",
                 embed=embed,
             )
@@ -270,7 +268,7 @@ class DoomBot(discord.Client):
                 ),
                 color=0xF7BD00,
             )
-            user: discord.Member = self.get_user(record.user_id)
+            user = self.get_user(record.user_id)
 
             embed.set_author(name=user.name, icon_url=user.avatar.url)
             embed.add_field(name="Original", value=f"[Jump!]({entry.jump})")

@@ -1,6 +1,6 @@
 from enum import Enum
 from operator import itemgetter
-from discord import PartialEmoji
+
 from thefuzz import fuzz
 
 

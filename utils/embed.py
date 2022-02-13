@@ -51,7 +51,7 @@ async def maps_embed_fields(m: Map, *args, **kwargs) -> dict:
 
 async def records_tournament_embed_fields(
     r: TournamentRecordsLookup, count: int, category=None, rank=None
-) -> dict:
+) -> Union[dict, None]:
     cat = getattr(r, category, None)
     if not cat:
         return
@@ -77,7 +77,7 @@ async def records_tournament_embed_fields(
 
     return {
         "name": f"#{count + 1} - {alias}{rank_str}",
-        "value": (f"> **Record**: {display_record(cat.records.record)}\n"),
+        "value": f"> **Record**: {display_record(cat.records.record)}\n",
     }
 
 
@@ -134,7 +134,9 @@ async def records_wr_embed_fields(r: Record, *args, **kwargs) -> dict:
 async def records_wr_user_embed_fields(r: Record, *args, **kwargs) -> dict:
     """Embed fields for world records among multiple levels."""
     return {
-        "name": f"{r.id.code} - {discord.utils.escape_markdown(r.id.level)} - {await ExperiencePoints.get_alias(r.user_id)}",
+        "name": (
+            f"{r.id.code} - {discord.utils.escape_markdown(r.id.level)} - {await ExperiencePoints.get_alias(r.user_id)}"
+        ),
         "value": (
             f"> **Record**: {display_record(r.record)}\n"
             f'> [Image Link]({r.attachment_url} "Link to the original submission image.")'

@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 from logging import getLogger
 from os import environ
 from typing import Dict, List, Optional, Union
-from beanie.odm.fields import Indexed
 
 import motor
 from beanie import Document, init_beanie
+from beanie.odm.fields import Indexed
 from pydantic.main import BaseModel
 from pymongo.errors import ServerSelectionTimeoutError
 

@@ -2,7 +2,6 @@ import logging
 
 import discord
 
-
 logger = logging.getLogger()
 
 

@@ -1,12 +1,11 @@
-from math import ceil
 import operator
 from logging import getLogger
+from math import ceil
 
 import xlsxwriter
 
 from database.documents import ExperiencePoints
 from database.tournament import Tournament, TournamentData
-
 
 logger = getLogger(__name__)
 

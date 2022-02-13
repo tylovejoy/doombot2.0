@@ -2,11 +2,11 @@ import math
 import re
 
 import discord
-from database.documents import VerificationViews
 
+from database.documents import VerificationViews
 from database.records import Record
 from utils.constants import VERIFICATION_CHANNEL_ID
-from utils.embed import create_embed, split_embeds, records_wr_user_embed_fields
+from utils.embed import create_embed, records_wr_user_embed_fields, split_embeds
 from utils.enums import Emoji
 from utils.utilities import display_record
 from views.paginator import Paginator

@@ -1,13 +1,14 @@
 from __future__ import annotations
+
 from datetime import datetime
 from logging import getLogger
-from typing import Generator, Optional, List, Literal, Union
+from typing import Generator, List, Literal, Optional, Union
 
 from beanie import Document
 from discord.utils import MISSING
 from pydantic import BaseModel
-from database.documents import EXPRanks
 
+from database.documents import EXPRanks
 from utils.utilities import format_missions, tournament_category_map
 
 CategoryLiteral = Literal["ta", "mc", "hc", "bo"]
@@ -159,7 +160,10 @@ class Tournament(Document):
 
     def get_map_str(self, category: CategoryLiteral) -> str:
         category = getattr(self, category, None)
-        return f"{category.map_data.code} - {category.map_data.level} ({category.map_data.map_name}) by {category.map_data.creator}\n"
+        return (
+            f"{category.map_data.code} - {category.map_data.level} "
+            f"({category.map_data.map_name}) by {category.map_data.creator}\n"
+        )
 
     def get_all_map_str(self) -> str:
         map_string = ""

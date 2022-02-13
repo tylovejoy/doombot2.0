@@ -4,14 +4,13 @@ from math import ceil
 from typing import Optional
 
 import discord
-from PIL import Image, ImageDraw, ImageFont
 from discord.utils import MISSING
+from PIL import Image, ImageDraw, ImageFont
 
 from database.documents import ExperiencePoints
 from slash.records import check_user
-from utils.utilities import logging_util
-from utils.constants import GUILD_ID
 from utils.embed import create_embed
+from utils.utilities import logging_util
 
 logger = getLogger(__name__)
 

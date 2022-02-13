@@ -1,5 +1,6 @@
 from __future__ import annotations
-from typing import List, Any
+
+from typing import Any, List
 
 from beanie import Document
 from beanie.odm.fields import Indexed

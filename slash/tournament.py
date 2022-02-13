@@ -1,50 +1,46 @@
 import asyncio
 import datetime
-from logging import getLogger
-
 import operator
-from typing import Dict, Optional, Tuple, Union, List, Literal
+import re
+from logging import getLogger
+from typing import Dict, List, Literal, Optional, Tuple, Union
 
-from discord.utils import MISSING, format_dt
 import dateparser
 import discord
-import re
-import random
-from database.documents import EXPRanks, ExperiencePoints
-from database.records import Record
+from discord.utils import MISSING, format_dt
 
+from database.documents import ExperiencePoints
+from database.records import Record
 from database.tournament import (
     Announcement,
+    ShortRecordData,
     Tournament,
     TournamentData,
     TournamentMaps,
     TournamentMissions,
     TournamentRecords,
-    ShortRecordData,
 )
-from utils.errors import InvalidTime
-from utils.enums import Emoji
 from slash.parents import (
     TournamentMissionsParent,
     TournamentOrgParent,
     TournamentParent,
-    SubmitParent,
 )
 from utils.constants import (
     BOT_ID,
     GUILD_ID,
-    ORG_ROLE_ID,
-    TOURNAMENT_INFO_ID,
-    TOURNAMENT_SUBMISSION_ID,
-    TOURNAMENT_ORG_ID,
     HALL_OF_FAME_ID,
+    TOURNAMENT_INFO_ID,
+    TOURNAMENT_ORG_ID,
+    TOURNAMENT_SUBMISSION_ID,
 )
 from utils.embed import (
     create_embed,
+    hall_of_fame,
     records_tournament_embed_fields,
     split_embeds,
-    hall_of_fame,
 )
+from utils.enums import Emoji
+from utils.errors import InvalidTime
 from utils.excel_exporter import init_workbook
 from utils.utilities import (
     check_roles,
@@ -52,20 +48,18 @@ from utils.utilities import (
     format_missions,
     get_mention,
     logging_util,
+    make_ordinal,
     no_perms_warning,
+    preprocess_map_code,
     time_convert,
     tournament_category_map,
     tournament_category_map_reverse,
-    preprocess_map_code,
-    make_ordinal,
 )
 from views.basic import ConfirmView
 from views.paginator import Paginator
-
 from views.tournament import (
     TournamentAnnouncementModal,
     TournamentCategoryView,
-    TournamentStartModal,
     TournamentStartView,
 )
 
@@ -926,7 +920,7 @@ async def compute_leaderboard_xp(
     tournament: Tournament, store: Dict[int, Dict[str, int]]
 ) -> Tuple[Dict[int, Dict], Dict[str, Dict[str, List[TournamentRecords]]]]:
     """Compute the XP for each leaderboard (rank/category)."""
-    multipler = {
+    multiplier = {
         "ta": 0.14094,
         "mc": 0.3654,
         "hc": 0.8352,
@@ -955,7 +949,7 @@ async def compute_leaderboard_xp(
                     formula = (
                         1
                         - (record.record - top_record)
-                        / (multipler[category] * top_record)
+                        / (multiplier[category] * top_record)
                     ) * 2500
 
                     if formula < 100:

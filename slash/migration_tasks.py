@@ -1,8 +1,8 @@
-from collections import namedtuple
-import discord
 from logging import getLogger
 
-from database.documents import EXPRanks, ExperiencePoints
+import discord
+
+from database.documents import ExperiencePoints, EXPRanks
 from utils.constants import GUILD_ID
 from utils.utilities import logging_util
 

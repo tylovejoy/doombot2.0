@@ -1,17 +1,16 @@
-from cmath import phase
 from logging import getLogger
-from typing import Dict, Union, Optional
+from typing import Dict, Optional, Union
 
 import discord
 
 from database.documents import ExperiencePoints, VerificationViews
 from database.records import Record
-from slash.parents import SubmitParent, DeleteParent
+from slash.parents import DeleteParent, SubmitParent
 from utils.constants import (
     GUILD_ID,
-    VERIFICATION_CHANNEL_ID,
-    SPR_RECORDS_ID,
     NON_SPR_RECORDS_ID,
+    SPR_RECORDS_ID,
+    VERIFICATION_CHANNEL_ID,
 )
 from utils.embed import (
     create_embed,
@@ -21,17 +20,17 @@ from utils.embed import (
     split_embeds,
 )
 from utils.enums import Emoji
-from utils.records import delete_hidden, world_records, personal_best
+from utils.records import delete_hidden, personal_best, world_records
 from utils.utilities import (
+    check_roles,
     find_alt_map_code,
     logging_util,
     no_perms_warning,
     preprocess_map_code,
     time_convert,
-    check_roles,
 )
-from views.records import RecordSubmitView, VerificationView, find_orig_msg
 from views.paginator import Paginator
+from views.records import RecordSubmitView, VerificationView, find_orig_msg
 
 logger = getLogger(__name__)
 
@@ -227,8 +226,8 @@ class DeleteRecord(
         else:
             user_id = self.interaction.user.id
 
-        record_document = await Record.find_record(
-            self.map_code, self.map_level, user_id
+        record_document = await Record.filter_search_single(
+            map_code=self.map_code, map_level=self.map_level, user_id=user_id
         )
 
         embed = create_embed(title="Delete Record", desc="", user=self.interaction.user)

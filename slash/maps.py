@@ -4,29 +4,17 @@ from typing import Dict, Optional, Union
 import discord
 
 from database.maps import Map, MapAlias
-from slash.parents import SubmitParent, DeleteParent, EditParent
-from utils.embed import (
-    create_embed,
-    maps_embed_fields,
-    split_embeds,
-)
-from utils.constants import (
-    GUILD_ID,
-    NEWEST_MAPS_ID,
-    MAP_MAKER_ID,
-)
+from slash.parents import DeleteParent, EditParent, SubmitParent
+from utils.constants import GUILD_ID, MAP_MAKER_ID, NEWEST_MAPS_ID
+from utils.embed import create_embed, maps_embed_fields, split_embeds
+from utils.enums import MapNames, MapTypes
 from utils.utilities import (
+    case_ignore_compare,
+    check_roles,
     logging_util,
     no_perms_warning,
     preprocess_map_code,
-    case_ignore_compare,
-    check_roles,
 )
-from utils.enums import (
-    MapNames,
-    MapTypes,
-)
-
 from views.basic import ConfirmButton
 from views.maps import MapSubmitView
 from views.paginator import Paginator

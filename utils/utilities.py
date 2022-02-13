@@ -1,4 +1,3 @@
-from asyncio.log import logger
 import datetime
 import re
 from typing import Union
@@ -6,14 +5,13 @@ from typing import Union
 import discord
 
 from database.maps import MapAlias
-
 from utils.constants import (
-    ROLE_WHITELIST,
-    TA_ROLE_ID,
-    MC_ROLE_ID,
-    HC_ROLE_ID,
     BONUS_ROLE_ID,
     BRACKET_TOURNAMENT_ROLE_ID,
+    HC_ROLE_ID,
+    MC_ROLE_ID,
+    ROLE_WHITELIST,
+    TA_ROLE_ID,
     TRIFECTA_ROLE_ID,
 )
 from utils.errors import InvalidTime
@@ -103,6 +101,7 @@ def check_roles(interaction: discord.Interaction) -> bool:
 
 def get_mention(category: str, interaction: discord.Interaction) -> str:
     """Get a role mention for each category selected."""
+    role_id = None
     if category == "ta":
         role_id = TA_ROLE_ID
     elif category == "mc":

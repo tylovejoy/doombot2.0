@@ -1,7 +1,7 @@
 import discord
-from utils.utilities import select_button_enable
 from discord.ui import TextInput
 
+from utils.utilities import select_button_enable
 from views.basic import ConfirmButton
 
 
