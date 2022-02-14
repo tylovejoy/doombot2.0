@@ -6,7 +6,8 @@ chardet==4.0.0
 click==7.1.2
 colorama==0.4.4
 dateparser==1.1.0
-discord.py==2.0.0a3784+g2a55525
+#discord.py==2.0.0a3784+g2a55525
+git+https://github.com/IAmTomahawkx/enhanced-discord.py.git@downstream-2.0
 dnspython==2.1.0
 idna==3.3
 motor==2.5.1
