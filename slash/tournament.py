@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import operator
 import re
+from collections import Counter
 from logging import getLogger
 from typing import Dict, List, Literal, Optional, Tuple, Union
 
@@ -32,6 +33,9 @@ from utils.constants import (
     TOURNAMENT_INFO_ID,
     TOURNAMENT_ORG_ID,
     TOURNAMENT_SUBMISSION_ID,
+    TA_CHAMP,
+    MC_CHAMP,
+    HC_CHAMP,
 )
 from utils.embed import (
     create_embed,
@@ -769,12 +773,13 @@ async def end_tournament(client: discord.Client, tournament: Tournament):
     await client.get_channel(TOURNAMENT_INFO_ID).send(tournament.mentions, embed=embed)
 
     # Hall of Fame
-    embed = await create_hall_of_fame(tournament)
+    embed, top_user_ids = await create_hall_of_fame(tournament)
     hof_msg = await client.get_channel(HALL_OF_FAME_ID).send(embed=embed)
     hof_thread = await hof_msg.create_thread(name="Records Archive")
     # Post export in thread
     await export_records(tournament, hof_thread)
     await send_records_to_db(tournament)
+    await give_champ_roles(client, top_user_ids)
 
 
 async def send_records_to_db(tournament: Tournament):
@@ -868,8 +873,24 @@ async def start_tournament(client: discord.Client, tournament: Tournament):
     await tournament.save()
 
 
-async def create_hall_of_fame(tournament: Tournament) -> discord.Embed:
+async def give_champ_roles(client: discord.Client, user_ids: Dict[str, int]):
+    ta_champ = client.get_guild(GUILD_ID).get_role(TA_CHAMP)
+    mc_champ = client.get_guild(GUILD_ID).get_role(MC_CHAMP)
+    hc_champ = client.get_guild(GUILD_ID).get_role(HC_CHAMP)
+    # bo_champ = client.get_guild(GUILD_ID).get_role(BO_CHAMP)
+
+    counter = Counter(user_ids.values())
+    cache = set()
+
+    for category, id_ in user_ids.items():
+        if id_ in cache:
+            continue
+        cache.add(id_)
+
+
+async def create_hall_of_fame(tournament: Tournament) -> Tuple[discord.Embed, dict]:
     embed = hall_of_fame(tournament.name + " - Top 3", "")
+    top_user_ids = {}
     for category in ["ta", "mc", "hc", "bo"]:
         data: TournamentData = getattr(tournament, category, None)
         if not data:
@@ -882,6 +903,9 @@ async def create_hall_of_fame(tournament: Tournament) -> discord.Embed:
         for pos, record in enumerate(records, start=1):
             if pos > 3:
                 break
+            if pos == 0:
+                top_user_ids[category] = record.user_id
+
             user = await ExperiencePoints.find_user(record.user_id)
             top_three_list += (
                 f"`{make_ordinal(pos)}` - {user.alias} - {display_record(record.record, tournament=True)} "
@@ -893,7 +917,7 @@ async def create_hall_of_fame(tournament: Tournament) -> discord.Embed:
             value=top_three_list or "No times submitted! <:CHUMPY:829934452112752672>",
             inline=False,
         )
-    return embed
+    return embed, top_user_ids
 
 
 async def split_leaderboard_ranks(
