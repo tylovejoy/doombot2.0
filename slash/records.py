@@ -3,6 +3,7 @@ from typing import Dict, Optional, Union
 
 import discord
 
+from discord.utils import MISSING
 from database.documents import ExperiencePoints, VerificationViews
 from database.records import Record
 from slash.parents import DeleteParent, SubmitParent
@@ -42,6 +43,7 @@ def setup(bot: discord.Client):
     bot.application_command(PersonalRecordsUserCommand)
     bot.application_command(WorldRecords)
     bot.application_command(WorldRecordsUserCommand)
+    bot.application_command(Test)
 
 
 async def check_user(interaction):
@@ -71,6 +73,16 @@ async def _autocomplete(focused, options):
         )
         return response
 
+class Test(
+    discord.SlashCommand, guilds=[GUILD_ID], name="test",
+):
+    """Test"""
+    async def callback(self) -> None:
+        all_ = []
+
+        for x in await Record.all_levels():
+            all_.append(x.id.level)
+        print(all_)
 
 class SubmitRecord(
     discord.SlashCommand, guilds=[GUILD_ID], name="record", parent=SubmitParent
@@ -269,11 +281,13 @@ class ViewRecords(discord.SlashCommand, name="leaderboard"):
     async def callback(self) -> None:
         await self.interaction.response.defer(ephemeral=True)
         self.map_code = preprocess_map_code(self.map_code)
-        if self.map_level:
+        level_name = ""
+        if self.map_level is not MISSING:
             self.map_level = self.map_level.upper()
+            level_name = discord.utils.escape_markdown(self.map_level)
 
         embed = create_embed(
-            title=f"Records for {self.map_code} {discord.utils.escape_markdown(self.map_level)}",
+            title=f"Records for {self.map_code} {level_name}",
             desc="",
             user=self.interaction.user,
         )
@@ -287,7 +301,7 @@ class ViewRecords(discord.SlashCommand, name="leaderboard"):
             )
             embeds = await split_embeds(embed, records, records_board_embed_fields)
 
-        if self.map_code and not self.map_level:
+        else:
             records = await Record.find_world_records(
                 map_code=self.map_code, verified=True
             )

@@ -10,11 +10,20 @@ from pydantic import BaseModel, Field
 from database.maps import MapCodes, MapLevels
 
 
+class AllLevelsSubAgg(Document):
+    level: str
+
+
+class AllLevelsAgg(BaseModel):
+    """Projection model for World Records aggregation."""
+    id: Link[AllLevelsSubAgg] = Field(None, alias="_id")
+
 class WorldRecordsSubAggregate(Document):
     """Projection model for World Records aggregation."""
 
     code: str
     level: str
+    url: str
 
 
 class WorldRecordsAggregate(BaseModel):
@@ -72,6 +81,23 @@ class Record(Document):
     message_id: Optional[int]
     hidden_id: Optional[int]
     attachment_url: Optional[str] = Field("", alias="url")
+
+    @classmethod
+    async def all_levels(cls) -> List[AllLevelsAgg]:
+        return (
+            await cls.find().aggregate(
+                [
+                    {
+                        '$group': {
+                            '_id': {
+                                'level': '$level'
+                            }
+                        }
+                    }
+                ],
+                projection_model=AllLevelsAgg
+            ).to_list()
+        )
 
     @classmethod
     async def find_rec_map_info(cls, user_id):
@@ -149,7 +175,7 @@ class Record(Document):
                     {"$sort": {"record": 1}},
                     {
                         "$group": {
-                            "_id": {"code": "$code", "level": "$level"},
+                            "_id": {"code": "$code", "level": "$level", "url": "$url"},
                             "record": {"$first": "$record"},
                             "user_id": {"$first": "$user_id"},
                         }
@@ -183,7 +209,7 @@ class Record(Document):
                     {"$sort": {"record": 1}},
                     {
                         "$group": {
-                            "_id": {"code": "$code", "level": "$level"},
+                            "_id": {"code": "$code", "level": "$level", "url": "$url"},
                             "record": {"$first": "$record"},
                             "user_id": {"$first": "$user_id"},
                         }

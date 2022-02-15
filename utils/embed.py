@@ -126,7 +126,7 @@ async def records_wr_embed_fields(r: Record, *args, **kwargs) -> dict:
         "name": f"{discord.utils.escape_markdown(r.id.level)} - {await ExperiencePoints.get_alias(r.user_id)}",
         "value": (
             f"> **Record**: {display_record(r.record)}\n"
-            f'> [Image Link]({r.attachment_url} "Link to the original submission image.")'
+            f'> [Image Link]({r.id.url} "Link to the original submission image.")'
         ),
     }
 
@@ -139,7 +139,7 @@ async def records_wr_user_embed_fields(r: Record, *args, **kwargs) -> dict:
         ),
         "value": (
             f"> **Record**: {display_record(r.record)}\n"
-            f'> [Image Link]({r.attachment_url} "Link to the original submission image.")'
+            f'> [Image Link]({r.id.url} "Link to the original submission image.")'
         ),
     }
 
