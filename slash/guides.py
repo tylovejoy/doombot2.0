@@ -4,11 +4,11 @@ from typing import Dict, Union
 import discord
 
 from database.documents import Guide
-from slash.parents import SubmitParent
+from slash.parents import DeleteParent, SubmitParent
 from slash.records import _autocomplete
 from utils.constants import GUILD_ID
 from utils.utilities import logging_util, preprocess_map_code
-from views.basic import ConfirmView
+from views.basic import ConfirmView, GuideDeleteView
 from views.paginator import Paginator
 
 logger = getLogger(__name__)
@@ -18,6 +18,33 @@ def setup(bot):
     logger.info(logging_util("Loading", "TOURNAMENT"))
     bot.application_command(ViewGuide)
 
+
+class DeleteGuide(
+    discord.SlashCommand,
+    guilds=[GUILD_ID],
+    name="guide",
+    parent=DeleteParent,
+):
+
+    map_code: str = discord.Option(
+        description="Workshop code for the specific map.",
+        autocomplete=True,
+    )
+
+    async def callback(self) -> None:
+        await self.defer(ephemeral=True)
+        self.map_code = preprocess_map_code(self.map_code)
+        search = await Guide.find_one(Guide.code == self.map_code)
+        search.guide_owner
+        guides = [guide for guide, owner in zip(search.guide, search.guide_owner) if owner == self.interaction.user.id]
+        view = GuideDeleteView(guides)
+        await self.send(content="hello", view=view)
+
+    async def autocomplete(
+        self, options: Dict[str, Union[int, float, str]], focused: str
+    ):
+        """Autocomplete for record submissions."""
+        return await _autocomplete(focused, options)
 
 class ViewGuide(
     discord.SlashCommand,

@@ -1,6 +1,9 @@
 import logging
+from typing import List
 
 import discord
+
+from database.documents import Guide
 
 logger = logging.getLogger()
 
@@ -53,3 +56,17 @@ class ConfirmView(discord.ui.View):
             embed=embed,
         )
         return True
+
+
+class GuideDeleteView(discord.ui.View):
+    def __init__(self, guides: List[str]):
+        super().__init__(timeout=None)
+        self.confirm = ConfirmButton(row=1)
+        self.dropdown = discord.ui.Select()
+        for guide in guides:
+            self.dropdown.add_option(
+                label=guide,
+                value=guide,
+            )
+        self.add_item(self.dropdown)
+        self.add_item(self.confirm)
