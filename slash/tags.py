@@ -53,7 +53,7 @@ class DeleteTag(
         if not check_roles(self.interaction):
             await no_perms_warning(self.interaction)
             return
-        await self.interaction.response.defer(ephemeral=True)
+        await self.defer(ephemeral=True)
 
         tag = await Tags.find_one(Tags.name == self.name)
 
@@ -86,7 +86,7 @@ class CreateTag(
         if not check_roles(self.interaction):
             await no_perms_warning(self.interaction)
             return
-        await self.interaction.response.defer(ephemeral=True)
+        await self.defer(ephemeral=True)
         tag = Tags(name=self.name, content=self.content)
         if not Tags.exists(self.name):
             await self.interaction.edit_original_message(
@@ -109,7 +109,7 @@ class TagsCommand(discord.SlashCommand, name="tag"):
     name: str = discord.Option(description="Which tag to display?", autocomplete=True)
 
     async def callback(self) -> None:
-        await self.interaction.response.defer()
+        await self.defer()
         tag = await Tags.find_one(Tags.name == self.name)
         await self.interaction.edit_original_message(
             content=f"**{tag.name}**\n\n{tag.content}"
@@ -129,7 +129,7 @@ class WorkshopHelp(discord.SlashCommand, name="workshop"):
     )
 
     async def callback(self) -> None:
-        await self.interaction.response.defer(ephemeral=self.hidden)
+        await self.defer(ephemeral=self.hidden)
         self.search = self.search.replace(" ", "-")
         url = f"https://workshop.codes/wiki/search/{self.search}.json"
         async with aiohttp.ClientSession() as session:

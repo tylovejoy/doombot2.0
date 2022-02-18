@@ -2,8 +2,8 @@ from logging import getLogger
 from typing import Dict, Optional, Union
 
 import discord
-
 from discord.utils import MISSING
+
 from database.documents import ExperiencePoints, VerificationViews
 from database.records import Record
 from slash.parents import DeleteParent, SubmitParent
@@ -73,16 +73,21 @@ async def _autocomplete(focused, options):
         )
         return response
 
+
 class Test(
-    discord.SlashCommand, guilds=[GUILD_ID], name="test",
+    discord.SlashCommand,
+    guilds=[GUILD_ID],
+    name="test",
 ):
     """Test"""
+
     async def callback(self) -> None:
         all_ = []
 
         for x in await Record.all_levels():
             all_.append(x.id.level)
         print(all_)
+
 
 class SubmitRecord(
     discord.SlashCommand, guilds=[GUILD_ID], name="record", parent=SubmitParent
@@ -112,7 +117,7 @@ class SubmitRecord(
                 "You can't submit records in this channel.", ephemeral=True
             )
             return
-        await self.interaction.response.defer(ephemeral=True)
+        await self.defer(ephemeral=True)
         self.map_code = preprocess_map_code(self.map_code)
         self.map_code, code_changed = await find_alt_map_code(self.map_code)
 
@@ -279,7 +284,7 @@ class ViewRecords(discord.SlashCommand, name="leaderboard"):
     )
 
     async def callback(self) -> None:
-        await self.interaction.response.defer(ephemeral=True)
+        await self.defer(ephemeral=True)
         self.map_code = preprocess_map_code(self.map_code)
         level_name = ""
         if self.map_level is not MISSING:

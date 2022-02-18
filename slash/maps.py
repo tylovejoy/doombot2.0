@@ -71,7 +71,7 @@ class MapSearch(discord.SlashCommand, name="map-search"):
 
     async def callback(self) -> None:
         """Callback for map search slash command."""
-        await self.interaction.response.defer(ephemeral=True)
+        await self.defer(ephemeral=True)
         fuzzy_name, fuzzy_type = None, None
         if self.map_name:
             fuzzy_name = MapNames.fuzz(self.map_name)
@@ -348,7 +348,7 @@ class RandomMap(discord.SlashCommand, name="random_map"):
 
     async def callback(self) -> None:
         """Callback for random map slash command."""
-        await self.interaction.response.defer(ephemeral=True)
+        await self.defer(ephemeral=True)
         search = await Map.random(self.number or 1)
 
         embed = create_embed(

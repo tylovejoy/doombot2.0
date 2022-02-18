@@ -16,7 +16,9 @@ class AllLevelsSubAgg(Document):
 
 class AllLevelsAgg(BaseModel):
     """Projection model for World Records aggregation."""
+
     id: Link[AllLevelsSubAgg] = Field(None, alias="_id")
+
 
 class WorldRecordsSubAggregate(Document):
     """Projection model for World Records aggregation."""
@@ -85,18 +87,12 @@ class Record(Document):
     @classmethod
     async def all_levels(cls) -> List[AllLevelsAgg]:
         return (
-            await cls.find().aggregate(
-                [
-                    {
-                        '$group': {
-                            '_id': {
-                                'level': '$level'
-                            }
-                        }
-                    }
-                ],
-                projection_model=AllLevelsAgg
-            ).to_list()
+            await cls.find()
+            .aggregate(
+                [{"$group": {"_id": {"level": "$level"}}}],
+                projection_model=AllLevelsAgg,
+            )
+            .to_list()
         )
 
     @classmethod

@@ -78,7 +78,10 @@ def setup(bot):
 
 
 class TournamentStart(
-    discord.SlashCommand, guilds=[GUILD_ID], name="start", parent=TournamentOrgParent
+    discord.SlashCommand,
+    guilds=[GUILD_ID],
+    name="start",
+    parent=TournamentOrgParent,
 ):
     """Create and start a new tournament."""
 
@@ -95,7 +98,7 @@ class TournamentStart(
             await no_perms_warning(self.interaction)
             return
 
-        await self.interaction.response.defer(ephemeral=True)
+        await self.defer(ephemeral=True)
 
         if await Tournament.find_active():
             await self.interaction.edit_original_message(
@@ -262,7 +265,7 @@ class ChangeRank(
         if not check_roles(self.interaction):
             await no_perms_warning(self.interaction)
             return
-        await self.interaction.response.defer(ephemeral=True)
+        await self.defer(ephemeral=True)
 
         user = await ExperiencePoints.find_user(self.user.id)
 
@@ -303,7 +306,7 @@ class ViewTournamentRecords(
     )
 
     async def callback(self) -> None:
-        await self.interaction.response.defer(ephemeral=True)
+        await self.defer(ephemeral=True)
         self.category = tournament_category_map_reverse(self.category)
 
         records = await Tournament.get_records(self.category, rank=self.rank)
@@ -439,10 +442,13 @@ class TournamentAnnouncement(
         modal = TournamentAnnouncementModal()
 
         await self.interaction.response.send_modal(modal)
-        # await self.interaction.response.defer(ephemeral=True)
 
+        timeout_count = 0
         while not modal.done:
+            timeout_count += 1
             await asyncio.sleep(1)
+            if timeout_count == 600:
+                return
 
         embed = create_embed(title="Announcement", desc="", user=self.interaction.user)
         embed.add_field(name=modal.title_, value=modal.content, inline=False)
@@ -514,7 +520,7 @@ class TournamentAddMissions(
         if not check_roles(self.interaction):
             await no_perms_warning(self.interaction)
             return
-        await self.interaction.response.defer(ephemeral=True)
+        await self.defer(ephemeral=True)
 
         tournament = await Tournament.find_active()
         if not tournament:
@@ -604,7 +610,7 @@ class TournamentPublishMissions(
         if not check_roles(self.interaction):
             await no_perms_warning(self.interaction)
             return
-        await self.interaction.response.defer(ephemeral=True)
+        await self.defer(ephemeral=True)
 
         tournament = await Tournament.find_active()
         if not tournament:

@@ -235,7 +235,7 @@ class Alerts(discord.SlashCommand, name="alerts"):
     )
 
     async def callback(self) -> None:
-        await self.interaction.response.defer(ephemeral=True)
+        await self.defer(ephemeral=True)
         user = await ExperiencePoints.find_user(self.interaction.user.id)
 
         if self.value:
@@ -257,7 +257,7 @@ class ChangeName(discord.SlashCommand, name="name"):
     )
 
     async def callback(self) -> None:
-        await self.interaction.response.defer(ephemeral=True)
+        await self.defer(ephemeral=True)
         user = await ExperiencePoints.find_user(self.interaction.user.id)
         user.alias = self.name
         await self.interaction.edit_original_message(
@@ -274,7 +274,7 @@ class VerificationStats(discord.SlashCommand, name="verified"):
     )
 
     async def callback(self) -> None:
-        await self.interaction.response.defer(ephemeral=True)
+        await self.defer(ephemeral=True)
         user = await ExperiencePoints.find_user(self.user.id)
 
         embed = create_embed(
