@@ -58,15 +58,30 @@ class ConfirmView(discord.ui.View):
         return True
 
 
+number_emoji = {
+    1: "1️⃣",
+    2: "2️⃣",
+    3: "3️⃣",
+    4: "4️⃣",
+    5: "5️⃣",
+    6: "6️⃣",
+    7: "7️⃣",
+    8: "8️⃣",
+    9: "9️⃣",
+    10: "🔟",
+}
+
 class GuideDeleteView(discord.ui.View):
     def __init__(self, guides: List[str]):
         super().__init__(timeout=None)
         self.confirm = ConfirmButton(row=1)
         self.dropdown = discord.ui.Select()
-        for guide in guides:
+        for i, guide in enumerate(guides, 1):
+            if i == 11:
+                break
             self.dropdown.add_option(
-                label=guide,
-                value=guide,
+                label=number_emoji[i] + guide,
+                value=i - 1,
             )
         self.add_item(self.dropdown)
         self.add_item(self.confirm)

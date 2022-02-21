@@ -32,6 +32,7 @@ class DeleteGuide(
     )
 
     async def callback(self) -> None:
+        return
         await self.defer(ephemeral=True)
         self.map_code = preprocess_map_code(self.map_code)
         search = await Guide.find_one(Guide.code == self.map_code)
@@ -42,7 +43,16 @@ class DeleteGuide(
             if owner == self.interaction.user.id
         ]
         view = GuideDeleteView(guides)
-        await self.send(content="hello", view=view)
+        await self.send(content="Which guide do you want to delete?", view=view)
+        await view.wait()
+
+        if not view.confirm.value:
+            return
+        
+        index_chosen = view.dropdown.values[0]
+
+
+
 
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
