@@ -26,6 +26,7 @@ from utils.utilities import (
     check_roles,
     find_alt_map_code,
     logging_util,
+    make_ordinal,
     no_perms_warning,
     preprocess_map_code,
     time_convert,
@@ -163,7 +164,7 @@ class SubmitRecord(
         )
         embed.add_field(**await records_basic_embed_fields(record_document))
         embed.set_image(url=self.screenshot.url)
-        # TODO: Find rank using $rank aggregation mongo 5.0 only
+
         view = RecordSubmitView()
 
         correct_msg = "Is this correct?"
@@ -177,9 +178,22 @@ class SubmitRecord(
 
         if not view.confirm.value:
             return
+        await record_document.save()
+
+        rank = getattr(
+            await Record.find_current_rank(
+                self.map_code, self.map_level, self.interaction.user.id
+            ),
+            "rank",
+            "None",
+        )
 
         view.clear_items()
-        await self.interaction.edit_original_message(content="Submitted.", view=view)
+        await self.interaction.edit_original_message(
+            content="Submitted.",
+            view=view,
+        )
+
         # Delete old submission
         try:
             original = await find_orig_msg(self.interaction, record_document)
@@ -193,7 +207,8 @@ class SubmitRecord(
             pass
 
         message = await self.interaction.channel.send(
-            content=f"{Emoji.TIME} Waiting for verification...", embed=embed
+            content=f"{Emoji.TIME} Waiting for verification...\nYour record will be {make_ordinal(rank)} on the leaderboard once verified.",
+            embed=embed,
         )
         record_document.message_id = message.id
 

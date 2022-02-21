@@ -36,7 +36,11 @@ class DeleteGuide(
         self.map_code = preprocess_map_code(self.map_code)
         search = await Guide.find_one(Guide.code == self.map_code)
         search.guide_owner
-        guides = [guide for guide, owner in zip(search.guide, search.guide_owner) if owner == self.interaction.user.id]
+        guides = [
+            guide
+            for guide, owner in zip(search.guide, search.guide_owner)
+            if owner == self.interaction.user.id
+        ]
         view = GuideDeleteView(guides)
         await self.send(content="hello", view=view)
 
@@ -45,6 +49,7 @@ class DeleteGuide(
     ):
         """Autocomplete for record submissions."""
         return await _autocomplete(focused, options)
+
 
 class ViewGuide(
     discord.SlashCommand,
