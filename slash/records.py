@@ -81,7 +81,7 @@ class Test(
     name="test",
 ):
     """Test"""
-
+    # TODO: Remove before prod
     async def callback(self) -> None:
         all_ = []
 
@@ -341,7 +341,7 @@ class ViewRecords(discord.SlashCommand, name="leaderboard"):
         return await _autocomplete(focused, options)
 
 
-class WorldRecords(discord.SlashCommand, name="worldrecords"):
+class WorldRecords(discord.SlashCommand, name="world-records"):
     """View a specific users world records."""
 
     user: discord.Member = discord.Option(
@@ -353,7 +353,7 @@ class WorldRecords(discord.SlashCommand, name="worldrecords"):
 
 
 class WorldRecordsUserCommand(
-    discord.UserCommand, guilds=[GUILD_ID], name="worldrecords"
+    discord.UserCommand, guilds=[GUILD_ID], name="world-records"
 ):
     """View a specific users world records."""
 
@@ -361,7 +361,7 @@ class WorldRecordsUserCommand(
         await world_records(self.interaction, self.target)
 
 
-class PersonalRecords(discord.SlashCommand, name="personalrecords"):
+class PersonalRecords(discord.SlashCommand, name="personal-records"):
     """View a specific users personal records."""
 
     user: discord.Member = discord.Option(
@@ -373,7 +373,7 @@ class PersonalRecords(discord.SlashCommand, name="personalrecords"):
 
 
 class PersonalRecordsUserCommand(
-    discord.UserCommand, guilds=[GUILD_ID], name="personalrecords"
+    discord.UserCommand, guilds=[GUILD_ID], name="personal-records"
 ):
     """View a specific users personal records."""
 
