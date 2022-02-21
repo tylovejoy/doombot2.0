@@ -68,6 +68,8 @@ class RankCard(discord.SlashCommand, name="rank"):
     )
 
     async def callback(self) -> None:
+        await self.defer(ephemeral=True)
+
         if self.user is MISSING:
             self.user = self.interaction.user
 
@@ -221,7 +223,6 @@ class RankCard(discord.SlashCommand, name="rank"):
         with io.BytesIO() as image_binary:
             img.save(image_binary, "PNG")
             image_binary.seek(0)
-            await self.interaction.response.send_message("rankcard")
             await self.interaction.edit_original_message(
                 content="", file=discord.File(fp=image_binary, filename="rank_card.png")
             )
