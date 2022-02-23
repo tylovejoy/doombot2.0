@@ -81,6 +81,7 @@ class Test(
     name="test",
 ):
     """Test"""
+
     # TODO: Remove before prod
     async def callback(self) -> None:
         all_ = []

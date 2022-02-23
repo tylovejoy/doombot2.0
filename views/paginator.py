@@ -25,10 +25,17 @@ class Paginator(discord.ui.View):
             self.last.disabled = True
 
     async def start(self, interaction: discord.Interaction):
-        await interaction.edit_original_message(
-            embed=self.formatted_pages[0],
-            view=self,
-        )
+        if isinstance(self.pages[0], str):
+            await interaction.edit_original_message(
+                content=self.formatted_pages[0],
+                view=self,
+            )
+        else:
+
+            await interaction.edit_original_message(
+                embed=self.formatted_pages[0],
+                view=self,
+            )
         await self.wait()
 
     @property

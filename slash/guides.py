@@ -32,7 +32,6 @@ class DeleteGuide(
     )
 
     async def callback(self) -> None:
-        return
         await self.defer(ephemeral=True)
         self.map_code = preprocess_map_code(self.map_code)
         search = await Guide.find_one(Guide.code == self.map_code)
@@ -48,11 +47,11 @@ class DeleteGuide(
 
         if not view.confirm.value:
             return
-        
-        index_chosen = view.dropdown.values[0]
 
-
-
+        chosen_index = search.guide.index(view.dropdown.values[0])
+        search.guide.pop(chosen_index)
+        search.guide_owner.pop(chosen_index)
+        await search.save()
 
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str

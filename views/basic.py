@@ -38,7 +38,7 @@ class ConfirmView(discord.ui.View):
         interaction: discord.Interaction,
         first_msg: str,
         second_msg: str,
-        embed: discord.Embed = discord.Embed.Empty,
+        embed: discord.Embed = None,
     ) -> bool:
         await interaction.edit_original_message(
             content=first_msg,
@@ -71,6 +71,7 @@ number_emoji = {
     10: "🔟",
 }
 
+
 class GuideDeleteView(discord.ui.View):
     def __init__(self, guides: List[str]):
         super().__init__(timeout=None)
@@ -81,7 +82,7 @@ class GuideDeleteView(discord.ui.View):
                 break
             self.dropdown.add_option(
                 label=number_emoji[i] + guide,
-                value=i - 1,
+                value=guide,
             )
         self.add_item(self.dropdown)
         self.add_item(self.confirm)
