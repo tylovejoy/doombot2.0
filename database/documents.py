@@ -1,8 +1,10 @@
 from __future__ import annotations
+import datetime
 
 from logging import getLogger
 from os import environ
 from typing import Dict, List, Optional, Union
+from unicodedata import category
 
 import motor
 from beanie import Document, init_beanie
@@ -11,6 +13,18 @@ from pydantic.main import BaseModel
 from pymongo.errors import ServerSelectionTimeoutError
 
 logger = getLogger(__name__)
+
+
+class Events(Document):
+    """Collection of events."""
+
+    event_id: int
+    event_name: str
+    schedule_start: datetime.datetime
+    started: bool
+    text: Optional[int]
+    voice: Optional[int]
+    category: Optional[int]
 
 
 class VerificationViews(Document):

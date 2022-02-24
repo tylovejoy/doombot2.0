@@ -3,7 +3,7 @@ from os import environ
 
 from database.documents import database_init
 from doombot import DoomBot
-from slash import exp, guides, maps, parents, records, tags, tournament
+from slash import exp, guides, maps, parents, records, tags, tournament, events
 from utils.utilities import logging_util
 
 logger = logging.getLogger()
@@ -29,6 +29,7 @@ def load_all_extensions():
     exp.setup(bot)
     tags.setup(bot)
     guides.setup(bot)
+    events.setup(bot)
     logger.info(logging_util("Loading Complete", "SLASH COMMANDS"))
 
 

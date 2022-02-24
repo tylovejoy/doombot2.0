@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 from logging import getLogger
 
@@ -5,7 +6,13 @@ import aiohttp
 import discord
 from discord.ext import commands, tasks
 
-from database.documents import ExperiencePoints, EXPRanks, Starboard, VerificationViews
+from database.documents import (
+    Events,
+    ExperiencePoints,
+    EXPRanks,
+    Starboard,
+    VerificationViews,
+)
 from database.records import Record
 from database.tournament import Announcement, Tournament
 from slash.tournament import end_tournament, start_tournament
@@ -47,6 +54,7 @@ class DoomBot(discord.Client):
             webhooks=True,
             members=True,
             emojis=True,
+            scheduled_events=True,
         )
         super().__init__(
             command_prefix=commands.when_mentioned_or("/"),
@@ -102,7 +110,9 @@ class DoomBot(discord.Client):
         if not self.tournament_checker.is_running():
             logger.info(logging_util("Task Initialize", "TOURNAMENT"))
             self.tournament_checker.start()
-
+        if not self.events_checker.is_running():
+            logger.info(logging_util("Task Initialize", "EVENTS"))
+            self.events_checker.start()
         async with aiohttp.ClientSession() as session:
 
             url = "https://workshop.codes/wiki/dictionary"
@@ -170,6 +180,41 @@ class DoomBot(discord.Client):
                 await info_channel.send(announcement.mentions, embed=embed)
                 await announcement.delete()
 
+    @tasks.loop(seconds=30)
+    async def events_checker(self):
+        """Periodically check for events."""
+        events = await Events.find().to_list()
+
+        for event in events:
+            if (
+                not event.started
+                and event.schedule_start
+                > datetime.datetime.now() - datetime.timedelta(minutes=3)
+            ):
+                category = await self.guild.create_category(
+                    "Event", reason="Event Night start", position=0
+                )
+                text = await category.create_text_channel("Event Chat")
+                voice = await category.create_voice_channel("Event Voicechat")
+                event.category = category.id
+                event.text = text.id
+                event.voice = voice.id
+                event.started = True
+                await event.save()
+                await asyncio.sleep(5)
+                await self.http.modify_guild_scheduled_event(
+                    GUILD_ID,
+                    event.event_id,
+                    channel_id=voice.id,
+                    entity_type=2,
+                    entity_metadata=None,
+                )
+                await self.http.modify_guild_scheduled_event(
+                    GUILD_ID,
+                    event.event_id,
+                    status=2,
+                )
+
     async def on_member_join(self, member: discord.Member):
         new_user = ExperiencePoints(
             user_id=member.id,
@@ -184,6 +229,9 @@ class DoomBot(discord.Client):
         )
         await new_user.save()
         logger.info(f"Adding new user: {new_user.alias} {new_user.user_id}")
+
+    async def on_guild_scheduled_event_update(self, guild, before, after):
+        pass
 
     async def on_message(self, message: discord.Message):
         # Suggestions
