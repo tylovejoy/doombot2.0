@@ -6,7 +6,9 @@ from discord.utils import MISSING
 
 from database.documents import ExperiencePoints, VerificationViews
 from database.records import Record
+from utils.errors import RecordNotFaster, SearchNotFound
 from slash.parents import DeleteParent, SubmitParent
+from slash.slash_command import Slash
 from utils.constants import (
     GUILD_ID,
     NON_SPR_RECORDS_ID,
@@ -23,6 +25,7 @@ from utils.embed import (
 from utils.enums import Emoji
 from utils.records import delete_hidden, personal_best, world_records
 from utils.utilities import (
+    check_channels,
     check_permissions,
     find_alt_map_code,
     logging_util,
@@ -91,7 +94,7 @@ class Test(
 
 
 class SubmitRecord(
-    discord.SlashCommand, guilds=[GUILD_ID], name="record", parent=SubmitParent
+    Slash, guilds=[GUILD_ID], name="record", parent=SubmitParent
 ):
     """Submit personal records to the database."""
 
@@ -112,13 +115,10 @@ class SubmitRecord(
 
     async def callback(self) -> None:
         """Callback for submitting records slash command."""
-
-        if self.interaction.channel_id not in [SPR_RECORDS_ID, NON_SPR_RECORDS_ID]:
-            await self.interaction.response.send_message(
-                "You can't submit records in this channel.", ephemeral=True
-            )
-            return
         await self.defer(ephemeral=True)
+
+        await check_channels(self.interaction, [SPR_RECORDS_ID, NON_SPR_RECORDS_ID])
+        
         self.map_code = preprocess_map_code(self.map_code)
         self.map_code, code_changed = await find_alt_map_code(self.map_code)
 
@@ -139,10 +139,8 @@ class SubmitRecord(
             and record_seconds >= record_document.record
             and record_document.verified
         ):
-            await self.interaction.edit_original_message(
-                content="Personal best needs to be faster to update.",
-            )
-            return
+            raise RecordNotFaster("Personal best needs to be faster to update.")
+
 
         # Create initial document if none found.
         if not record_document:
@@ -230,7 +228,7 @@ class SubmitRecord(
 
 
 class DeleteRecord(
-    discord.SlashCommand, guilds=[GUILD_ID], name="record", parent=DeleteParent
+    Slash, guilds=[GUILD_ID], name="record", parent=DeleteParent
 ):
     """Delete personal records."""
 
@@ -252,8 +250,7 @@ class DeleteRecord(
         self.map_level = self.map_level.upper()
 
         if self.user:
-            if not check_permissions(self.interaction):
-                return
+            await check_permissions(self.interaction)
             user_id = self.user.id
         else:
             user_id = self.interaction.user.id
@@ -286,7 +283,7 @@ class DeleteRecord(
         return await _autocomplete(focused, options)
 
 
-class ViewRecords(discord.SlashCommand, name="leaderboard"):
+class ViewRecords(Slash, name="leaderboard"):
     """View leaderboard for a particular map code and/or map level."""
 
     map_code: str = discord.Option(
@@ -328,8 +325,7 @@ class ViewRecords(discord.SlashCommand, name="leaderboard"):
             embeds = await split_embeds(embed, records, records_wr_embed_fields)
 
         if not records:
-            await self.interaction.edit_original_message(content="No records found.")
-            return
+            raise SearchNotFound("No records found.")
 
         view = Paginator(embeds, self.interaction.user)
         await view.start(self.interaction)
@@ -341,7 +337,7 @@ class ViewRecords(discord.SlashCommand, name="leaderboard"):
         return await _autocomplete(focused, options)
 
 
-class WorldRecords(discord.SlashCommand, name="world-records"):
+class WorldRecords(Slash, name="world-records"):
     """View a specific users world records."""
 
     user: discord.Member = discord.Option(
@@ -361,7 +357,7 @@ class WorldRecordsUserCommand(
         await world_records(self.interaction, self.target)
 
 
-class PersonalRecords(discord.SlashCommand, name="personal-records"):
+class PersonalRecords(Slash, name="personal-records"):
     """View a specific users personal records."""
 
     user: discord.Member = discord.Option(

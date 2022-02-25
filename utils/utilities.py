@@ -1,6 +1,6 @@
 import datetime
 import re
-from typing import Union
+from typing import List, Union
 
 import discord
 
@@ -10,11 +10,13 @@ from utils.constants import (
     BRACKET_TOURNAMENT_ROLE_ID,
     HC_ROLE_ID,
     MC_ROLE_ID,
+    NON_SPR_RECORDS_ID,
     ROLE_WHITELIST,
+    SPR_RECORDS_ID,
     TA_ROLE_ID,
     TRIFECTA_ROLE_ID,
 )
-from utils.errors import InvalidTime, NoPermissions
+from utils.errors import IncorrectChannel, InvalidTime, NoPermissions
 
 TIME_REGEX = re.compile(
     r"(?<!.)(\d{1,2})?:?(\d{1,2})?:?(?<!\d)(\d{1,2})\.?\d{1,4}?(?!.)"
@@ -99,6 +101,9 @@ async def check_permissions(interaction: discord.Interaction, additional_perms: 
         return
     raise NoPermissions("You do not have permission to use this command.")
 
+async def check_channels(interaction: discord.Interaction, channels: List[int]):
+    if interaction.channel_id not in channels:
+        raise IncorrectChannel("You can't submit records in this channel.")
 
 
 def check_roles(interaction: discord.Interaction) -> bool:

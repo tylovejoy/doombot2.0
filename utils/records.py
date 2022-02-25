@@ -5,6 +5,7 @@ import discord
 
 from database.documents import VerificationViews
 from database.records import Record
+from errors import SearchNotFound
 from utils.constants import VERIFICATION_CHANNEL_ID
 from utils.embed import create_embed, records_wr_user_embed_fields, split_embeds
 from utils.enums import Emoji
@@ -33,8 +34,7 @@ async def world_records(interaction: discord.Interaction, target: discord.Member
     embed = create_embed(title="World Records", desc="", user=target)
     records = await Record.find_world_records_user(target.id)
     if not records:
-        await interaction.edit_original_message(content="No records found.")
-        return
+        raise SearchNotFound("No records found.")
 
     embeds = await split_embeds(embed, records, records_wr_user_embed_fields)
 
@@ -47,8 +47,7 @@ async def personal_best(interaction: discord.Interaction, target: discord.Member
     await interaction.response.defer(ephemeral=True)
     records = await Record.find_rec_map_info(user_id=target.id)
     if not records:
-        await interaction.edit_original_message(content="No records found.")
-        return
+        raise SearchNotFound("No records found.")
 
     embed = create_embed(title="Personal Bests", desc="", user=target)
     embed_dict = {}

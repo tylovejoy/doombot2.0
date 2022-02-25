@@ -5,7 +5,9 @@ import aiohttp
 import discord
 
 from database.documents import Tags
+from utils.errors import SearchNotFound
 from slash.parents import CreateParent, DeleteParent
+from slash.slash_command import Slash
 from utils.constants import GUILD_ID
 from utils.embed import create_embed
 from utils.utilities import (
@@ -40,7 +42,7 @@ async def _autocomplete(options, focused, list_obj):
 
 
 class DeleteTag(
-    discord.SlashCommand, guilds=[GUILD_ID], name="tag", parent=DeleteParent
+    Slash, guilds=[GUILD_ID], name="tag", parent=DeleteParent
 ):
     """Delete a tag."""
 
@@ -50,15 +52,13 @@ class DeleteTag(
 
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
-        if not check_permissions(self.interaction):
-            return
+        await check_permissions(self.interaction)
 
         tag = await Tags.find_one(Tags.name == self.name)
 
         if not tag:
-            await self.interaction.edit_original_message(content="Tag does not exist.")
-            return
-
+            raise SearchNotFound("Tag does not exist.")
+        
         view = ConfirmView()
         if await view.start(
             self.interaction,
@@ -82,13 +82,13 @@ class CreateTag(
 
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
-        if not check_permissions(self.interaction):
-            return
+        await check_permissions(self.interaction)
+        
         
         tag = Tags(name=self.name, content=self.content)
         if not Tags.exists(self.name):
-            await self.interaction.edit_original_message(
-                content=f"**{tag.name}** already exists! This tag was not created."
+            raise SearchNotFound(
+                f"**{tag.name}** already exists! This tag was not created."
             )
 
         view = ConfirmView()
