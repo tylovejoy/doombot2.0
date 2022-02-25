@@ -4,8 +4,9 @@ from typing import Dict, Union
 import discord
 
 from database.documents import Guide
+from errors import DocumentAlreadyExists, SearchNotFound
 from slash.parents import DeleteParent, SubmitParent
-from slash.records import _autocomplete
+from slash.slash_command import RecordSlash
 from utils.constants import GUILD_ID
 from utils.utilities import logging_util, preprocess_map_code
 from views.basic import ConfirmView, GuideDeleteView
@@ -20,7 +21,7 @@ def setup(bot):
 
 
 class DeleteGuide(
-    discord.SlashCommand,
+    RecordSlash,
     guilds=[GUILD_ID],
     name="guide",
     parent=DeleteParent,
@@ -52,15 +53,9 @@ class DeleteGuide(
         search.guide_owner.pop(chosen_index)
         await search.save()
 
-    async def autocomplete(
-        self, options: Dict[str, Union[int, float, str]], focused: str
-    ):
-        """Autocomplete for record submissions."""
-        return await _autocomplete(focused, options)
-
 
 class ViewGuide(
-    discord.SlashCommand,
+    RecordSlash,
     name="guide",
 ):
     map_code: str = discord.Option(
@@ -74,24 +69,15 @@ class ViewGuide(
         search = await Guide.find_one(Guide.code == self.map_code)
 
         if not search:
-            await self.interaction.edit_original_message(
-                content=f"There are no guides for {self.map_code} yet."
-            )
-            return
+            raise SearchNotFound(f"There are no guides for {self.map_code} yet.")
 
         links = [link for link in search.guide]
         view = Paginator(links, self.interaction.user)
         await view.start(self.interaction)
 
-    async def autocomplete(
-        self, options: Dict[str, Union[int, float, str]], focused: str
-    ):
-        """Autocomplete for record submissions."""
-        return await _autocomplete(focused, options)
-
 
 class SubmitGuide(
-    discord.SlashCommand,
+    RecordSlash,
     guilds=[GUILD_ID],
     name="guide",
     parent=SubmitParent,
@@ -111,10 +97,7 @@ class SubmitGuide(
 
         if search:
             if any([link for link in search.guide if link == self.link]):
-                await self.interaction.edit_original_message(
-                    content="This particular link has already been added."
-                )
-                return
+                raise DocumentAlreadyExists("This particular link has already been added.")
         else:
             search = Guide(code=self.map_code)
 
@@ -128,9 +111,3 @@ class SubmitGuide(
             "Added.",
         ):
             await search.save()
-
-    async def autocomplete(
-        self, options: Dict[str, Union[int, float, str]], focused: str
-    ):
-        """Autocomplete for record submissions."""
-        return await _autocomplete(focused, options)

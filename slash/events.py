@@ -6,6 +6,7 @@ import discord
 from database.documents import Events
 
 from slash.parents import CreateParent
+from slash.slash_command import Slash
 from utils.utilities import check_permissions, logging_util
 from utils.constants import (
     GAME_ROLE,
@@ -26,7 +27,7 @@ def setup(bot):
 
 
 class EndEvent(
-    discord.SlashCommand,
+    Slash,
     guilds=[GUILD_ID],
     name="end-event",
 ):
@@ -34,8 +35,7 @@ class EndEvent(
 
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
-        if not await check_permissions(self.interaction):
-            return
+        await check_permissions(self.interaction)
 
         event = await Events.find_one(Events.started == True)
         guild = self.client.get_guild(self.interaction.guild_id)
@@ -46,7 +46,7 @@ class EndEvent(
 
 
 class CreateEvent(
-    discord.SlashCommand, guilds=[GUILD_ID], name="event", parent=CreateParent
+    Slash, guilds=[GUILD_ID], name="event", parent=CreateParent
 ):
     """Create an event."""
 
@@ -64,8 +64,8 @@ class CreateEvent(
 
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
-        if not await check_permissions(self.interaction):
-            return
+        await check_permissions(self.interaction)
+
         self.schedule_start: datetime.datetime = dateparser.parse(
             self.schedule_start,
             settings={"PREFER_DATES_FROM": "future", "RETURN_AS_TIMEZONE_AWARE": True},

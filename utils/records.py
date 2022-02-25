@@ -5,7 +5,7 @@ import discord
 
 from database.documents import VerificationViews
 from database.records import Record
-from errors import SearchNotFound
+from utils.errors import SearchNotFound
 from utils.constants import VERIFICATION_CHANNEL_ID
 from utils.embed import create_embed, records_wr_user_embed_fields, split_embeds
 from utils.enums import Emoji

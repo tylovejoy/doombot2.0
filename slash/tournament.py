@@ -25,6 +25,7 @@ from slash.parents import (
     TournamentOrgParent,
     TournamentParent,
 )
+from slash.slash_command import Slash
 from utils.constants import (
     BOT_ID,
     GUILD_ID,
@@ -40,7 +41,7 @@ from utils.embed import (
     split_embeds,
 )
 from utils.enums import Emoji
-from utils.errors import InvalidTime
+from utils.errors import InvalidTime, RecordNotFaster, SearchNotFound, TournamentStateError
 from utils.excel_exporter import init_workbook
 from utils.utilities import (
     check_permissions,
@@ -77,7 +78,7 @@ def setup(bot):
 
 
 class TournamentStart(
-    discord.SlashCommand,
+    Slash,
     guilds=[GUILD_ID],
     name="start",
     parent=TournamentOrgParent,
@@ -94,14 +95,10 @@ class TournamentStart(
     async def callback(self) -> None:
         """Callback for submitting records slash command."""
         await self.defer(ephemeral=True)
-        if not await check_permissions(self.interaction):
-            return
+        await check_permissions(self.interaction)
 
         if await Tournament.find_active():
-            await self.interaction.edit_original_message(
-                content="Tournament already active!"
-            )
-            return
+            raise TournamentStateError("Tournament already active!")
 
         last_tournament = await Tournament.find_latest()
         if last_tournament:
@@ -234,7 +231,7 @@ class TournamentStart(
 
 
 class ChangeRank(
-    discord.SlashCommand,
+    Slash,
     guilds=[GUILD_ID],
     name="changerank",
     parent=TournamentOrgParent,
@@ -260,8 +257,7 @@ class ChangeRank(
 
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
-        if not await check_permissions(self.interaction):
-            return
+        await check_permissions(self.interaction)
 
         user = await ExperiencePoints.find_user(self.user.id)
 
@@ -288,7 +284,7 @@ class ChangeRank(
 
 
 class ViewTournamentRecords(
-    discord.SlashCommand, name="leaderboard", parent=TournamentParent
+    Slash, name="leaderboard", parent=TournamentParent
 ):
     """View leaderboard for a particular tournament category and optionally tournament rank."""
 
@@ -307,8 +303,7 @@ class ViewTournamentRecords(
 
         records = await Tournament.get_records(self.category, rank=self.rank)
         if not records:
-            await self.interaction.edit_original_message(content="No records found.")
-            return
+            raise SearchNotFound("No records found.")
 
         if self.rank is MISSING:
             rank_str = "- Overall"
@@ -332,7 +327,7 @@ class ViewTournamentRecords(
 
 
 class TimeAttackSubmission(
-    discord.SlashCommand,
+    Slash,
     guilds=[GUILD_ID],
     name="ta",
     # parent=SubmitParent,
@@ -353,7 +348,7 @@ class TimeAttackSubmission(
 
 
 class MildcoreSubmission(
-    discord.SlashCommand,
+    Slash,
     guilds=[GUILD_ID],
     name="mc",
     # parent=SubmitParent,
@@ -374,7 +369,7 @@ class MildcoreSubmission(
 
 
 class HardcoreSubmission(
-    discord.SlashCommand,
+    Slash,
     guilds=[GUILD_ID],
     name="hc",
     # parent=SubmitParent,
@@ -395,7 +390,7 @@ class HardcoreSubmission(
 
 
 class BonusSubmission(
-    discord.SlashCommand,
+    Slash,
     guilds=[GUILD_ID],
     name="bo",
     # parent=SubmitParent,
@@ -416,7 +411,7 @@ class BonusSubmission(
 
 
 class TournamentAnnouncement(
-    discord.SlashCommand,
+    Slash,
     guilds=[GUILD_ID],
     name="announcement",
     parent=TournamentOrgParent,
@@ -432,8 +427,7 @@ class TournamentAnnouncement(
     )
 
     async def callback(self) -> None:
-        if not await check_permissions(self.interaction):
-            return
+        await check_permissions(self.interaction)
         modal = TournamentAnnouncementModal()
 
         await self.interaction.response.send_modal(modal)
@@ -497,7 +491,7 @@ class TournamentAnnouncement(
 
 
 class TournamentAddMissions(
-    discord.SlashCommand,
+    Slash,
     guilds=[GUILD_ID],
     name="add",
     parent=TournamentMissionsParent,
@@ -513,15 +507,11 @@ class TournamentAddMissions(
 
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
-        if not await check_permissions(self.interaction):
-            return
+        await check_permissions(self.interaction)
 
         tournament = await Tournament.find_active()
         if not tournament:
-            await self.interaction.edit_original_message(
-                content="No active tournament."
-            )
-            return
+            raise TournamentStateError("No active tournament.")
 
         category = getattr(tournament, self.category)
         if self.category == "general":
@@ -595,22 +585,18 @@ class TournamentAddMissions(
 
 
 class TournamentPublishMissions(
-    discord.SlashCommand,
+    Slash,
     guilds=[GUILD_ID],
     name="publish",
     parent=TournamentMissionsParent,
 ):
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
-        if not await check_permissions(self.interaction):
-            return
+        await check_permissions(self.interaction)
 
         tournament = await Tournament.find_active()
         if not tournament:
-            await self.interaction.edit_original_message(
-                content="No active tournament."
-            )
-            return
+            raise TournamentStateError("No active tournament.")
 
         embed = create_embed(
             "Missions",
@@ -652,29 +638,22 @@ async def tournament_submissions(
     await interaction.response.defer(ephemeral=True)
     tournament = await Tournament.find_active()
     if not tournament:
-        await interaction.edit_original_message(content="Tournament not active!")
-        return
+        raise TournamentStateError("Tournament not active!")
 
     category_attr = getattr(tournament, category)
     if not category_attr:
-        await interaction.edit_original_message(content="This category is not active.")
-        return
+        raise TournamentStateError("This category is not active.")
 
-    try:
-        record_seconds = time_convert(record)
-    except InvalidTime as e:
-        await interaction.edit_original_message(content=e)
-        return
+    record_seconds = time_convert(record)
 
     already_posted = False
     submission = None
     for r in category_attr.records:
         if r.user_id == interaction.user.id:
             if record_seconds >= r.record:
-                await interaction.edit_original_message(
-                    content="Record must be faster than previously submitted record."
+                raise RecordNotFaster(
+                    "Record must be faster than previously submitted record."
                 )
-                return
             already_posted = True
             r.record = record_seconds
             submission = r

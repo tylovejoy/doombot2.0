@@ -8,7 +8,7 @@ from database.documents import ExperiencePoints, VerificationViews
 from database.records import Record
 from utils.errors import RecordNotFaster, SearchNotFound
 from slash.parents import DeleteParent, SubmitParent
-from slash.slash_command import Slash
+from slash.slash_command import RecordSlash, Slash, UserSlash
 from utils.constants import (
     GUILD_ID,
     NON_SPR_RECORDS_ID,
@@ -63,20 +63,6 @@ async def check_user(interaction):
     return user
 
 
-async def _autocomplete(focused, options):
-    """Basic Autocomplete for Record slash commands."""
-    if focused == "map_level":
-        map_code = options.get("map_code")
-        map_code = map_code.upper() if map_code else "NULL"
-        levels = await Record.get_level_names(map_code)
-        return discord.AutoCompleteResponse({k: k for k in levels[:25]})
-    if focused == "map_code":
-        response = discord.AutoCompleteResponse(
-            {k: v for k, v in await Record.get_codes(options[focused])}
-        )
-        return response
-
-
 class Test(
     discord.SlashCommand,
     guilds=[GUILD_ID],
@@ -94,7 +80,7 @@ class Test(
 
 
 class SubmitRecord(
-    Slash, guilds=[GUILD_ID], name="record", parent=SubmitParent
+    RecordSlash, guilds=[GUILD_ID], name="record", parent=SubmitParent
 ):
     """Submit personal records to the database."""
 
@@ -220,15 +206,9 @@ class SubmitRecord(
         await VerificationViews(message_id=hidden_msg.id).save()
         await record_document.save()
 
-    async def autocomplete(
-        self, options: Dict[str, Union[int, float, str]], focused: str
-    ):
-        """Autocomplete for record submissions."""
-        return await _autocomplete(focused, options)
-
 
 class DeleteRecord(
-    Slash, guilds=[GUILD_ID], name="record", parent=DeleteParent
+    RecordSlash, guilds=[GUILD_ID], name="record", parent=DeleteParent
 ):
     """Delete personal records."""
 
@@ -276,14 +256,8 @@ class DeleteRecord(
         await delete_hidden(self.interaction, record_document)
         await record_document.delete()
 
-    async def autocomplete(
-        self, options: Dict[str, Union[int, float, str]], focused: str
-    ):
-        """Autocomplete for record deletion."""
-        return await _autocomplete(focused, options)
 
-
-class ViewRecords(Slash, name="leaderboard"):
+class ViewRecords(RecordSlash, name="leaderboard"):
     """View leaderboard for a particular map code and/or map level."""
 
     map_code: str = discord.Option(
@@ -330,12 +304,6 @@ class ViewRecords(Slash, name="leaderboard"):
         view = Paginator(embeds, self.interaction.user)
         await view.start(self.interaction)
 
-    async def autocomplete(
-        self, options: Dict[str, Union[int, float, str]], focused: str
-    ):
-        """Autocomplete for record viewing."""
-        return await _autocomplete(focused, options)
-
 
 class WorldRecords(Slash, name="world-records"):
     """View a specific users world records."""
@@ -349,7 +317,7 @@ class WorldRecords(Slash, name="world-records"):
 
 
 class WorldRecordsUserCommand(
-    discord.UserCommand, guilds=[GUILD_ID], name="world-records"
+    UserSlash, guilds=[GUILD_ID], name="world-records"
 ):
     """View a specific users world records."""
 
@@ -369,7 +337,7 @@ class PersonalRecords(Slash, name="personal-records"):
 
 
 class PersonalRecordsUserCommand(
-    discord.UserCommand, guilds=[GUILD_ID], name="personal-records"
+    UserSlash, guilds=[GUILD_ID], name="personal-records"
 ):
     """View a specific users personal records."""
 

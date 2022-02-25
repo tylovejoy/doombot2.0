@@ -7,7 +7,7 @@ import discord
 from database.documents import Tags
 from utils.errors import SearchNotFound
 from slash.parents import CreateParent, DeleteParent
-from slash.slash_command import Slash
+from slash.slash_command import Slash, TagSlash, WorkshopSlash
 from utils.constants import GUILD_ID
 from utils.embed import create_embed
 from utils.utilities import (
@@ -26,23 +26,8 @@ def setup(bot):
     bot.application_command(WorkshopHelp)
 
 
-async def _autocomplete(options, focused, list_obj):
-    if options[focused] == "":
-        return discord.AutoCompleteResponse({k: k for k in list_obj[:25]})
-
-    if focused in ["name", "search"]:
-        count = 0
-        autocomplete_ = {}
-        for k in list_obj:
-            if case_ignore_compare(k, options[focused]) and count < 25:
-                autocomplete_[k] = k
-                count += 1
-
-        return discord.AutoCompleteResponse(autocomplete_)
-
-
 class DeleteTag(
-    Slash, guilds=[GUILD_ID], name="tag", parent=DeleteParent
+    TagSlash, guilds=[GUILD_ID], name="tag", parent=DeleteParent
 ):
     """Delete a tag."""
 
@@ -66,10 +51,6 @@ class DeleteTag(
             f"**{tag.name}** has been deleted.",
         ):
             await tag.delete()
-
-    async def autocomplete(self, options, focused):
-        tag_names = await Tags.find_all_tag_names()
-        return await _autocomplete(options, focused, tag_names)
 
 
 class CreateTag(
@@ -101,7 +82,7 @@ class CreateTag(
             await tag.save()
 
 
-class TagsCommand(discord.SlashCommand, name="tag"):
+class TagsCommand(TagSlash, name="tag"):
     """Display answers for commonly asked questions."""
 
     name: str = discord.Option(description="Which tag to display?", autocomplete=True)
@@ -113,12 +94,9 @@ class TagsCommand(discord.SlashCommand, name="tag"):
             content=f"**{tag.name}**\n\n{tag.content}"
         )
 
-    async def autocomplete(self, options, focused):
-        tag_names = await Tags.find_all_tag_names()
-        return await _autocomplete(options, focused, tag_names)
 
 
-class WorkshopHelp(discord.SlashCommand, name="workshop"):
+class WorkshopHelp(WorkshopSlash, name="workshop"):
     """Display Overwatch Workshop information."""
 
     search: str = discord.Option(description="What to search?", autocomplete=True)
@@ -140,6 +118,3 @@ class WorkshopHelp(discord.SlashCommand, name="workshop"):
                 )
 
                 await self.interaction.edit_original_message(embed=embed)
-
-    async def autocomplete(self, options, focused):
-        return await _autocomplete(options, focused, self.client.ws_list)

@@ -18,3 +18,9 @@ class IncorrectChannel(Exception):
 
 class RecordNotFaster(Exception):
     """Submitted record was not faster than previously submitted record."""
+
+class DocumentAlreadyExists(Exception):
+    """Database document already exists."""
+
+class TournamentStateError(Exception):
+    """Tournament is incorrect active state."""
