@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from typing import Any, List
+from typing import Any, List, Optional
 
 from beanie import Document
 from beanie.odm.fields import Indexed
 from beanie.odm.operators.find.evaluation import RegEx
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+from utils.errors import MapCodeDoesNotExist
 
 
 class MapAlias(Document):
@@ -51,10 +53,10 @@ class Map(Document):
     """Collection of Maps."""
 
     user_id: int
-    code: Indexed(int, unique=True)
+    code: Indexed(str, unique=True)
     creator: str
     map_name: str
-    map_type: List[str]
+    map_type: Optional[List[str]] = Field([], alias="type")
     description: str
 
     @classmethod
@@ -65,7 +67,8 @@ class Map(Document):
     @classmethod
     async def check_code(cls, map_code: str) -> bool:
         """Check if a map exists with specific map_code."""
-        return await cls.find_one(cls.code == map_code).exists()
+        if not await cls.find_one(cls.code == map_code).exists():
+            raise MapCodeDoesNotExist("This workshop code doesn't exist in the database!")
 
     @classmethod
     async def get_all_maps(cls, map_name: str) -> List[Map]:

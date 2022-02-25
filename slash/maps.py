@@ -1,9 +1,10 @@
 from logging import getLogger
 from typing import Dict, Optional, Union
-
+from slash.slash_command import Slash
 import discord
 
 from database.maps import Map, MapAlias
+from utils.errors import InvalidMapName, MapCodeDoesNotExist, NoPermissions, SearchNotFound
 from slash.parents import DeleteParent, EditParent, SubmitParent
 from utils.constants import GUILD_ID, MAP_MAKER_ID, NEWEST_MAPS_ID
 from utils.embed import create_embed, maps_embed_fields, split_embeds
@@ -55,7 +56,7 @@ def autocomplete_maps(options, focused):
         return response
 
 
-class MapSearch(discord.SlashCommand, name="map-search"):
+class MapSearch(Slash, name="map-search"):
     """Search for maps using filters."""
 
     map_name: Optional[str] = discord.Option(
@@ -84,10 +85,7 @@ class MapSearch(discord.SlashCommand, name="map-search"):
         )
 
         if not search:
-            await self.interaction.edit_original_message(
-                content="Nothing found with the selected filters.",
-            )
-            return
+            raise SearchNotFound("Nothing found with the selected filters.")
 
         embed = create_embed(title="Map Search", desc="", user=self.interaction.user)
         embeds = await split_embeds(embed, search, maps_embed_fields)
@@ -100,10 +98,12 @@ class MapSearch(discord.SlashCommand, name="map-search"):
     ):
         """Autocomplete for slash command."""
         return autocomplete_maps(options, focused)
+    
+    
 
 
 class SubmitMap(
-    discord.SlashCommand, guilds=[GUILD_ID], parent=SubmitParent, name="map"
+    Slash, guilds=[GUILD_ID], parent=SubmitParent, name="map"
 ):
     """Submit maps to the database."""
 
@@ -123,20 +123,11 @@ class SubmitMap(
         """Callback for map submission slash command."""
         self.map_code = preprocess_map_code(self.map_code)
 
-        if await Map.check_code(self.map_code):
-            await self.interaction.response.send_message(
-                content="This workshop code already exists in the database!",
-                ephemeral=True,
-            )
-            return
+        await Map.check_code(self.map_code)
 
         self.map_name = MapNames.fuzz(self.map_name)
         if self.map_name not in MapNames.list():
-            await self.interaction.response.send_message(
-                content="Invalid map name!",
-                ephemeral=True,
-            )
-            return
+            raise InvalidMapName("Invalid map name!")
 
         preview = (
             f"**Map Code:** {self.map_code}\n"
@@ -195,7 +186,7 @@ class SubmitMap(
 
 
 class DeleteMap(
-    discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=DeleteParent
+    Slash, guilds=[GUILD_ID], name="map", parent=DeleteParent
 ):
     """Delete a map from the database."""
 
@@ -207,19 +198,10 @@ class DeleteMap(
         """Callback for deleting a map slash command."""
         await self.defer(ephemeral=True)
         self.map_code = preprocess_map_code(self.map_code)
-
-        if not await Map.check_code(self.map_code):
-            await self.interaction.response.send_message(
-                content="This workshop code doesn't exist in the database!",
-                ephemeral=True,
-            )
-            return
-
+        await Map.check_code(self.map_code)
         map_document = await Map.find_one_map(self.map_code)
-
-        if not await check_permissions(self.interaction, self.interaction.user.id == map_document.user_id):
-            return
-
+        await check_permissions(self.interaction, self.interaction.user.id == map_document.user_id)
+        
         preview = (
             f"**Map Code:** {map_document.code}\n"
             f"**Map Name:** {map_document.map_name}\n"
@@ -243,9 +225,9 @@ class DeleteMap(
         preview += f"{'―' * 15}\n" "**__MAP DELETED__** from the database!"
         await map_document.delete()
         await self.interaction.edit_original_message(content=preview, view=view)
+        
 
-
-class EditMap(discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=EditParent):
+class EditMap(Slash, guilds=[GUILD_ID], name="map", parent=EditParent):
     """Edit maps that you have submitted to the database. You can edit any field."""
 
     map_code: str = discord.Option(
@@ -272,18 +254,13 @@ class EditMap(discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=EditPa
 
         if self.new_map_code:
             self.new_map_code = preprocess_map_code(self.new_map_code)
-        if not await Map.check_code(self.map_code):
-            await self.interaction.response.send_message(
-                content="This workshop code doesn't exist in the database!",
-                ephemeral=True,
-            )
-            return
+        await Map.check_code(self.map_code)
+
         if self.map_name:
             self.map_name = MapNames.fuzz(self.map_name)
         map_document = await Map.find_one_map(self.map_code)
 
-        if not await check_permissions(self.interaction, self.interaction.user.id == map_document.user_id):
-            return
+        await check_permissions(self.interaction, self.interaction.user.id == map_document.user_id)
 
         map_document.code = self.new_map_code or map_document.code
         map_document.map_name = self.map_name or map_document.map_name
@@ -329,7 +306,7 @@ class EditMap(discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=EditPa
         return autocomplete_maps(options, focused)
 
 
-class RandomMap(discord.SlashCommand, name="random_map"):
+class RandomMap(Slash, name="random_map"):
     """Find random maps."""
 
     number: Optional[int] = discord.Option(
@@ -351,7 +328,7 @@ class RandomMap(discord.SlashCommand, name="random_map"):
 
 
 class SubmitMapAlias(
-    discord.SlashCommand, guilds=[GUILD_ID], name="map-alias", parent=SubmitParent
+    Slash, guilds=[GUILD_ID], name="map-alias", parent=SubmitParent
 ):
     """Create an alias for a map code. For when multiple codes point to the same map."""
 

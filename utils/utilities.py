@@ -14,7 +14,7 @@ from utils.constants import (
     TA_ROLE_ID,
     TRIFECTA_ROLE_ID,
 )
-from utils.errors import InvalidTime
+from utils.errors import InvalidTime, NoPermissions
 
 TIME_REGEX = re.compile(
     r"(?<!.)(\d{1,2})?:?(\d{1,2})?:?(?<!\d)(\d{1,2})\.?\d{1,4}?(?!.)"
@@ -94,17 +94,11 @@ def case_ignore_compare(string1: str, string2: str) -> bool:
     return string2.casefold() in string1.casefold()
 
 
-async def check_permissions(interaction: discord.Interaction, additional_perms: bool = False) -> bool:
-    if interaction.response.is_done():
-        send = interaction.edit_original_message
-    else:
-        send = interaction.response.send_message
-
+async def check_permissions(interaction: discord.Interaction, additional_perms: bool = False) -> None:
     if any(role.id in ROLE_WHITELIST for role in interaction.user.roles) or additional_perms:
-        return True
-   
-    await send(content="You do not have permission to use this command.")
-    return False
+        return
+    raise NoPermissions("You do not have permission to use this command.")
+
 
 
 def check_roles(interaction: discord.Interaction) -> bool:
