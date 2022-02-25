@@ -4,7 +4,6 @@ import datetime
 from logging import getLogger
 from os import environ
 from typing import Dict, List, Optional, Union
-from unicodedata import category
 
 import motor
 from beanie import Document, init_beanie

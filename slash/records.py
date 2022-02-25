@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Dict, Optional, Union
+from typing import Optional
 
 import discord
 from discord.utils import MISSING

@@ -3,7 +3,6 @@ from typing import List
 
 import discord
 
-from database.documents import Guide
 
 logger = logging.getLogger()
 

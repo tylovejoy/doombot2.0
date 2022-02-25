@@ -3,9 +3,12 @@ import discord
 from database.documents import Tags
 
 from database.records import Record
-from enums import MapNames
-from slash.maps import MAP_TYPES_AUTOCOMPLETE, MAPS_AUTOCOMPLETE
+from utils.enums import MapNames, MapTypes
 from utils.utilities import case_ignore_compare
+
+
+MAPS_AUTOCOMPLETE = {k: k for k in MapNames.list()}
+MAP_TYPES_AUTOCOMPLETE = {k: k for k in MapTypes.list()}
 
 
 class Slash(discord.SlashCommand):
@@ -50,6 +53,7 @@ class MapSlash(Slash):
                 }
             )
             return response
+
 
 class RecordSlash(Slash):
     async def autocomplete(focused, options):

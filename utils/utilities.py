@@ -10,9 +10,7 @@ from utils.constants import (
     BRACKET_TOURNAMENT_ROLE_ID,
     HC_ROLE_ID,
     MC_ROLE_ID,
-    NON_SPR_RECORDS_ID,
     ROLE_WHITELIST,
-    SPR_RECORDS_ID,
     TA_ROLE_ID,
     TRIFECTA_ROLE_ID,
 )

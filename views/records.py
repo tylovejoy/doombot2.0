@@ -2,7 +2,7 @@ import discord
 
 from database.documents import ExperiencePoints
 from database.records import Record
-from utils.constants import NON_SPR_RECORDS_ID, ROLE_WHITELIST, SPR_RECORDS_ID
+from utils.constants import NON_SPR_RECORDS_ID, SPR_RECORDS_ID
 from utils.enums import Emoji
 from utils.records import delete_hidden
 from utils.utilities import display_record

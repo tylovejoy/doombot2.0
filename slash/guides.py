@@ -1,5 +1,4 @@
 from logging import getLogger
-from typing import Dict, Union
 
 import discord
 

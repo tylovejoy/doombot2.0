@@ -42,7 +42,6 @@ from utils.embed import (
 )
 from utils.enums import Emoji
 from utils.errors import (
-    InvalidTime,
     RecordNotFaster,
     SearchNotFound,
     TournamentStateError,

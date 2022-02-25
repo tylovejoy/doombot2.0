@@ -7,11 +7,10 @@ import discord
 from database.documents import Tags
 from utils.errors import SearchNotFound
 from slash.parents import CreateParent, DeleteParent
-from slash.slash_command import Slash, TagSlash, WorkshopSlash
+from slash.slash_command import TagSlash, WorkshopSlash
 from utils.constants import GUILD_ID
 from utils.embed import create_embed
 from utils.utilities import (
-    case_ignore_compare,
     check_permissions,
     logging_util,
 )
