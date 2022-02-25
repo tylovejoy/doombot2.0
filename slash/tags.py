@@ -26,9 +26,7 @@ def setup(bot):
     bot.application_command(WorkshopHelp)
 
 
-class DeleteTag(
-    TagSlash, guilds=[GUILD_ID], name="tag", parent=DeleteParent
-):
+class DeleteTag(TagSlash, guilds=[GUILD_ID], name="tag", parent=DeleteParent):
     """Delete a tag."""
 
     name: str = discord.Option(
@@ -43,7 +41,7 @@ class DeleteTag(
 
         if not tag:
             raise SearchNotFound("Tag does not exist.")
-        
+
         view = ConfirmView()
         if await view.start(
             self.interaction,
@@ -64,8 +62,7 @@ class CreateTag(
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
         await check_permissions(self.interaction)
-        
-        
+
         tag = Tags(name=self.name, content=self.content)
         if not Tags.exists(self.name):
             raise SearchNotFound(
@@ -93,7 +90,6 @@ class TagsCommand(TagSlash, name="tag"):
         await self.interaction.edit_original_message(
             content=f"**{tag.name}**\n\n{tag.content}"
         )
-
 
 
 class WorkshopHelp(WorkshopSlash, name="workshop"):

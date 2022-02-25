@@ -79,9 +79,7 @@ class Test(
         print(all_)
 
 
-class SubmitRecord(
-    RecordSlash, guilds=[GUILD_ID], name="record", parent=SubmitParent
-):
+class SubmitRecord(RecordSlash, guilds=[GUILD_ID], name="record", parent=SubmitParent):
     """Submit personal records to the database."""
 
     screenshot: discord.Attachment = discord.Option(
@@ -104,7 +102,7 @@ class SubmitRecord(
         await self.defer(ephemeral=True)
 
         await check_channels(self.interaction, [SPR_RECORDS_ID, NON_SPR_RECORDS_ID])
-        
+
         self.map_code = preprocess_map_code(self.map_code)
         self.map_code, code_changed = await find_alt_map_code(self.map_code)
 
@@ -126,7 +124,6 @@ class SubmitRecord(
             and record_document.verified
         ):
             raise RecordNotFaster("Personal best needs to be faster to update.")
-
 
         # Create initial document if none found.
         if not record_document:
@@ -207,9 +204,7 @@ class SubmitRecord(
         await record_document.save()
 
 
-class DeleteRecord(
-    RecordSlash, guilds=[GUILD_ID], name="record", parent=DeleteParent
-):
+class DeleteRecord(RecordSlash, guilds=[GUILD_ID], name="record", parent=DeleteParent):
     """Delete personal records."""
 
     map_code: str = discord.Option(
@@ -316,9 +311,7 @@ class WorldRecords(Slash, name="world-records"):
         await world_records(self.interaction, self.user)
 
 
-class WorldRecordsUserCommand(
-    UserSlash, guilds=[GUILD_ID], name="world-records"
-):
+class WorldRecordsUserCommand(UserSlash, guilds=[GUILD_ID], name="world-records"):
     """View a specific users world records."""
 
     async def callback(self) -> None:
@@ -336,9 +329,7 @@ class PersonalRecords(Slash, name="personal-records"):
         await personal_best(self.interaction, self.user)
 
 
-class PersonalRecordsUserCommand(
-    UserSlash, guilds=[GUILD_ID], name="personal-records"
-):
+class PersonalRecordsUserCommand(UserSlash, guilds=[GUILD_ID], name="personal-records"):
     """View a specific users personal records."""
 
     async def callback(self) -> None:

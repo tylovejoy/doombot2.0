@@ -96,10 +96,16 @@ def case_ignore_compare(string1: str, string2: str) -> bool:
     return string2.casefold() in string1.casefold()
 
 
-async def check_permissions(interaction: discord.Interaction, additional_perms: bool = False) -> None:
-    if any(role.id in ROLE_WHITELIST for role in interaction.user.roles) or additional_perms:
+async def check_permissions(
+    interaction: discord.Interaction, additional_perms: bool = False
+) -> None:
+    if (
+        any(role.id in ROLE_WHITELIST for role in interaction.user.roles)
+        or additional_perms
+    ):
         return
     raise NoPermissions("You do not have permission to use this command.")
+
 
 async def check_channels(interaction: discord.Interaction, channels: List[int]):
     if interaction.channel_id not in channels:

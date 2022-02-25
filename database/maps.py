@@ -68,7 +68,9 @@ class Map(Document):
     async def check_code(cls, map_code: str) -> bool:
         """Check if a map exists with specific map_code."""
         if not await cls.find_one(cls.code == map_code).exists():
-            raise MapCodeDoesNotExist("This workshop code doesn't exist in the database!")
+            raise MapCodeDoesNotExist(
+                "This workshop code doesn't exist in the database!"
+            )
 
     @classmethod
     async def get_all_maps(cls, map_name: str) -> List[Map]:

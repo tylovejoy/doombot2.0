@@ -5,12 +5,13 @@ from database.documents import Tags
 from database.records import Record
 from utils.utilities import case_ignore_compare
 
-class Slash(discord.SlashCommand):
 
+class Slash(discord.SlashCommand):
     async def error(self, exception: Exception) -> None:
         await self.interaction.edit_original_message(
             content=exception,
         )
+
 
 class UserSlash(discord.UserCommand):
     async def error(self, exception: Exception) -> None:
@@ -18,8 +19,8 @@ class UserSlash(discord.UserCommand):
             content=exception,
         )
 
-class RecordSlash(Slash):
 
+class RecordSlash(Slash):
     async def autocomplete(focused, options):
         """Basic Autocomplete for Record slash commands."""
         if focused == "map_level":
@@ -33,18 +34,27 @@ class RecordSlash(Slash):
             )
             return response
 
+
 class TagSlash(Slash):
-    async def autocomplete(self, options: Dict[str, Union[int, float, str]], focused: str) -> List:
+    async def autocomplete(
+        self, options: Dict[str, Union[int, float, str]], focused: str
+    ) -> List:
         tag_names = await Tags.find_all_tag_names()
         return await tags_autocomplete(options, focused, tag_names)
-        
+
+
 class WorkshopSlash(Slash):
-    async def autocomplete(self, options: Dict[str, Union[int, float, str]], focused: str) -> List:
+    async def autocomplete(
+        self, options: Dict[str, Union[int, float, str]], focused: str
+    ) -> List:
         return await tags_autocomplete(options, focused, self.client.ws_list)
 
-async def tags_autocomplete(options: Dict[str, Union[int, float, str]], focused: str, list_obj: List):
+
+async def tags_autocomplete(
+    options: Dict[str, Union[int, float, str]], focused: str, list_obj: List
+):
     if options[focused] == "":
-            return discord.AutoCompleteResponse({k: k for k in list_obj[:25]})
+        return discord.AutoCompleteResponse({k: k for k in list_obj[:25]})
 
     if focused in ["name", "search"]:
         count = 0

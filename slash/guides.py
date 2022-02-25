@@ -4,7 +4,7 @@ from typing import Dict, Union
 import discord
 
 from database.documents import Guide
-from errors import DocumentAlreadyExists, SearchNotFound
+from utils.errors import DocumentAlreadyExists, SearchNotFound
 from slash.parents import DeleteParent, SubmitParent
 from slash.slash_command import RecordSlash
 from utils.constants import GUILD_ID
@@ -97,7 +97,9 @@ class SubmitGuide(
 
         if search:
             if any([link for link in search.guide if link == self.link]):
-                raise DocumentAlreadyExists("This particular link has already been added.")
+                raise DocumentAlreadyExists(
+                    "This particular link has already been added."
+                )
         else:
             search = Guide(code=self.map_code)
 

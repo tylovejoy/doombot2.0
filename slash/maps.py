@@ -4,7 +4,12 @@ from slash.slash_command import Slash
 import discord
 
 from database.maps import Map, MapAlias
-from utils.errors import InvalidMapName, MapCodeDoesNotExist, NoPermissions, SearchNotFound
+from utils.errors import (
+    InvalidMapName,
+    MapCodeDoesNotExist,
+    NoPermissions,
+    SearchNotFound,
+)
 from slash.parents import DeleteParent, EditParent, SubmitParent
 from utils.constants import GUILD_ID, MAP_MAKER_ID, NEWEST_MAPS_ID
 from utils.embed import create_embed, maps_embed_fields, split_embeds
@@ -98,13 +103,9 @@ class MapSearch(Slash, name="map-search"):
     ):
         """Autocomplete for slash command."""
         return autocomplete_maps(options, focused)
-    
-    
 
 
-class SubmitMap(
-    Slash, guilds=[GUILD_ID], parent=SubmitParent, name="map"
-):
+class SubmitMap(Slash, guilds=[GUILD_ID], parent=SubmitParent, name="map"):
     """Submit maps to the database."""
 
     map_code: str = discord.Option(
@@ -185,9 +186,7 @@ class SubmitMap(
         return autocomplete_maps(options, focused)
 
 
-class DeleteMap(
-    Slash, guilds=[GUILD_ID], name="map", parent=DeleteParent
-):
+class DeleteMap(Slash, guilds=[GUILD_ID], name="map", parent=DeleteParent):
     """Delete a map from the database."""
 
     map_code: str = discord.Option(
@@ -200,8 +199,10 @@ class DeleteMap(
         self.map_code = preprocess_map_code(self.map_code)
         await Map.check_code(self.map_code)
         map_document = await Map.find_one_map(self.map_code)
-        await check_permissions(self.interaction, self.interaction.user.id == map_document.user_id)
-        
+        await check_permissions(
+            self.interaction, self.interaction.user.id == map_document.user_id
+        )
+
         preview = (
             f"**Map Code:** {map_document.code}\n"
             f"**Map Name:** {map_document.map_name}\n"
@@ -213,9 +214,7 @@ class DeleteMap(
         view = MapSubmitView(self.interaction, confirm_disabled=False)
         view.remove_item(view.select_menu)
 
-        await self.interaction.edit_original_message(
-            content=preview, view=view
-        )
+        await self.interaction.edit_original_message(content=preview, view=view)
 
         await view.wait()
         if not view.confirm.value:
@@ -225,7 +224,7 @@ class DeleteMap(
         preview += f"{'―' * 15}\n" "**__MAP DELETED__** from the database!"
         await map_document.delete()
         await self.interaction.edit_original_message(content=preview, view=view)
-        
+
 
 class EditMap(Slash, guilds=[GUILD_ID], name="map", parent=EditParent):
     """Edit maps that you have submitted to the database. You can edit any field."""
@@ -260,7 +259,9 @@ class EditMap(Slash, guilds=[GUILD_ID], name="map", parent=EditParent):
             self.map_name = MapNames.fuzz(self.map_name)
         map_document = await Map.find_one_map(self.map_code)
 
-        await check_permissions(self.interaction, self.interaction.user.id == map_document.user_id)
+        await check_permissions(
+            self.interaction, self.interaction.user.id == map_document.user_id
+        )
 
         map_document.code = self.new_map_code or map_document.code
         map_document.map_name = self.map_name or map_document.map_name
@@ -279,9 +280,7 @@ class EditMap(Slash, guilds=[GUILD_ID], name="map", parent=EditParent):
             if x.label in map_document.map_type:
                 x.default = True
 
-        await self.interaction.edit_original_message(
-            content=preview, view=view
-        )
+        await self.interaction.edit_original_message(content=preview, view=view)
 
         await view.wait()
 
@@ -327,9 +326,7 @@ class RandomMap(Slash, name="random_map"):
         await view.start(self.interaction)
 
 
-class SubmitMapAlias(
-    Slash, guilds=[GUILD_ID], name="map-alias", parent=SubmitParent
-):
+class SubmitMapAlias(Slash, guilds=[GUILD_ID], name="map-alias", parent=SubmitParent):
     """Create an alias for a map code. For when multiple codes point to the same map."""
 
     original_code: str = discord.Option(

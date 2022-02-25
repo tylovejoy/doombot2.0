@@ -41,7 +41,12 @@ from utils.embed import (
     split_embeds,
 )
 from utils.enums import Emoji
-from utils.errors import InvalidTime, RecordNotFaster, SearchNotFound, TournamentStateError
+from utils.errors import (
+    InvalidTime,
+    RecordNotFaster,
+    SearchNotFound,
+    TournamentStateError,
+)
 from utils.excel_exporter import init_workbook
 from utils.utilities import (
     check_permissions,
@@ -283,9 +288,7 @@ class ChangeRank(
             await user.save()
 
 
-class ViewTournamentRecords(
-    Slash, name="leaderboard", parent=TournamentParent
-):
+class ViewTournamentRecords(Slash, name="leaderboard", parent=TournamentParent):
     """View leaderboard for a particular tournament category and optionally tournament rank."""
 
     category: Literal["Time Attack", "Mildcore", "Hardcore", "Bonus"] = discord.Option(

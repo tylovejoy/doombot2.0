@@ -45,9 +45,7 @@ class EndEvent(
         await event.delete()
 
 
-class CreateEvent(
-    Slash, guilds=[GUILD_ID], name="event", parent=CreateParent
-):
+class CreateEvent(Slash, guilds=[GUILD_ID], name="event", parent=CreateParent):
     """Create an event."""
 
     event_type: Literal["Movie", "Game"] = discord.Option(
