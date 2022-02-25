@@ -4,7 +4,7 @@ import discord
 
 from database.documents import ExperiencePoints, EXPRanks
 from utils.constants import GUILD_ID
-from utils.utilities import logging_util
+from utils.utilities import check_permissions, logging_util
 
 logger = getLogger(__name__)
 
@@ -234,6 +234,9 @@ class MigrationTasks(discord.SlashCommand, guilds=[GUILD_ID], name="migrate"):
     """Migrate to doombot2.0"""
 
     async def callback(self) -> None:
+        await self.defer(ephemeral=True)
+        if not await check_permissions(self.interaction):
+            return
         logger.info(logging_util("Migration", "BEGIN EXP TRANSFER"))
         members = self.interaction.guild.members
         member_list = []
@@ -260,3 +263,4 @@ class MigrationTasks(discord.SlashCommand, guilds=[GUILD_ID], name="migrate"):
                 )
             )
         await ExperiencePoints.insert_many(member_list)
+        await self.interaction.edit_original_message(content="Done.")

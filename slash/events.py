@@ -1,5 +1,4 @@
 import datetime
-from hashlib import new
 import dateparser
 from typing import Literal
 
@@ -7,9 +6,8 @@ import discord
 from database.documents import Events
 
 from slash.parents import CreateParent
-from utils.utilities import logging_util
+from utils.utilities import check_permissions, logging_util
 from utils.constants import (
-    BOT_ID,
     GAME_ROLE,
     GUILD_ID,
     MOVIE_ROLE,
@@ -36,6 +34,9 @@ class EndEvent(
 
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
+        if not await check_permissions(self.interaction):
+            return
+
         event = await Events.find_one(Events.started == True)
         guild = self.client.get_guild(self.interaction.guild_id)
         await guild.get_channel(event.text).delete()
@@ -63,6 +64,8 @@ class CreateEvent(
 
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
+        if not await check_permissions(self.interaction):
+            return
         self.schedule_start: datetime.datetime = dateparser.parse(
             self.schedule_start,
             settings={"PREFER_DATES_FROM": "future", "RETURN_AS_TIMEZONE_AWARE": True},
