@@ -51,7 +51,6 @@ class MapSlash(Slash):
             )
             return response
 
-
 class RecordSlash(Slash):
     async def autocomplete(focused, options):
         """Basic Autocomplete for Record slash commands."""
