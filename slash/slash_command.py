@@ -3,6 +3,8 @@ import discord
 from database.documents import Tags
 
 from database.records import Record
+from enums import MapNames
+from slash.maps import MAP_TYPES_AUTOCOMPLETE, MAPS_AUTOCOMPLETE
 from utils.utilities import case_ignore_compare
 
 
@@ -19,6 +21,31 @@ class UserSlash(discord.UserCommand):
             content=exception,
         )
 
+
+class MapSlash(Slash):
+    async def autocomplete(self, options: Dict[str, Union[int, float, str]], focused: str) -> List:
+        """Display autocomplete for map names and types."""
+        if focused == "map_name":
+            if options[focused] == "":
+                return discord.AutoCompleteResponse({k: k for k in MapNames.list()[:25]})
+            response = discord.AutoCompleteResponse(
+                {
+                    k: k
+                    for k in MAPS_AUTOCOMPLETE
+                    if case_ignore_compare(k, options[focused])
+                }
+            )
+            return response
+
+        if focused == "map_type":
+            response = discord.AutoCompleteResponse(
+                {
+                    k: k
+                    for k in MAP_TYPES_AUTOCOMPLETE
+                    if case_ignore_compare(k, options[focused])
+                }
+            )
+            return response
 
 class RecordSlash(Slash):
     async def autocomplete(focused, options):
