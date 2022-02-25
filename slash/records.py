@@ -23,11 +23,10 @@ from utils.embed import (
 from utils.enums import Emoji
 from utils.records import delete_hidden, personal_best, world_records
 from utils.utilities import (
-    check_roles,
+    check_permissions,
     find_alt_map_code,
     logging_util,
     make_ordinal,
-    no_perms_warning,
     preprocess_map_code,
     time_convert,
 )
@@ -248,12 +247,12 @@ class DeleteRecord(
     )
 
     async def callback(self) -> None:
+        await self.defer(ephemeral=True)
         self.map_code = preprocess_map_code(self.map_code)
         self.map_level = self.map_level.upper()
 
         if self.user:
-            if not check_roles(self.interaction):
-                await no_perms_warning(self.interaction)
+            if not check_permissions(self.interaction):
                 return
             user_id = self.user.id
         else:
@@ -267,8 +266,8 @@ class DeleteRecord(
         embed.add_field(**await records_basic_embed_fields(record_document))
 
         view = RecordSubmitView()
-        await self.interaction.response.send_message(
-            "Do you want to delete this?", ephemeral=True, view=view, embed=embed
+        await self.interaction.edit_original_message(
+            "Do you want to delete this?", view=view, embed=embed
         )
         await view.wait()
 

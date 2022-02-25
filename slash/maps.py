@@ -10,9 +10,8 @@ from utils.embed import create_embed, maps_embed_fields, split_embeds
 from utils.enums import MapNames, MapTypes
 from utils.utilities import (
     case_ignore_compare,
-    check_roles,
+    check_permissions,
     logging_util,
-    no_perms_warning,
     preprocess_map_code,
 )
 from views.basic import ConfirmButton
@@ -206,6 +205,7 @@ class DeleteMap(
 
     async def callback(self) -> None:
         """Callback for deleting a map slash command."""
+        await self.defer(ephemeral=True)
         self.map_code = preprocess_map_code(self.map_code)
 
         if not await Map.check_code(self.map_code):
@@ -217,11 +217,7 @@ class DeleteMap(
 
         map_document = await Map.find_one_map(self.map_code)
 
-        if (
-            not check_roles(self.interaction)
-            or self.interaction.user.id != map_document.user_id
-        ):
-            await no_perms_warning(self.interaction)
+        if not await check_permissions(self.interaction, self.interaction.user.id == map_document.user_id):
             return
 
         preview = (
@@ -235,8 +231,8 @@ class DeleteMap(
         view = MapSubmitView(self.interaction, confirm_disabled=False)
         view.remove_item(view.select_menu)
 
-        await self.interaction.response.send_message(
-            content=preview, ephemeral=True, view=view
+        await self.interaction.edit_original_message(
+            content=preview, view=view
         )
 
         await view.wait()
@@ -271,6 +267,7 @@ class EditMap(discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=EditPa
 
     async def callback(self) -> None:
         """Callback for edit map slash command."""
+        await self.defer(ephemeral=True)
         self.map_code = preprocess_map_code(self.map_code)
 
         if self.new_map_code:
@@ -285,14 +282,7 @@ class EditMap(discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=EditPa
             self.map_name = MapNames.fuzz(self.map_name)
         map_document = await Map.find_one_map(self.map_code)
 
-        if (
-            not check_roles(self.interaction)
-            or self.interaction.user.id != map_document.user_id
-        ):
-            await self.interaction.response.send_message(
-                content="You do not have permission to edit this!",
-                ephemeral=True,
-            )
+        if not await check_permissions(self.interaction, self.interaction.user.id == map_document.user_id):
             return
 
         map_document.code = self.new_map_code or map_document.code
@@ -312,8 +302,8 @@ class EditMap(discord.SlashCommand, guilds=[GUILD_ID], name="map", parent=EditPa
             if x.label in map_document.map_type:
                 x.default = True
 
-        await self.interaction.response.send_message(
-            content=preview, ephemeral=True, view=view
+        await self.interaction.edit_original_message(
+            content=preview, view=view
         )
 
         await view.wait()

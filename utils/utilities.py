@@ -94,11 +94,17 @@ def case_ignore_compare(string1: str, string2: str) -> bool:
     return string2.casefold() in string1.casefold()
 
 
-def check_permissions(interaction: discord.Interaction, blank) -> bool:
-    if interaction.is_done():
-        pass
+async def check_permissions(interaction: discord.Interaction, additional_perms: bool = False) -> bool:
+    if interaction.response.is_done():
+        send = interaction.edit_original_message
     else:
-        pass
+        send = interaction.response.send_message
+
+    if any(role.id in ROLE_WHITELIST for role in interaction.user.roles) or additional_perms:
+        return True
+   
+    await send(content="You do not have permission to use this command.")
+    return False
 
 
 def check_roles(interaction: discord.Interaction) -> bool:

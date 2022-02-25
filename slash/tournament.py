@@ -43,13 +43,12 @@ from utils.enums import Emoji
 from utils.errors import InvalidTime
 from utils.excel_exporter import init_workbook
 from utils.utilities import (
-    check_roles,
+    check_permissions,
     display_record,
     format_missions,
     get_mention,
     logging_util,
     make_ordinal,
-    no_perms_warning,
     preprocess_map_code,
     time_convert,
     tournament_category_map,
@@ -94,11 +93,9 @@ class TournamentStart(
 
     async def callback(self) -> None:
         """Callback for submitting records slash command."""
-        if not check_roles(self.interaction):
-            await no_perms_warning(self.interaction)
-            return
-
         await self.defer(ephemeral=True)
+        if not await check_permissions(self.interaction):
+            return
 
         if await Tournament.find_active():
             await self.interaction.edit_original_message(
@@ -262,10 +259,9 @@ class ChangeRank(
     # )
 
     async def callback(self) -> None:
-        if not check_roles(self.interaction):
-            await no_perms_warning(self.interaction)
-            return
         await self.defer(ephemeral=True)
+        if not await check_permissions(self.interaction):
+            return
 
         user = await ExperiencePoints.find_user(self.user.id)
 
@@ -436,8 +432,7 @@ class TournamentAnnouncement(
     )
 
     async def callback(self) -> None:
-        if not check_roles(self.interaction):
-            await no_perms_warning(self.interaction)
+        if not await check_permissions(self.interaction):
             return
         modal = TournamentAnnouncementModal()
 
@@ -517,10 +512,9 @@ class TournamentAddMissions(
     target: str = discord.Option(description="Target value of mission.")
 
     async def callback(self) -> None:
-        if not check_roles(self.interaction):
-            await no_perms_warning(self.interaction)
-            return
         await self.defer(ephemeral=True)
+        if not await check_permissions(self.interaction):
+            return
 
         tournament = await Tournament.find_active()
         if not tournament:
@@ -607,10 +601,9 @@ class TournamentPublishMissions(
     parent=TournamentMissionsParent,
 ):
     async def callback(self) -> None:
-        if not check_roles(self.interaction):
-            await no_perms_warning(self.interaction)
-            return
         await self.defer(ephemeral=True)
+        if not await check_permissions(self.interaction):
+            return
 
         tournament = await Tournament.find_active()
         if not tournament:

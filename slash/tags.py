@@ -10,9 +10,8 @@ from utils.constants import GUILD_ID
 from utils.embed import create_embed
 from utils.utilities import (
     case_ignore_compare,
-    check_roles,
+    check_permissions,
     logging_util,
-    no_perms_warning,
 )
 from views.basic import ConfirmView
 
@@ -50,10 +49,9 @@ class DeleteTag(
     )
 
     async def callback(self) -> None:
-        if not check_roles(self.interaction):
-            await no_perms_warning(self.interaction)
-            return
         await self.defer(ephemeral=True)
+        if not check_permissions(self.interaction):
+            return
 
         tag = await Tags.find_one(Tags.name == self.name)
 
@@ -83,10 +81,10 @@ class CreateTag(
     content: str = discord.Option(description="What should the content of the tag be?")
 
     async def callback(self) -> None:
-        if not check_roles(self.interaction):
-            await no_perms_warning(self.interaction)
-            return
         await self.defer(ephemeral=True)
+        if not check_permissions(self.interaction):
+            return
+        
         tag = Tags(name=self.name, content=self.content)
         if not Tags.exists(self.name):
             await self.interaction.edit_original_message(
