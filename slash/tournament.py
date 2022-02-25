@@ -793,7 +793,7 @@ async def export_records(tournament: Tournament, thread: discord.Thread):
     await thread.send(
         file=discord.File(
             fp=r"DPK_Tournament.xlsx",
-            filename=f"XP_Spreadsheet.xlsx",
+            filename="XP_Spreadsheet.xlsx",
         )
     )
     for category in ["ta", "mc", "hc", "bo"]:
