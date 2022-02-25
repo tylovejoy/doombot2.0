@@ -1,6 +1,6 @@
 from logging import getLogger
 from typing import Dict, Optional, Union
-from slash.slash_command import Slash
+from slash.slash_command import MapSlash, Slash
 import discord
 
 from database.maps import Map, MapAlias
@@ -36,32 +36,7 @@ def setup(bot):
     bot.application_command(RandomMap)
 
 
-def autocomplete_maps(options, focused):
-    """Display autocomplete for map names and types."""
-    if focused == "map_name":
-        if options[focused] == "":
-            return discord.AutoCompleteResponse({k: k for k in MapNames.list()[:25]})
-        response = discord.AutoCompleteResponse(
-            {
-                k: k
-                for k in MAPS_AUTOCOMPLETE
-                if case_ignore_compare(k, options[focused])
-            }
-        )
-        return response
-
-    if focused == "map_type":
-        response = discord.AutoCompleteResponse(
-            {
-                k: k
-                for k in MAP_TYPES_AUTOCOMPLETE
-                if case_ignore_compare(k, options[focused])
-            }
-        )
-        return response
-
-
-class MapSearch(Slash, name="map-search"):
+class MapSearch(MapSlash, name="map-search"):
     """Search for maps using filters."""
 
     map_name: Optional[str] = discord.Option(
@@ -98,14 +73,8 @@ class MapSearch(Slash, name="map-search"):
         view = Paginator(embeds, self.interaction.user)
         await view.start(self.interaction)
 
-    async def autocomplete(
-        self, options: Dict[str, Union[int, float, str]], focused: str
-    ):
-        """Autocomplete for slash command."""
-        return autocomplete_maps(options, focused)
 
-
-class SubmitMap(Slash, guilds=[GUILD_ID], parent=SubmitParent, name="map"):
+class SubmitMap(MapSlash, guilds=[GUILD_ID], parent=SubmitParent, name="map"):
     """Submit maps to the database."""
 
     map_code: str = discord.Option(
@@ -179,18 +148,13 @@ class SubmitMap(Slash, guilds=[GUILD_ID], parent=SubmitParent, name="map"):
                 reason="User submitted a map to the bot.",
             )
 
-    async def autocomplete(
-        self, options: Dict[str, Union[int, float, str]], focused: str
-    ):
-        """Autocomplete for map submission slash command."""
-        return autocomplete_maps(options, focused)
 
-
-class DeleteMap(Slash, guilds=[GUILD_ID], name="map", parent=DeleteParent):
+class DeleteMap(MapSlash, guilds=[GUILD_ID], name="map", parent=DeleteParent):
     """Delete a map from the database."""
 
     map_code: str = discord.Option(
         description="Workshop code for this parkour map.",
+        autocomplete=True,
     )
 
     async def callback(self) -> None:
@@ -226,7 +190,7 @@ class DeleteMap(Slash, guilds=[GUILD_ID], name="map", parent=DeleteParent):
         await self.interaction.edit_original_message(content=preview, view=view)
 
 
-class EditMap(Slash, guilds=[GUILD_ID], name="map", parent=EditParent):
+class EditMap(MapSlash, guilds=[GUILD_ID], name="map", parent=EditParent):
     """Edit maps that you have submitted to the database. You can edit any field."""
 
     map_code: str = discord.Option(
@@ -298,14 +262,8 @@ class EditMap(Slash, guilds=[GUILD_ID], name="map", parent=EditParent):
         await map_document.save()
         await self.interaction.edit_original_message(content=preview, view=view)
 
-    async def autocomplete(
-        self, options: Dict[str, Union[int, float, str]], focused: str
-    ):
-        """Autocomplete for edit map slash command."""
-        return autocomplete_maps(options, focused)
 
-
-class RandomMap(Slash, name="random_map"):
+class RandomMap(MapSlash, name="random_map"):
     """Find random maps."""
 
     number: Optional[int] = discord.Option(
@@ -326,11 +284,14 @@ class RandomMap(Slash, name="random_map"):
         await view.start(self.interaction)
 
 
-class SubmitMapAlias(Slash, guilds=[GUILD_ID], name="map-alias", parent=SubmitParent):
+class SubmitMapAlias(
+    MapSlash, guilds=[GUILD_ID], name="map-alias", parent=SubmitParent
+):
     """Create an alias for a map code. For when multiple codes point to the same map."""
 
     original_code: str = discord.Option(
-        description="Original map code you want to create an alias for."
+        description="Original map code you want to create an alias for.",
+        autocomplete=True,
     )
     alias: str = discord.Option(description="Alias for the original map code.")
 
