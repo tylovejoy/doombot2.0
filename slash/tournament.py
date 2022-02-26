@@ -445,7 +445,7 @@ class TournamentAnnouncement(
         embed.add_field(name=modal.title_, value=modal.content, inline=False)
 
         if self.scheduled_start:
-            self.scheduled_start = dateparser.parse(
+            self.scheduled_start: datetime.datetime = dateparser.parse(
                 self.scheduled_start, settings={"PREFER_DATES_FROM": "future"}
             )
             embed.add_field(

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, List, Optional
+from typing import Any, List, Optional, NoReturn
 
 from beanie import Document
 from beanie.odm.fields import Indexed
@@ -65,7 +65,7 @@ class Map(Document):
         return await cls.find_one(cls.code == map_code)
 
     @classmethod
-    async def check_code(cls, map_code: str) -> bool:
+    async def check_code(cls, map_code: str) -> NoReturn:
         """Check if a map exists with specific map_code."""
         if not await cls.find_one(cls.code == map_code).exists():
             raise MapCodeDoesNotExist(

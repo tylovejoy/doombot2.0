@@ -1,6 +1,6 @@
 import datetime
 import re
-from typing import List, Union
+from typing import List, Union, Tuple, TYPE_CHECKING
 
 import discord
 
@@ -16,6 +16,7 @@ from utils.constants import (
 )
 from utils.errors import IncorrectChannel, InvalidTime, NoPermissions
 
+
 TIME_REGEX = re.compile(
     r"(?<!.)(\d{1,2})?:?(\d{1,2})?:?(?<!\d)(\d{1,2})\.?\d{1,4}?(?!.)"
 )
@@ -30,7 +31,7 @@ def is_time_format(s: str) -> bool:
     return bool(TIME_REGEX.match(s))
 
 
-def time_convert(time_input: str) -> float:
+def time_convert(time_input: str) -> Union[float, str]:
     """Convert time (str) into seconds (float)."""
     try:
         neg_time = -1 if time_input[0] == "-" else 1
@@ -81,7 +82,7 @@ def preprocess_map_code(map_code: str) -> str:
     return map_code.upper().replace("O", "0")
 
 
-async def find_alt_map_code(map_code: str) -> str:
+async def find_alt_map_code(map_code: str) -> Tuple[str, bool]:
     """Return a map code alias and a corresponding bool."""
     search = await MapAlias.get_alias(map_code)
     if search:
