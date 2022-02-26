@@ -1,6 +1,6 @@
 import datetime
 import re
-from typing import List, Union, Tuple, TYPE_CHECKING
+from typing import List, Union, Tuple
 
 import discord
 

@@ -3,7 +3,7 @@ import datetime
 import operator
 import re
 from logging import getLogger
-from typing import Dict, List, Literal, Optional, Tuple, Union
+from typing import Dict, List, Literal, Optional, Union
 
 import dateparser
 import discord
