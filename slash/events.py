@@ -9,6 +9,7 @@ from database.documents import Events
 from slash.parents import CreateParent
 from slash.slash_command import Slash
 from utils.constants import GAME_ROLE, GUILD_ID, MOVIE_ROLE, SERVER_ANNOUNCEMENTS
+from utils.errors import InvalidEventType
 from utils.utilities import check_permissions, logging_util
 
 logger = getLogger(__name__)
@@ -94,6 +95,8 @@ class CreateEvent(Slash, guilds=[GUILD_ID], name="event", parent=CreateParent):
             role = guild.get_role(MOVIE_ROLE)
         elif self.event_type == "Game":
             role = guild.get_role(GAME_ROLE)
+        else:
+            raise InvalidEventType("This event type is invalid.")
 
         await announcements_channel.send(
             f"{role.mention}\n"

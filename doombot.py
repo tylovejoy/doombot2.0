@@ -215,7 +215,8 @@ class DoomBot(discord.Client):
                     status=2,
                 )
 
-    async def on_member_join(self, member: discord.Member):
+    @staticmethod
+    async def on_member_join(member: discord.Member):
         new_user = ExperiencePoints(
             user_id=member.id,
             alias=member.name,
@@ -233,7 +234,8 @@ class DoomBot(discord.Client):
     async def on_guild_scheduled_event_update(self, guild, before, after):
         pass
 
-    async def on_message(self, message: discord.Message):
+    @staticmethod
+    async def on_message(message: discord.Message):
         # Suggestions
         if message.channel.id == SUGGESTIONS_ID:
             await message.add_reaction(emoji="<:upper:929871697555914752>")
@@ -335,7 +337,8 @@ class DoomBot(discord.Client):
                 content=f"{star_emoji(entry.stars)} **{entry.stars}**"
             )
 
-    async def on_thread_update(self, before: discord.Thread, after: discord.Thread):
+    @staticmethod
+    async def on_thread_update(before: discord.Thread, after: discord.Thread):
         if after.archived and after.locked:
             return  # Ignore if locked
 

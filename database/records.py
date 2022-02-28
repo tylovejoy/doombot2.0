@@ -186,7 +186,7 @@ class Record(Document):
         )
 
     @classmethod
-    async def find_world_records(cls, **filters) -> WorldRecordsAggregate:
+    async def find_world_records(cls, **filters) -> List[WorldRecordsAggregate]:
         """Find all the world records that a user has."""
 
         map_code = filters.get("map_code")
