@@ -1,7 +1,11 @@
 import discord
 from discord.ui import TextInput
 
-from utils.utilities import select_button_enable
+from utils.utilities import (
+    get_mention,
+    select_button_enable,
+    tournament_category_map_reverse,
+)
 from views.basic import ConfirmButton
 
 
@@ -113,6 +117,20 @@ class TournamentCategoryView(discord.ui.View):
 
         self.confirm = ConfirmButton(row=1, disabled=True)
         self.add_item(self.confirm)
+
+    async def start(self, embed) -> str:
+        await self.interaction.edit_original_message(
+            content="Select any mentions and confirm data is correct.",
+            embed=embed,
+            view=self,
+        )
+        await self.wait()
+        return "".join(
+            [
+                get_mention(tournament_category_map_reverse(m), self.interaction)
+                for m in self.mentions
+            ]
+        )
 
 
 class TournamentCategoriesSelect(discord.ui.Select):

@@ -6,7 +6,6 @@ from discord.utils import MISSING
 
 from database.documents import ExperiencePoints, VerificationViews
 from database.records import Record
-from utils.errors import RecordNotFaster, SearchNotFound
 from slash.parents import DeleteParent, SubmitParent
 from slash.slash_command import RecordSlash, Slash, UserSlash
 from utils.constants import (
@@ -23,6 +22,7 @@ from utils.embed import (
     split_embeds,
 )
 from utils.enums import Emoji
+from utils.errors import RecordNotFaster, SearchNotFound
 from utils.records import delete_hidden, personal_best, world_records
 from utils.utilities import (
     check_channels,

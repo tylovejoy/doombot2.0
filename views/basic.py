@@ -3,7 +3,6 @@ from typing import List
 
 import discord
 
-
 logger = logging.getLogger()
 
 

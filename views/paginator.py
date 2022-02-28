@@ -81,14 +81,7 @@ class Paginator(discord.ui.View):
         if len(self.pages) == 1:
             button.disabled = True
         self._curr_page = 0
-        if isinstance(self.pages[0], str):
-            await interaction.response.edit_message(
-                content=self.formatted_pages[0], view=self
-            )
-            return
-        await interaction.response.edit_message(
-            embed=self.formatted_pages[0], view=self
-        )
+        return await self.change_page(interaction)
 
     @discord.ui.button(label="Back", emoji="◀")
     async def back(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -100,6 +93,9 @@ class Paginator(discord.ui.View):
         else:
             self._curr_page -= 1
 
+        return await self.change_page(interaction)
+
+    async def change_page(self, interaction):
         if isinstance(self.pages[0], str):
             await interaction.response.edit_message(
                 content=self.formatted_pages[self._curr_page], view=self
@@ -119,14 +115,7 @@ class Paginator(discord.ui.View):
         else:
             self._curr_page += 1
 
-        if isinstance(self.pages[0], str):
-            await interaction.response.edit_message(
-                content=self.formatted_pages[self._curr_page], view=self
-            )
-            return
-        await interaction.response.edit_message(
-            embed=self.formatted_pages[self._curr_page], view=self
-        )
+        return await self.change_page(interaction)
 
     @discord.ui.button(label="Last", emoji="⏭")
     async def last(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -135,11 +124,4 @@ class Paginator(discord.ui.View):
             button.disabled = True
         self._curr_page = len(self.pages) - 1
 
-        if isinstance(self.pages[0], str):
-            await interaction.response.edit_message(
-                content=self.formatted_pages[-1], view=self
-            )
-            return
-        await interaction.response.edit_message(
-            embed=self.formatted_pages[-1], view=self
-        )
+        return await self.change_page(interaction)

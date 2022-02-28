@@ -3,10 +3,12 @@ import datetime
 import operator
 import re
 from logging import getLogger
+from types import FunctionType
 from typing import Dict, List, Literal, Optional, Tuple, Union
 
 import dateparser
 import discord
+from discord.app import _OptionData
 from discord.utils import MISSING, format_dt
 
 from database.documents import ExperiencePoints
@@ -41,11 +43,7 @@ from utils.embed import (
     split_embeds,
 )
 from utils.enums import Emoji
-from utils.errors import (
-    RecordNotFaster,
-    SearchNotFound,
-    TournamentStateError,
-)
+from utils.errors import RecordNotFaster, SearchNotFound, TournamentStateError
 from utils.excel_exporter import init_workbook
 from utils.utilities import (
     check_permissions,
@@ -74,11 +72,41 @@ map_data_regex = re.compile(r"(.+)\s-\s(.+)\s-\s(.+)")
 
 
 def setup(bot):
+
+    update_arguments(TimeAttackSubmission)
+    update_arguments(MildcoreSubmission)
+    update_arguments(HardcoreSubmission)
+    update_arguments(BonusSubmission)
+
     logger.info(logging_util("Loading", "TOURNAMENT"))
     bot.application_command(TimeAttackSubmission)
     bot.application_command(MildcoreSubmission)
     bot.application_command(HardcoreSubmission)
     bot.application_command(BonusSubmission)
+
+
+def update_arguments(class_):
+    arguments = []
+    for name, _type in class_.__annotations__.items():
+        if name.startswith("_") or _type in {FunctionType, classmethod, staticmethod}:
+            continue
+
+        v = _type or str
+        default = description = min_ = max_ = MISSING
+        autocomplete = False
+        if isinstance(_type, discord.Option):
+            default = _type.default
+            description = _type.description
+            autocomplete = _type.autocomplete
+            min_ = _type.min
+            max_ = _type.max
+
+        elif _type is not MISSING:
+            default = _type
+        opt = _OptionData(name, v, autocomplete, description, default, min_, max_)
+        if opt not in class_._arguments_:
+            arguments.append(opt)
+    class_._arguments_ = class_._arguments_ + arguments
 
 
 class TournamentStart(
@@ -206,22 +234,12 @@ class TournamentStart(
                     value=f"Code: {data.code} | {data.level} by {data.creator}",
                     inline=False,
                 )
-        view = TournamentCategoryView(self.interaction)
-        await self.interaction.edit_original_message(
-            content="Select any mentions and confirm data is correct.",
-            embed=embed,
-            view=view,
-        )
-        await view.wait()
 
-        mentions = "".join(
-            [
-                get_mention(tournament_category_map_reverse(m), self.interaction)
-                for m in view.mentions
-            ]
-        )
+        view = TournamentCategoryView(self.interaction)
+        mentions = await view.start(embed)
         tournament_document.mentions = mentions
         tournament_document.embed = embed.to_dict()
+
         if not view.confirm.value:
             return
 
@@ -328,88 +346,48 @@ class ViewTournamentRecords(Slash, name="leaderboard", parent=TournamentParent):
         await view.start(self.interaction)
 
 
+class Submissions(Slash, guilds=[GUILD_ID]):
+    """Tournament submission."""
+
+    screenshot: discord.Attachment = discord.Option(
+        description="Screenshot of your record."
+    )
+    record: str = discord.Option(
+        description="What is the record you'd like to submit? HH:MM:SS.ss format. "
+    )
+
+    async def callback(self) -> None:
+        await tournament_submissions(
+            self.interaction, self.screenshot, self.record, self._name_
+        )
+
+
 class TimeAttackSubmission(
-    Slash,
-    guilds=[GUILD_ID],
+    Submissions,
     name="ta",
-    # parent=SubmitParent,
 ):
     """Time Attack tournament submission."""
 
-    screenshot: discord.Attachment = discord.Option(
-        description="Screenshot of your record."
-    )
-    record: str = discord.Option(
-        description="What is the record you'd like to submit? HH:MM:SS.ss format. "
-    )
-
-    async def callback(self) -> None:
-        await tournament_submissions(
-            self.interaction, self.screenshot, self.record, "ta"
-        )
-
 
 class MildcoreSubmission(
-    Slash,
-    guilds=[GUILD_ID],
+    Submissions,
     name="mc",
-    # parent=SubmitParent,
 ):
     """Mildcore tournament submission."""
 
-    screenshot: discord.Attachment = discord.Option(
-        description="Screenshot of your record."
-    )
-    record: str = discord.Option(
-        description="What is the record you'd like to submit? HH:MM:SS.ss format. "
-    )
-
-    async def callback(self) -> None:
-        await tournament_submissions(
-            self.interaction, self.screenshot, self.record, "mc"
-        )
-
 
 class HardcoreSubmission(
-    Slash,
-    guilds=[GUILD_ID],
+    Submissions,
     name="hc",
-    # parent=SubmitParent,
 ):
     """Hardcore tournament submission."""
 
-    screenshot: discord.Attachment = discord.Option(
-        description="Screenshot of your record."
-    )
-    record: str = discord.Option(
-        description="What is the record you'd like to submit? HH:MM:SS.ss format. "
-    )
-
-    async def callback(self) -> None:
-        await tournament_submissions(
-            self.interaction, self.screenshot, self.record, "hc"
-        )
-
 
 class BonusSubmission(
-    Slash,
-    guilds=[GUILD_ID],
+    Submissions,
     name="bo",
-    # parent=SubmitParent,
 ):
     """Bonus tournament submission."""
-
-    screenshot: discord.Attachment = discord.Option(
-        description="Screenshot of your record."
-    )
-    record: str = discord.Option(
-        description="What is the record you'd like to submit? HH:MM:SS.ss format. "
-    )
-
-    async def callback(self) -> None:
-        await tournament_submissions(
-            self.interaction, self.screenshot, self.record, "bo"
-        )
 
 
 class TournamentAnnouncement(
@@ -455,20 +433,8 @@ class TournamentAnnouncement(
             )
 
         view = TournamentCategoryView(modal.interaction)
-        await modal.interaction.edit_original_message(
-            content="Select any mentions and confirm announcement is correct.",
-            embed=embed,
-            view=view,
-        )
+        mentions = await view.start(embed)
 
-        await view.wait()
-
-        mentions = "".join(
-            [
-                get_mention(tournament_category_map_reverse(m), self.interaction)
-                for m in view.mentions
-            ]
-        )
         if not view.confirm.value:
             return
 

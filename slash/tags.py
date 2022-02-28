@@ -5,15 +5,12 @@ import aiohttp
 import discord
 
 from database.documents import Tags
-from utils.errors import SearchNotFound
 from slash.parents import CreateParent, DeleteParent
 from slash.slash_command import TagSlash, WorkshopSlash
 from utils.constants import GUILD_ID
 from utils.embed import create_embed
-from utils.utilities import (
-    check_permissions,
-    logging_util,
-)
+from utils.errors import SearchNotFound
+from utils.utilities import check_permissions, logging_util
 from views.basic import ConfirmView
 
 logger = getLogger(__name__)

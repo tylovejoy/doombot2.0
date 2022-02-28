@@ -1,11 +1,11 @@
 from typing import Dict, List, Union
-import discord
-from database.documents import Tags
 
+import discord
+
+from database.documents import Tags
 from database.records import Record
 from utils.enums import MapNames, MapTypes
 from utils.utilities import case_ignore_compare
-
 
 MAPS_AUTOCOMPLETE = {k: k for k in MapNames.list()}
 MAP_TYPES_AUTOCOMPLETE = {k: k for k in MapTypes.list()}
@@ -13,9 +13,14 @@ MAP_TYPES_AUTOCOMPLETE = {k: k for k in MapTypes.list()}
 
 class Slash(discord.SlashCommand):
     async def error(self, exception: Exception) -> None:
-        await self.interaction.edit_original_message(
-            content=exception,
-        )
+        if self.interaction.response.is_done():
+            await self.interaction.edit_original_message(
+                content=exception,
+            )
+        else:
+            await self.send(
+                content=exception,
+            )
 
 
 class UserSlash(discord.UserCommand):
@@ -56,7 +61,7 @@ class MapSlash(Slash):
 
 
 class RecordSlash(Slash):
-    async def autocomplete(focused, options):
+    async def autocomplete(self, options, focused):
         """Basic Autocomplete for Record slash commands."""
         if focused == "map_level":
             map_code = options.get("map_code")
@@ -64,10 +69,9 @@ class RecordSlash(Slash):
             levels = await Record.get_level_names(map_code)
             return discord.AutoCompleteResponse({k: k for k in levels[:25]})
         if focused == "map_code":
-            response = discord.AutoCompleteResponse(
+            return discord.AutoCompleteResponse(
                 {k: v for k, v in await Record.get_codes(options[focused])}
             )
-            return response
 
 
 class TagSlash(Slash):

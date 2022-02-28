@@ -1,6 +1,6 @@
 from __future__ import annotations
-import datetime
 
+import datetime
 from logging import getLogger
 from os import environ
 from typing import Dict, List, Optional, Union

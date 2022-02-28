@@ -3,7 +3,7 @@ from os import environ
 
 from database.documents import database_init
 from doombot import DoomBot
-from slash import exp, guides, maps, parents, records, tags, tournament, events
+from slash import events, exp, guides, maps, parents, records, tags, tournament
 from utils.utilities import logging_util
 
 logger = logging.getLogger()

@@ -1,21 +1,15 @@
 import datetime
-import dateparser
+from logging import getLogger
 from typing import Literal
 
+import dateparser
 import discord
-from database.documents import Events
 
+from database.documents import Events
 from slash.parents import CreateParent
 from slash.slash_command import Slash
+from utils.constants import GAME_ROLE, GUILD_ID, MOVIE_ROLE, SERVER_ANNOUNCEMENTS
 from utils.utilities import check_permissions, logging_util
-from utils.constants import (
-    GAME_ROLE,
-    GUILD_ID,
-    MOVIE_ROLE,
-    SERVER_ANNOUNCEMENTS,
-)
-from logging import getLogger
-
 
 logger = getLogger(__name__)
 

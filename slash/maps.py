@@ -1,22 +1,16 @@
 from logging import getLogger
 from typing import Optional
-from slash.slash_command import MapSlash
+
 import discord
 
 from database.maps import Map, MapAlias
-from utils.errors import (
-    InvalidMapName,
-    SearchNotFound,
-)
 from slash.parents import DeleteParent, EditParent, SubmitParent
+from slash.slash_command import MapSlash
 from utils.constants import GUILD_ID, MAP_MAKER_ID, NEWEST_MAPS_ID
 from utils.embed import create_embed, maps_embed_fields, split_embeds
 from utils.enums import MapNames, MapTypes
-from utils.utilities import (
-    check_permissions,
-    logging_util,
-    preprocess_map_code,
-)
+from utils.errors import InvalidMapName, SearchNotFound
+from utils.utilities import check_permissions, logging_util, preprocess_map_code
 from views.basic import ConfirmButton
 from views.maps import MapSubmitView
 from views.paginator import Paginator
