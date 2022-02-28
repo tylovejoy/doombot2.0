@@ -4,7 +4,7 @@ import operator
 import re
 from logging import getLogger
 from types import FunctionType
-from typing import Dict, List, Literal, Optional, Tuple, Union
+from typing import Dict, List, Literal, Optional, Union
 
 import dateparser
 import discord
@@ -69,6 +69,23 @@ logger = getLogger(__name__)
 
 
 map_data_regex = re.compile(r"(.+)\s-\s(.+)\s-\s(.+)")
+
+XP_MULTIPLIER = {
+    "ta": 0.14094,
+    "mc": 0.3654,
+    "hc": 0.8352,
+    "bo": 0.3654,
+}
+CATEGORIES = ["ta", "mc", "hc", "bo"]
+
+MISSION_POINTS = {
+    "expert": 2000,
+    "hard": 1500,
+    "medium": 1000,
+    "easy": 500,
+}
+
+MISSION_CATEGORIES = ["expert", "hard", "medium", "easy"]
 
 
 def setup(bot):
@@ -423,7 +440,7 @@ class TournamentAnnouncement(
         embed.add_field(name=modal.title_, value=modal.content, inline=False)
 
         if self.scheduled_start:
-            self.scheduled_start = dateparser.parse(
+            self.scheduled_start: datetime.datetime = dateparser.parse(
                 self.scheduled_start, settings={"PREFER_DATES_FROM": "future"}
             )
             embed.add_field(
@@ -672,7 +689,7 @@ async def end_tournament(client: discord.Client, tournament: Tournament):
     """
     tournament.active = False
     tournament.schedule_end = datetime.datetime(year=1, month=1, day=1)
-    xp_store = await compute_mission_xp(tournament)
+    xp_store = await compute_xp(tournament)
 
     for user_id, data in xp_store.items():
         user = await ExperiencePoints.find_user(user_id)
@@ -862,49 +879,30 @@ async def split_leaderboard_ranks(
     return split_ranks
 
 
-async def compute_leaderboard_xp(
-    tournament: Tournament, store: Dict[int, Dict[str, int]]
-) -> Tuple[Dict[int, Dict], Dict[str, Dict[str, List[TournamentRecords]]]]:
-    """Compute the XP for each leaderboard (rank/category)."""
-    multiplier = {
-        "ta": 0.14094,
-        "mc": 0.3654,
-        "hc": 0.8352,
-        "bo": 0.3654,
-    }
-    all_split_records = {}
-
-    for category in ["ta", "mc", "hc", "bo"]:
-        all_records = getattr(tournament, category, None)
-        if not all_records:
+async def leaderboard_xp(category, split_sorted_records, store):
+    for records in split_sorted_records.values():
+        if not records:
             continue
-        all_records = all_records.records
+        top_record = records[0].record
 
-        split_sorted_records = await split_leaderboard_ranks(all_records, category)
-        all_split_records[category] = split_sorted_records
-
-        for _, records in split_sorted_records.items():
-            if not records:
+        for record in records:
+            if not record:
                 continue
-            top_record = records[0].record
+            xp = await leaderboard_xp_formula(category, record, top_record)
+            store[record.user_id][category] += xp
+            store[record.user_id]["xp"] += xp
+    return store
 
-            for record in records:
-                # Leaderboard XP
-                xp = 0
-                if record:
-                    formula = (
-                        1
-                        - (record.record - top_record)
-                        / (multiplier[category] * top_record)
-                    ) * 2500
 
-                    if formula < 100:
-                        xp = 100
-                    else:
-                        xp = formula
-                store[record.user_id][category] += xp
-                store[record.user_id]["xp"] += xp
-    return store, all_split_records
+async def leaderboard_xp_formula(category, record, top_record):
+    formula = (
+        1 - (record.record - top_record) / (XP_MULTIPLIER[category] * top_record)
+    ) * 2500
+    if formula < 100:
+        xp = 100
+    else:
+        xp = formula
+    return xp
 
 
 async def init_xp_store(tournament: Tournament) -> Dict[int, Dict[str, int]]:
@@ -938,46 +936,39 @@ async def init_xp_store(tournament: Tournament) -> Dict[int, Dict[str, int]]:
     return store
 
 
-async def compute_mission_xp(tournament: Tournament) -> Dict[int, Dict]:
+async def compute_mission_xp(tournament: Tournament, store) -> Dict[int, Dict]:
     """Compute the XP from difficulty based missions."""
-    store, all_records = await compute_leaderboard_xp(
-        tournament, await init_xp_store(tournament)
-    )
 
-    mission_points = {
-        "expert": 2000,
-        "hard": 1500,
-        "medium": 1000,
-        "easy": 500,
-    }
-    for category in ["ta", "mc", "hc", "bo"]:
+    for category in CATEGORIES:
         category_attr: TournamentData = getattr(tournament, category, None)
         if not category_attr:
             continue
-
         records = category_attr.records
         missions = category_attr.missions
-
         for record in records:
 
-            # Goes hardest to easiest, because highest mission only
-            for mission_category in ["expert", "hard", "medium", "easy"]:
+            store = await mission_complete_check(missions, record, store)
+    return store
 
-                mission: TournamentMissions = getattr(missions, mission_category, None)
-                if not mission:
-                    continue
 
-                type_ = mission.type
-                target = mission.target
+async def mission_complete_check(missions, record, store):
+    # Goes hardest to easiest, because highest mission only
+    for mission_category in MISSION_CATEGORIES:
 
-                if (type_ == "sub" and record.record < float(target)) or (
-                    type_ == "complete" and record.record
-                ):
-                    store[record.user_id][mission_category] += 1
-                    store[record.user_id]["xp"] += mission_points[mission_category]
-                    break
+        mission: TournamentMissions = getattr(missions, mission_category, None)
+        if not mission:
+            continue
 
-    return await compute_general_missions(tournament, store, all_records)
+        type_ = mission.type
+        target = mission.target
+
+        if (type_ == "sub" and record.record < float(target)) or (
+            type_ == "complete" and record.record
+        ):
+            store[record.user_id][mission_category] += 1
+            store[record.user_id]["xp"] += MISSION_POINTS[mission_category]
+            break
+    return store
 
 
 async def compute_general_missions(
@@ -995,48 +986,76 @@ async def compute_general_missions(
                 store[user_id]["xp"] += 2000
 
             if mission.type == "missions":
-                split = mission.target.split()
-                if len(split) != 2:
-                    continue
-
-                target_amt = int(split[0])
-                target_difficulty = split[1].lower()
-
-                encompass_missions = {
-                    "easy": data["easy"]
-                    + data["medium"]
-                    + data["hard"]
-                    + data["expert"],
-                    "medium": data["medium"] + data["hard"] + data["expert"],
-                    "hard": data["hard"] + data["expert"],
-                    "expert": data["expert"],
-                }
-
-                if encompass_missions[target_difficulty] >= target_amt:
-                    store[user_id]["general"] += 1
-                    store[user_id]["xp"] += 2000
+                store = await general_mission_missions(mission, user_id, data, store)
 
             if mission.type == "top":
-                temp_store = {
-                    "ta": 0,
-                    "mc": 0,
-                    "hc": 0,
-                    "bo": 0,
-                }
-                for category in ["ta", "mc", "hc", "bo"]:
-                    record_category = all_records.get(category, None)
-                    if not record_category:
-                        continue
-                    for _, rank_records in record_category.items():
-                        if not rank_records:
-                            continue
-                        for i, record in enumerate(rank_records):
-                            if i > 2:
-                                break
-                            if record.user_id == user_id:
-                                temp_store[category] += 1
-                                break
-                if sum(temp_store.values()) >= int(mission.target):
-                    store[user_id]["general"] += 1
-                    store[user_id]["xp"] += 2000
+                store = await gen_mission_top(all_records, mission, store, user_id)
     return store
+
+
+async def gen_mission_top(all_records, mission, store, user_id):
+    temp_store = {
+        "ta": 0,
+        "mc": 0,
+        "hc": 0,
+        "bo": 0,
+    }
+    for category in ["ta", "mc", "hc", "bo"]:
+        record_category = all_records.get(category, None)
+        if not record_category:
+            continue
+        for _, rank_records in record_category.items():
+            if not rank_records:
+                continue
+            for i, record in enumerate(rank_records):
+                if i > 2:
+                    break
+                if record.user_id == user_id:
+                    temp_store[category] += 1
+                    break
+    if sum(temp_store.values()) >= int(mission.target):
+        store[user_id]["general"] += 1
+        store[user_id]["xp"] += 2000
+
+
+async def compute_xp(tournament: Tournament):
+    store = init_xp_store(tournament)
+    all_records = {}
+
+    # Leaderboard
+    for category in CATEGORIES:
+        records = getattr(getattr(tournament, category, None), "records", None)
+        if not records:
+            continue
+
+        sorted_records = await split_leaderboard_ranks(records, category)
+        all_records[category] = sorted_records
+        store = await leaderboard_xp(category, sorted_records, store)
+
+    # Difficulty Missions
+    store = await compute_mission_xp(tournament, store)
+
+    # General Missions
+    store = await compute_general_missions(tournament, store, all_records)
+
+    return store
+
+
+async def general_mission_missions(mission, user_id, data, store):
+    split = mission.target.split()
+    if len(split) != 2:
+        return store
+
+    target_amt = int(split[0])
+    target_difficulty = split[1].lower()
+
+    encompass_missions = {
+        "easy": data["easy"] + data["medium"] + data["hard"] + data["expert"],
+        "medium": data["medium"] + data["hard"] + data["expert"],
+        "hard": data["hard"] + data["expert"],
+        "expert": data["expert"],
+    }
+
+    if encompass_missions[target_difficulty] >= target_amt:
+        store[user_id]["general"] += 1
+        store[user_id]["xp"] += 2000

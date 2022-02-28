@@ -39,7 +39,7 @@ class Paginator(discord.ui.View):
         await self.wait()
 
     @property
-    def formatted_pages(self) -> List[Union[discord.Embed, str, None]]:
+    def formatted_pages(self) -> Union[List[Union[discord.Embed, str]], None]:
         """The embeds with formatted footers to act as pages."""
         if not self.pages:
             return None

@@ -32,3 +32,7 @@ class DocumentAlreadyExists(Exception):
 
 class TournamentStateError(Exception):
     """Tournament is incorrect active state."""
+
+
+class InvalidEventType(Exception):
+    """Event type is invalid."""

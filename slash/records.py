@@ -70,13 +70,14 @@ class Test(
 ):
     """Test"""
 
+    level_name: str
+
     # TODO: Remove before prod
     async def callback(self) -> None:
-        all_ = []
-
-        for x in await Record.all_levels():
-            all_.append(x.id.level)
-        print(all_)
+        print(self.level_name.upper())
+        logger.info(self.level_name.upper())
+        embed = create_embed("Test", self.level_name.upper(), "Test")
+        await self.interaction.response.send_message(embed=embed)
 
 
 class SubmitRecord(RecordSlash, guilds=[GUILD_ID], name="record", parent=SubmitParent):
@@ -188,7 +189,10 @@ class SubmitRecord(RecordSlash, guilds=[GUILD_ID], name="record", parent=SubmitP
             pass
 
         message = await self.interaction.channel.send(
-            content=f"{Emoji.TIME} Waiting for verification...\nYour record will be {make_ordinal(rank)} on the leaderboard once verified.",
+            content=(
+                f"{Emoji.TIME} Waiting for verification...\n"
+                f"Your record will be {make_ordinal(rank)} on the leaderboard once verified."
+            ),
             embed=embed,
         )
         record_document.message_id = message.id
@@ -239,7 +243,7 @@ class DeleteRecord(RecordSlash, guilds=[GUILD_ID], name="record", parent=DeleteP
 
         view = RecordSubmitView()
         await self.interaction.edit_original_message(
-            "Do you want to delete this?", view=view, embed=embed
+            content="Do you want to delete this?", view=view, embed=embed
         )
         await view.wait()
 
@@ -278,7 +282,6 @@ class ViewRecords(RecordSlash, name="leaderboard"):
             user=self.interaction.user,
         )
 
-        records, embeds = None, None
         if self.map_code and self.map_level:
             records = await Record.filter_search(
                 map_code=self.map_code,

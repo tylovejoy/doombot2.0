@@ -26,14 +26,14 @@ class Slash(discord.SlashCommand):
 class UserSlash(discord.UserCommand):
     async def error(self, exception: Exception) -> None:
         await self.interaction.edit_original_message(
-            content=exception,
+            content=str(exception),
         )
 
 
 class MapSlash(Slash):
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
-    ) -> List:
+    ) -> discord.AutoCompleteResponse:
         """Display autocomplete for map names and types."""
         if focused == "map_name":
             if options[focused] == "":
@@ -61,7 +61,13 @@ class MapSlash(Slash):
 
 
 class RecordSlash(Slash):
+<<<<<<< HEAD
     async def autocomplete(self, options, focused):
+=======
+    async def autocomplete(
+        self, options: Dict[str, Union[int, float, str]], focused: str
+    ) -> discord.AutoCompleteResponse:
+>>>>>>> b9e4d95f20f7464ff2debca1748bd045d85738a6
         """Basic Autocomplete for Record slash commands."""
         if focused == "map_level":
             map_code = options.get("map_code")
@@ -77,7 +83,7 @@ class RecordSlash(Slash):
 class TagSlash(Slash):
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
-    ) -> List:
+    ) -> discord.AutoCompleteResponse:
         tag_names = await Tags.find_all_tag_names()
         return await tags_autocomplete(options, focused, tag_names)
 
@@ -85,7 +91,7 @@ class TagSlash(Slash):
 class WorkshopSlash(Slash):
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
-    ) -> List:
+    ) -> discord.AutoCompleteResponse:
         return await tags_autocomplete(options, focused, self.client.ws_list)
 
 
