@@ -3,7 +3,7 @@ from typing import List, Union
 import discord
 from discord.utils import MISSING
 
-from database.documents import ExperiencePoints
+from database.documents import ExperiencePoints, XPOnly
 from database.maps import Map
 from database.records import Record, WorldRecordsAggregate
 from database.tournament import TournamentRecordsLookup
@@ -35,6 +35,14 @@ def hall_of_fame(title: str, desc: str = "") -> discord.Embed:
     embed.set_author(name="Hall of Fame")
     embed.set_thumbnail(url="https://clipartart.com/images/dog-trophy-clipart-2.png")
     return embed
+
+
+async def xp_embed_fields(x: XPOnly, count: int, **kwargs):
+    """Embed fields for XP leaderboard."""
+    return {
+        "name": f"{count + 1} - {x.alias}",
+        "value": f"XP: {x.xp}",
+    }
 
 
 async def maps_embed_fields(m: Map, *args, **kwargs) -> dict:

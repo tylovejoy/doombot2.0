@@ -6,11 +6,14 @@ from typing import Optional
 import discord
 from discord.utils import MISSING
 from PIL import Image, ImageDraw, ImageFont
+from utils.constants import GUILD_ID
 
 from database.documents import ExperiencePoints
 from slash.records import check_user
-from utils.embed import create_embed
+from slash.slash_command import Slash
+from utils.embed import create_embed, split_embeds, xp_embed_fields
 from utils.utilities import logging_util
+from views.paginator import Paginator
 
 logger = getLogger(__name__)
 
@@ -21,6 +24,7 @@ def setup(bot):
     bot.application_command(Alerts)
     bot.application_command(ChangeName)
     bot.application_command(VerificationStats)
+    bot.application_command(RankLeaderboard)
 
 
 def format_xp(xp):
@@ -60,7 +64,23 @@ def find_portrait(level) -> str:
     return filename
 
 
-class RankCard(discord.SlashCommand, name="rank"):
+class RankLeaderboard(Slash, name="rank-leaderboard", guilds=[GUILD_ID]):
+    """Display ranks leaderboard."""
+
+    async def callback(self) -> None:
+        await self.defer(ephemeral=True)
+        embed = create_embed(
+            "Ranks Leaderboard",
+            "",
+            self.interaction.user,
+        )
+        all_ranks = await ExperiencePoints.xp_leaderboard()
+        embeds = await split_embeds(embed, all_ranks, xp_embed_fields)
+        view = Paginator(embeds, self.interaction.user)
+        await view.start(self.interaction)
+
+
+class RankCard(Slash, name="rank"):
     """Display either your rank card or another users."""
 
     user: Optional[discord.Member] = discord.Option(
@@ -70,6 +90,89 @@ class RankCard(discord.SlashCommand, name="rank"):
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
 
+        search, user, name = await self.which_user()
+
+        ta_logo, mc_logo, hc_logo, bo_logo = self.get_logos(search)
+        old_x = 15
+        old_y = 66
+        x = 1165 + 10
+        y = 348
+        x_offset = 10
+
+        img, d = self.init_rank_card(x, y)
+
+        await self.add_pfp(user, old_x, y, x_offset, img)
+
+        # Portrait PFP
+        self.add_portrait(search, img)
+
+        rank_x_offset = 50
+        rank_y_offset = 37
+
+        for x_val, logo in zip(
+            [375, 508, 641, 774], [ta_logo, mc_logo, hc_logo, bo_logo]
+        ):
+            img.paste(
+                logo,
+                (x_val + old_x - rank_x_offset, 98 + old_y // 2 - rank_y_offset),
+                logo,
+            )
+
+        font_file = "data/fonts/segoeui.ttf"
+        font2_file = "data/fonts/avenir.otf"
+
+        # Username/Discriminator
+        self.add_username(name, old_x, old_y, x, d, font2_file)
+
+        # XP
+        self.add_xp(search, old_x, old_y, x, d, font_file)
+
+        place, pos_portrait_f = await self.add_rank_portrait(user)
+
+        place_circle_x1, place_circle_x2 = self.placement_circle_bg(x, y, x_offset, d)
+
+        self.add_placement(y, d, font_file, place, place_circle_x1, place_circle_x2)
+
+        pos_portrait = Image.open("data/portraits/" + pos_portrait_f).convert("RGBA")
+        img.paste(pos_portrait, (x - 350, -28), pos_portrait)
+
+        width, height = img.size
+        img = img.resize((width // 2, height // 2))
+
+        with io.BytesIO() as image_binary:
+            img.save(image_binary, "PNG")
+            image_binary.seek(0)
+            await self.interaction.edit_original_message(
+                content="", file=discord.File(fp=image_binary, filename="rank_card.png")
+            )
+
+    async def add_pfp(self, user, old_x, y, x_offset, img):
+        with io.BytesIO() as avatar_binary:
+            await user.avatar.save(fp=avatar_binary)
+            avatar = Image.open(avatar_binary).convert("RGBA")
+            avatar.thumbnail((200, 200))
+            av_mask = Image.new("L", avatar.size, 0)
+            draw = ImageDraw.Draw(av_mask)
+            draw.ellipse((0, 0, 200, 200), fill=255)
+            a_height = avatar.size[1]
+            img.paste(avatar, (x_offset * 4 + old_x, (y - a_height) // 2), av_mask)
+
+    def placement_circle_bg(self, x, y, x_offset, d):
+        color = (9, 10, 11, 255)
+
+        place_circle_x1 = x - (x_offset * 4) - 200 - 5
+        place_circle_x2 = x - (x_offset * 4) + 5
+        place_circle_y1 = (y - 200) // 2 - 5
+        place_circle_y2 = (y - 200) // 2 + 200 + 5
+
+        d.ellipse(
+            (place_circle_x1, place_circle_y1, place_circle_x2, place_circle_y2),
+            fill=color,
+        )
+
+        return place_circle_x1, place_circle_x2
+
+    async def which_user(self):
         if self.user is MISSING:
             self.user = self.interaction.user
 
@@ -84,112 +187,9 @@ class RankCard(discord.SlashCommand, name="rank"):
 
         if search.alias:
             name = search.alias
+        return search, user, name
 
-        logo_fp = {
-            "Unranked": "data/ranks/bronze.png",
-            "Gold": "data/ranks/gold.png",
-            "Diamond": "data/ranks/diamond.png",
-            "Grandmaster": "data/ranks/grandmaster.png",
-        }
-
-        ta_logo = Image.open(logo_fp[search.rank.ta]).convert("RGBA")
-        mc_logo = Image.open(logo_fp[search.rank.mc]).convert("RGBA")
-        hc_logo = Image.open(logo_fp[search.rank.hc]).convert("RGBA")
-        bo_logo = Image.open(logo_fp[search.rank.bo]).convert("RGBA")
-
-        ta_logo.thumbnail((100, 100))
-        mc_logo.thumbnail((100, 100))
-        hc_logo.thumbnail((100, 100))
-        bo_logo.thumbnail((100, 100))
-        old_x = 15
-        old_y = 66
-        x = 1165 + 10
-        y = 348
-        # y_offset = 10
-        x_offset = 10
-        # inner_box = (0, 0, x, y)
-
-        img = Image.new("RGBA", (x, y), color=(0, 0, 0, 0))
-        d = ImageDraw.Draw(img, "RGBA")
-        rank_card = Image.open("data/rankcard_bg_stroke.png").convert("RGBA")
-        img.paste(rank_card)
-
-        with io.BytesIO() as avatar_binary:
-            await user.avatar.save(fp=avatar_binary)
-            avatar = Image.open(avatar_binary).convert("RGBA")
-            avatar.thumbnail((200, 200))
-            av_mask = Image.new("L", avatar.size, 0)
-            draw = ImageDraw.Draw(av_mask)
-            draw.ellipse((0, 0, 200, 200), fill=255)
-            a_height = avatar.size[1]
-            img.paste(avatar, (x_offset * 4 + old_x, (y - a_height) // 2), av_mask)
-
-        # Portrait PFP
-        level = find_level(search.xp)
-        portrait_file = find_portrait(level)
-        portrait = Image.open("data/portraits/" + portrait_file).convert("RGBA")
-        img.paste(portrait, (-60, -30), portrait)
-
-        rank_x_offset = 50
-        rank_y_offset = 37
-        ta_box_xy = (375 + old_x - rank_x_offset, 98 + old_y // 2 - rank_y_offset)
-        mc_box_xy = (508 + old_x - rank_x_offset, 98 + old_y // 2 - rank_y_offset)
-        hc_box_xy = (641 + old_x - rank_x_offset, 98 + old_y // 2 - rank_y_offset)
-        bo_box_xy = (774 + old_x - rank_x_offset, 98 + old_y // 2 - rank_y_offset)
-
-        img.paste(ta_logo, ta_box_xy, ta_logo)
-        img.paste(mc_logo, mc_box_xy, mc_logo)
-        img.paste(hc_logo, hc_box_xy, hc_logo)
-        img.paste(bo_logo, bo_box_xy, bo_logo)
-
-        font_file = "data/fonts/segoeui.ttf"
-        font2_file = "data/fonts/avenir.otf"
-        # Username/Discriminator
-        name_font = ImageFont.truetype(font2_file, 50)
-        name_pos = x // 2 - d.textlength(name, font=name_font) // 2 + old_x
-        d.text((name_pos, 170 + old_y // 2), name, fill=(255, 255, 255), font=name_font)
-
-        # XP
-        xp_font = ImageFont.truetype(font_file, 40)
-        xp = format_xp(search.xp)
-        xp_length = x // 2 - d.textlength(f"Total XP: {xp}", font=xp_font) // 2 + old_x
-        d.text(
-            (xp_length, 215 + old_y // 2),
-            f"Total XP: {xp}",
-            fill=(255, 255, 255),
-            font=xp_font,
-        )
-
-        # Highest Position
-        # xp_circle_r_pad = 100
-        # xp_circle_dia = 160
-
-        place = 0
-        all_users = await ExperiencePoints.find().sort("+xp").to_list()
-        for i, u in enumerate(all_users):
-            if u.user_id == user.id:
-                place = i + 1
-        if place == 1:
-            pos_portrait_f = "gold_position.png"
-        elif place == 2:
-            pos_portrait_f = "silver_position.png"
-        elif place == 3:
-            pos_portrait_f = "bronze_position.png"
-        else:
-            pos_portrait_f = "no_position.png"
-
-        color = (9, 10, 11, 255)
-
-        place_circle_x1 = x - (x_offset * 4) - 200 - 5
-        place_circle_x2 = x - (x_offset * 4) + 5
-        place_circle_y1 = (y - 200) // 2 - 5
-        place_circle_y2 = (y - 200) // 2 + 200 + 5
-
-        d.ellipse(
-            (place_circle_x1, place_circle_y1, place_circle_x2, place_circle_y2),
-            fill=color,
-        )
-
+    def add_placement(self, y, d, font_file, place, place_circle_x1, place_circle_x2):
         if len(str(place)) == 1:
             place_font_size = 120
         elif len(str(place)) == 2:
@@ -214,18 +214,69 @@ class RankCard(discord.SlashCommand, name="rank"):
             (place_x, place_y), str(place), fill=(255, 255, 255, 255), font=place_font
         )
 
-        pos_portrait = Image.open("data/portraits/" + pos_portrait_f).convert("RGBA")
-        img.paste(pos_portrait, (x - 350, -28), pos_portrait)
+    async def add_rank_portrait(self, user):
+        place = 0
+        all_users = await ExperiencePoints.find().sort("-xp").to_list()
+        for i, u in enumerate(all_users):
+            if u.user_id == user.id:
+                place = i + 1
+        if place == 1:
+            pos_portrait_f = "gold_position.png"
+        elif place == 2:
+            pos_portrait_f = "silver_position.png"
+        elif place == 3:
+            pos_portrait_f = "bronze_position.png"
+        else:
+            pos_portrait_f = "no_position.png"
+        return place, pos_portrait_f
 
-        width, height = img.size
-        img = img.resize((width // 2, height // 2))
+    def add_xp(self, search, old_x, old_y, x, d, font_file):
+        xp_font = ImageFont.truetype(font_file, 40)
+        xp = format_xp(search.xp)
+        xp_length = x // 2 - d.textlength(f"Total XP: {xp}", font=xp_font) // 2 + old_x
+        d.text(
+            (xp_length, 215 + old_y // 2),
+            f"Total XP: {xp}",
+            fill=(255, 255, 255),
+            font=xp_font,
+        )
 
-        with io.BytesIO() as image_binary:
-            img.save(image_binary, "PNG")
-            image_binary.seek(0)
-            await self.interaction.edit_original_message(
-                content="", file=discord.File(fp=image_binary, filename="rank_card.png")
-            )
+    def add_username(self, name, old_x, old_y, x, d, font2_file):
+        name_font = ImageFont.truetype(font2_file, 50)
+        name_pos = x // 2 - d.textlength(name, font=name_font) // 2 + old_x
+        d.text((name_pos, 170 + old_y // 2), name, fill=(255, 255, 255), font=name_font)
+
+    def add_portrait(self, search, img):
+        level = find_level(search.xp)
+        portrait_file = find_portrait(level)
+        portrait = Image.open("data/portraits/" + portrait_file).convert("RGBA")
+        img.paste(portrait, (-60, -30), portrait)
+
+    def init_rank_card(self, x, y):
+        img = Image.new("RGBA", (x, y), color=(0, 0, 0, 0))
+        d = ImageDraw.Draw(img, "RGBA")
+        rank_card = Image.open("data/rankcard_bg_stroke.png").convert("RGBA")
+        img.paste(rank_card)
+        return img, d
+
+    def get_logos(self, search):
+        logo_fp = {
+            "Unranked": "data/ranks/bronze.png",
+            "Gold": "data/ranks/gold.png",
+            "Diamond": "data/ranks/diamond.png",
+            "Grandmaster": "data/ranks/grandmaster.png",
+        }
+
+        ta_logo = Image.open(logo_fp[search.rank.ta]).convert("RGBA")
+        mc_logo = Image.open(logo_fp[search.rank.mc]).convert("RGBA")
+        hc_logo = Image.open(logo_fp[search.rank.hc]).convert("RGBA")
+        bo_logo = Image.open(logo_fp[search.rank.bo]).convert("RGBA")
+
+        ta_logo.thumbnail((100, 100))
+        mc_logo.thumbnail((100, 100))
+        hc_logo.thumbnail((100, 100))
+        bo_logo.thumbnail((100, 100))
+        return ta_logo, mc_logo, hc_logo, bo_logo
 
 
 class Alerts(discord.SlashCommand, name="alerts"):

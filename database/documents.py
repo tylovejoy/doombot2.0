@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+from enum import unique
 from logging import getLogger
 from os import environ
 from typing import Dict, List, Optional, Union
@@ -88,6 +89,12 @@ class EXPRanks(BaseModel):
     bo: str = "Unranked"
 
 
+class XPOnly(BaseModel):
+    user_id: Indexed(int, unique=True)
+    alias: str
+    xp: int
+
+
 class ExperiencePoints(Document):
     """Collection of user data."""
 
@@ -112,6 +119,10 @@ class ExperiencePoints(Document):
     async def check_if_unranked(self, category: str) -> bool:
         """Return True if user is unranked in category."""
         return getattr(self.rank, category) == "Unranked"
+
+    @classmethod
+    async def xp_leaderboard(cls) -> ExperiencePoints:
+        return await cls.find().sort("-xp").project(XPOnly).to_list()
 
     @classmethod
     async def find_user(cls, user_id) -> ExperiencePoints:
