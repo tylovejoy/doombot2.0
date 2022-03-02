@@ -25,6 +25,7 @@ class DeleteGuide(
     name="guide",
     parent=DeleteParent,
 ):
+    """Deletes a guide. You can only delete a guide you've submitted."""
 
     map_code: str = discord.Option(
         description="Workshop code for the specific map.",
@@ -57,6 +58,8 @@ class ViewGuide(
     RecordSlash,
     name="guide",
 ):
+    """View guides that have been submitted for a specific map."""
+
     map_code: str = discord.Option(
         description="Workshop code for the specific map.",
         autocomplete=True,
@@ -81,6 +84,8 @@ class SubmitGuide(
     name="guide",
     parent=SubmitParent,
 ):
+    """Submit a guide for a specific map."""
+
     map_code: str = discord.Option(
         description="Workshop code for the specific map.",
         autocomplete=True,

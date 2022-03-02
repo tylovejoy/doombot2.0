@@ -575,6 +575,8 @@ class TournamentPublishMissions(
     name="publish",
     parent=TournamentMissionsParent,
 ):
+    """Send a mission announcement for all added missions."""
+
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
         await check_permissions(self.interaction)
