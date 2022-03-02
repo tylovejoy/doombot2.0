@@ -1,9 +1,13 @@
+import io
+import traceback
 from typing import Dict, List, Union
 
 import discord
+from utils.constants import ERROR_LOGS
 
 from database.documents import Tags
 from database.records import Record
+from utils.errors import DoombotBaseException
 from utils.enums import MapNames, MapTypes
 from utils.utilities import case_ignore_compare
 
@@ -13,14 +17,48 @@ MAP_TYPES_AUTOCOMPLETE = {k: k for k in MapTypes.list()}
 
 class Slash(discord.SlashCommand):
     async def error(self, exception: Exception) -> None:
-        if self.interaction.response.is_done():
-            await self.interaction.edit_original_message(
-                content=exception,
-            )
+        if isinstance(exception, DoombotBaseException):
+            if self.interaction.response.is_done():
+                await self.interaction.edit_original_message(
+                    content=exception,
+                )
+            else:
+                await self.send(
+                    content=exception,
+                )
         else:
-            await self.send(
-                content=exception,
-            )
+            channel = self.client.get_channel(ERROR_LOGS)
+            if (
+                len(
+                    "".join(
+                        traceback.format_exception(
+                            None, exception, exception.__traceback__
+                        )
+                    )
+                )
+                < 1850
+            ):
+                await channel.send(
+                    f"**Error: {self._name_}**\n"
+                    f"Channel: `{self.interaction.channel}`"
+                    f"User: `{self.interaction.user}`\n```\n"
+                    + "".join(
+                        traceback.format_exception(
+                            None, exception, exception.__traceback__
+                        )
+                    )
+                    + "\n```"
+                )
+            else:
+                await channel.send(
+                    f"**Error: {self._name_}**\n"
+                    f"Channel: `{self.interaction.channel}`"
+                    f"User: `{self.interaction.user}`" + "\n",
+                    file=discord.File(
+                        fp=io.BytesIO(exception.encode(errors="ignore")),
+                        filename="error.log",
+                    ),
+                )
 
 
 class UserSlash(discord.UserCommand):
