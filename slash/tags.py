@@ -100,13 +100,12 @@ class WorkshopHelp(WorkshopSlash, name="workshop"):
         await self.defer(ephemeral=self.hidden)
         self.search = self.search.replace(" ", "-")
         url = f"https://workshop.codes/wiki/search/{self.search}.json"
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
-                data = list(await resp.json())[0]
-                embed = create_embed(
-                    data.get("title"),
-                    data.get("content"),
-                    self.interaction.user,
-                )
+        async with self.client.session.get(url) as resp:
+            data = list(await resp.json())[0]
+            embed = create_embed(
+                data.get("title"),
+                data.get("content"),
+                self.interaction.user,
+            )
 
-                await self.interaction.edit_original_message(embed=embed)
+            await self.interaction.edit_original_message(embed=embed)

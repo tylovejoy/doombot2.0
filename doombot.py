@@ -85,6 +85,12 @@ class DoomBot(discord.Client):
         self.allow_submissions = None
         self.disallow_submissions = None
 
+        self.session = aiohttp.ClientSession()
+
+    async def close(self) -> None:
+        await self.session.close()
+        return await super().close()
+
     async def on_ready(self):
         """Display bot info on ready event."""
         app_info = await self.application_info()
