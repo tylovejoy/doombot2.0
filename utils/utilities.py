@@ -3,6 +3,7 @@ import re
 from typing import List, Union, Tuple
 
 import discord
+from string import ascii_lowercase
 
 from database.maps import MapAlias
 from utils.constants import (
@@ -20,6 +21,12 @@ from utils.errors import IncorrectChannel, InvalidTime, NoPermissions
 TIME_REGEX = re.compile(
     r"(?<!.)(\d{1,2})?:?(\d{1,2})?:?(?<!\d)(\d{1,2})\.?\d{1,4}?(?!.)"
 )
+
+
+def preprocess_level_name(level_name: str):
+    """Preprocess level names.
+    User upper() on only the English alphabet."""
+    return level_name.translate(str.maketrans(ascii_lowercase, ascii_lowercase.upper()))
 
 
 def logging_util(first: str, second: str) -> str:

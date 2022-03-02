@@ -33,6 +33,7 @@ from utils.utilities import (
     preprocess_map_code,
     time_convert,
 )
+from views.basic import ConfirmView
 from views.paginator import Paginator
 from views.records import RecordSubmitView, VerificationView, find_orig_msg
 
@@ -77,7 +78,9 @@ class Test(
         print(self.level_name.upper())
         logger.info(self.level_name.upper())
         embed = create_embed("Test", self.level_name.upper(), "Test")
-        await self.interaction.response.send_message(embed=embed)
+        view1 = VerificationView()
+        view2 = ConfirmView()
+        await self.interaction.response.send_message(embed=embed, views=[view1, view2])
 
 
 class SubmitRecord(RecordSlash, guilds=[GUILD_ID], name="record", parent=SubmitParent):
