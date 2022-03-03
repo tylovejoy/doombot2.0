@@ -234,6 +234,8 @@ class MigrationTasks(discord.SlashCommand, guilds=[GUILD_ID], name="migrate"):
     """Migrate to doombot2.0"""
 
     async def callback(self) -> None:
+        if self.interaction.user.id != 141372217677053952:
+            return
         await self.defer(ephemeral=True)
         if not await check_permissions(self.interaction):
             return
