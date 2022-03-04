@@ -43,10 +43,35 @@ class OpenStore(discord.SlashCommand, guilds=[GUILD_ID], name="store"):
 
         if view.emote_dropdown.values[0] == "Standard Emoji":
             ...
-        await self.interaction.user.send("Respond with the emoji/sticker that you want to add.")
-        def check(message: discord.Message):
-            return message.guild == None and message.author.id == self.interaction.user.id
-        await self.client.wait_for("message", check=check, timeout=60)
-        await self.interaction.user.send("Respond with the name that you want to give the emoji/sticker.")
+        await self.interaction.user.send(
+            "Respond with the emoji/sticker that you want to add.\n"
+            "Image must be `PNG`, `JPG`, or `GIF`. All other file types/messages will be ignored!"
+        )
+        def emoji_check(message: discord.Message):
+            return (
+                message.guild == None and 
+                message.author.id == self.interaction.user.id and
+                message.attachments and
+                message.attachments[0].content_type in ["image/jpeg", "image/png", "image/gif"]
+            )
+        emoji = await self.client.wait_for("message", check=emoji_check, timeout=60)
+        if not emoji:
+            return
 
+        emoji = emoji.attachments[0]
+        
+        await self.interaction.user.send("Respond with the name that you want to give the emoji/sticker.")
+        def name_check(message: discord.Message):
+            return (
+                message.guild == None and 
+                message.author.id == self.interaction.user.id
+            )
+        name = await self.client.wait_for("message", check=name_check, timeout=60)
+        if not name:
+            return
+
+        name = name.content
+
+        await self.interaction.user.send(f"Emoji name: {name}\n{emoji.url}")
+        
 
