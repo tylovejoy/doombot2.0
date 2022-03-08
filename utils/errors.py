@@ -1,38 +1,42 @@
-class InvalidTime(Exception):
+class DoombotBaseException(Exception):
+    """Base exception for Doombot."""
+
+
+class InvalidTime(DoombotBaseException):
     """Invalid time entered."""
 
 
-class MapCodeDoesNotExist(Exception):
+class MapCodeDoesNotExist(DoombotBaseException):
     """Map code does not exist in the database."""
 
 
-class NoPermissions(Exception):
+class NoPermissions(DoombotBaseException):
     """User doesn't have sufficient permissions."""
 
 
-class InvalidMapName(Exception):
+class InvalidMapName(DoombotBaseException):
     """Map name is invalid."""
 
 
-class SearchNotFound(Exception):
+class SearchNotFound(DoombotBaseException):
     """Nothing was found in a database query."""
 
 
-class IncorrectChannel(Exception):
+class IncorrectChannel(DoombotBaseException):
     """User used command in incorrect channel."""
 
 
-class RecordNotFaster(Exception):
+class RecordNotFaster(DoombotBaseException):
     """Submitted record was not faster than previously submitted record."""
 
 
-class DocumentAlreadyExists(Exception):
+class DocumentAlreadyExists(DoombotBaseException):
     """Database document already exists."""
 
 
-class TournamentStateError(Exception):
+class TournamentStateError(DoombotBaseException):
     """Tournament is incorrect active state."""
 
 
-class InvalidEventType(Exception):
+class InvalidEventType(DoombotBaseException):
     """Event type is invalid."""

@@ -1,6 +1,6 @@
 import datetime
 import re
-from typing import List, Union, Tuple
+from typing import List, Tuple, Union
 
 import discord
 from string import ascii_lowercase
@@ -16,7 +16,6 @@ from utils.constants import (
     TRIFECTA_ROLE_ID,
 )
 from utils.errors import IncorrectChannel, InvalidTime, NoPermissions
-
 
 TIME_REGEX = re.compile(
     r"(?<!.)(\d{1,2})?:?(\d{1,2})?:?(?<!\d)(\d{1,2})\.?\d{1,4}?(?!.)"
