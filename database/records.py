@@ -25,7 +25,6 @@ class WorldRecordsSubAggregate(Document):
 
     code: str
     level: str
-    url: str
 
 
 class WorldRecordsAggregate(BaseModel):
@@ -34,6 +33,7 @@ class WorldRecordsAggregate(BaseModel):
     id: Link[WorldRecordsSubAggregate] = Field(None, alias="_id")
     user_id: int
     record: float
+    url: str
 
 
 class UniquePlayers(BaseModel):
@@ -172,9 +172,10 @@ class Record(Document):
                     {"$sort": {"record": 1}},
                     {
                         "$group": {
-                            "_id": {"code": "$code", "level": "$level", "url": "$url"},
+                            "_id": {"code": "$code", "level": "$level"},
                             "record": {"$first": "$record"},
                             "user_id": {"$first": "$user_id"},
+                            "level": {"$first": "$level"},
                         }
                     },
                     {"$match": {"user_id": user_id}},
