@@ -269,6 +269,7 @@ class ViewRecords(RecordSlash, name="leaderboard"):
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
         self.map_code = preprocess_map_code(self.map_code)
+        self.map_code, _ = await find_alt_map_code(self.map_code)
         level_name = ""
         if self.map_level is not MISSING:
             self.map_level = self.map_level.upper()
