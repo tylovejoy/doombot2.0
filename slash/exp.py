@@ -114,7 +114,7 @@ class RankCard(discord.SlashCommand, name="rank"):
         name = user.name[10:] + "#" + user.discriminator
 
         if search.alias:
-            name = search.alias
+            name = search.alias[10:]
 
         ta_logo = Image.open(LOGO_FILE_PATH[search.rank.ta]).convert("RGBA")
         mc_logo = Image.open(LOGO_FILE_PATH[search.rank.mc]).convert("RGBA")
@@ -189,7 +189,7 @@ class RankCard(discord.SlashCommand, name="rank"):
         # xp_circle_dia = 160
 
         place = 0
-        all_users = await ExperiencePoints.find().sort("+xp").to_list()
+        all_users = await ExperiencePoints.find().sort("-xp").to_list()
         for i, u in enumerate(all_users):
             if u.user_id == user.id:
                 place = i + 1
