@@ -244,7 +244,6 @@ class MigrationTasks(discord.SlashCommand, guilds=[GUILD_ID], name="migrate"):
             return
         logger.info(logging_util("Migration", "BEGIN EXP TRANSFER"))
         members = self.interaction.guild.members
-        member_list = []
 
         for member in members:
             xp = 0
@@ -258,7 +257,7 @@ class MigrationTasks(discord.SlashCommand, guilds=[GUILD_ID], name="migrate"):
                 rank.hc = rank_convert[all_ranks[member.id][2]]
                 rank.bo = "Grandmaster"
 
-            member_list.append(
+            await ExperiencePoints.insert(
                 ExperiencePoints(
                     user_id=member.id,
                     alias=member.name,
@@ -267,5 +266,5 @@ class MigrationTasks(discord.SlashCommand, guilds=[GUILD_ID], name="migrate"):
                     rank=rank,
                 )
             )
-        await ExperiencePoints.insert_many(member_list)
+
         await self.interaction.edit_original_message(content="Done.")
