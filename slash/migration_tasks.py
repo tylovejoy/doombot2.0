@@ -11,7 +11,7 @@ logger = getLogger(__name__)
 
 def setup(bot):
     logger.info(logging_util("Loading", "MIGRATION"))
-    bot.application_command()
+    bot.application_command(MigrationTasks)
 
 
 all_ranks = {  #         TA MC HC BO
