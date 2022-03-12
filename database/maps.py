@@ -57,7 +57,7 @@ class Map(Document):
     creator: str
     map_name: str
     map_type: Optional[List[str]] = Field([], alias="type")
-    description: str
+    description: Optional[str]
 
     @classmethod
     async def find_one_map(cls, map_code: str) -> Map:
