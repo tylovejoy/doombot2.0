@@ -114,7 +114,7 @@ class RankCard(discord.SlashCommand, name="rank"):
         name = user.name[10:] + "#" + user.discriminator
 
         if search.alias:
-            name = search.alias[10:]
+            name = search.alias[:10]
 
         ta_logo = Image.open(LOGO_FILE_PATH[search.rank.ta]).convert("RGBA")
         mc_logo = Image.open(LOGO_FILE_PATH[search.rank.mc]).convert("RGBA")
