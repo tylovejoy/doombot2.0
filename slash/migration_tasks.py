@@ -240,8 +240,7 @@ class MigrationTasks(discord.SlashCommand, guilds=[GUILD_ID], name="migrate"):
         if self.interaction.user.id != 141372217677053952:
             return
         await self.defer(ephemeral=True)
-        if not await check_permissions(self.interaction):
-            return
+
         logger.info(logging_util("Migration", "BEGIN EXP TRANSFER"))
         members = self.interaction.guild.members
 
