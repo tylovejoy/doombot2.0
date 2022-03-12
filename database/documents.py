@@ -86,7 +86,7 @@ class EXPRanks(BaseModel):
     ta: str = "Unranked"
     mc: str = "Unranked"
     hc: str = "Unranked"
-    bo: str = "Unranked"
+    bo: str = "Grandmaster"
 
 
 class XPOnly(BaseModel):
