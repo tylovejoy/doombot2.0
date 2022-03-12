@@ -26,6 +26,8 @@ class Slash(discord.SlashCommand):
                 await self.send(
                     content=exception,
                 )
+        elif isinstance(exception, discord.errors.AutoCompleteResponseFormattingError):
+            return
         else:
             channel = self.client.get_channel(ERROR_LOGS)
             if (
