@@ -15,7 +15,9 @@ from database.documents import (
 )
 from database.records import Record
 from database.tournament import Announcement, Tournament
+
 from slash.tournament import end_tournament, start_tournament
+
 from utils.constants import (
     BOT_ID,
     GUILD_ID,
@@ -244,7 +246,7 @@ class DoomBot(discord.Client):
     async def on_message(message: discord.Message):
         # Suggestions
         if message.channel.id == SUGGESTIONS_ID:
-            await message.add_reaction(emoji="<:upper:929871697555914752>")
+            await message.add_reaction("<:upper:929871697555914752>")
 
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         if payload.user_id == BOT_ID:
@@ -349,4 +351,4 @@ class DoomBot(discord.Client):
             return  # Ignore if locked
 
         # Auto unarchive
-        await after.edit(archived=False, reason="Auto Unarchive.")
+        await after.edit(archived=False)

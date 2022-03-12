@@ -3,7 +3,18 @@ from os import environ
 
 from database.documents import database_init
 from doombot import DoomBot
-from slash import events, exp, guides, maps, parents, records, tags, tournament, store
+from slash import (
+    events,
+    exp,
+    guides,
+    maps,
+    parents,
+    records,
+    tags,
+    tournament,
+    store,
+    migration_tasks,
+)
 from utils.utilities import logging_util
 
 logger = logging.getLogger()
@@ -22,15 +33,16 @@ bot = DoomBot()
 def load_all_extensions():
     """Load all slashes."""
     logger.info(logging_util("Loading", "SLASH COMMANDS"))
-    parents.setup(bot)
-    maps.setup(bot)
-    records.setup(bot)
-    tournament.setup(bot)
-    exp.setup(bot)
-    tags.setup(bot)
-    guides.setup(bot)
-    events.setup(bot)
-    store.setup(bot)
+    # parents.setup(bot)
+    # maps.setup(bot)
+    # records.setup(bot)
+    # tournament.setup(bot)
+    # exp.setup(bot)
+    # tags.setup(bot)
+    # guides.setup(bot)
+    # events.setup(bot)
+    # store.setup(bot)
+    migration_tasks.setup(bot)
     logger.info(logging_util("Loading Complete", "SLASH COMMANDS"))
 
 
