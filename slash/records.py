@@ -75,12 +75,7 @@ class Test(
 
     # TODO: Remove before prod
     async def callback(self) -> None:
-        print(self.level_name.upper())
-        logger.info(self.level_name.upper())
-        embed = create_embed("Test", self.level_name.upper(), "Test")
-        view1 = VerificationView()
-        view2 = ConfirmView()
-        await self.interaction.response.send_message(embed=embed, views=[view1, view2])
+        return
 
 
 class SubmitRecord(RecordSlash, guilds=[GUILD_ID], name="record", parent=SubmitParent):
