@@ -95,6 +95,9 @@ class DoomBot(discord.Client):
 
     async def on_ready(self):
         """Display bot info on ready event."""
+        await self.http.bulk_upsert_guild_commands(
+            self.application_id, 689587520496730129, []
+        )
         app_info = await self.application_info()
         logger.info(
             f"{DOOMBOT_ASCII}"

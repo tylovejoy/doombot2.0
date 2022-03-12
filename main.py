@@ -48,9 +48,7 @@ def load_all_extensions():
 @bot.event
 async def setup():
     """Upload slash commands to discord."""
-    await bot.http.bulk_upsert_guild_commands(
-        bot.application_id, 689587520496730129, []
-    )
+
     await database_init()
     logger.info(logging_util("Uploading", "SLASH COMMANDS"))
     await bot.upload_guild_application_commands()
