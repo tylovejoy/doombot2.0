@@ -290,7 +290,8 @@ class SubmitMapAlias(
         document = MapAlias(alias=self.alias, original_code=self.original_code)
 
         view = discord.ui.View(timeout=None)
-        view.add_item(ConfirmButton())
+        confirm = ConfirmButton()
+        view.add_item(confirm)
 
         string = (
             f"Original code: {self.original_code}\n"
@@ -301,7 +302,7 @@ class SubmitMapAlias(
         await self.interaction.response.send_message(string, view=view, ephemeral=True)
         await view.wait()
 
-        if not view.children[0].value:
+        if not confirm.value:
             return
 
         await document.insert()
