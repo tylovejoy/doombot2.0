@@ -206,9 +206,10 @@ class Record(Document):
                     {"$sort": {"record": 1}},
                     {
                         "$group": {
-                            "_id": {"code": "$code", "level": "$level", "url": "$url"},
+                            "_id": {"code": "$code", "level": "$level"},
                             "record": {"$first": "$record"},
                             "user_id": {"$first": "$user_id"},
+                            "level": {"$first": "$level"},
                         }
                     },
                     {"$sort": {"_id.level": 1}},
@@ -222,7 +223,9 @@ class Record(Document):
     async def filter_search(cls, **filters: Any) -> List[Record]:
         """Get all amps with a particular filter."""
         search_filter = await cls.filter_search_(filters)
-        return await cls.find(search_filter).sort("+code", "+level").to_list()
+        return (
+            await cls.find(search_filter).sort("+record", "+code", "+level").to_list()
+        )
 
     @classmethod
     async def filter_search_single(cls, **filters: Any) -> Record:
