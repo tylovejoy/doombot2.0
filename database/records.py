@@ -175,7 +175,7 @@ class Record(Document):
                             "_id": {"code": "$code", "level": "$level"},
                             "record": {"$first": "$record"},
                             "user_id": {"$first": "$user_id"},
-                            "level": {"$first": "$level"},
+                            "url": {"$first": "url"},
                         }
                     },
                     {"$match": {"user_id": user_id}},
@@ -210,7 +210,7 @@ class Record(Document):
                             "_id": {"code": "$code", "level": "$level"},
                             "record": {"$first": "$record"},
                             "user_id": {"$first": "$user_id"},
-                            "level": {"$first": "$level"},
+                            "url": {"$first": "url"},
                         }
                     },
                     {"$sort": {"_id.level": 1}},
