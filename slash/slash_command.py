@@ -20,7 +20,7 @@ class Slash(discord.SlashCommand):
         if isinstance(exception, DoombotBaseException):
             if self.interaction.response.is_done():
                 await self.interaction.edit_original_message(
-                    content=exception,
+                    content=str(exception),
                 )
             else:
                 await self.send(

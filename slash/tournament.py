@@ -378,6 +378,9 @@ class Submissions(Slash, guilds=[GUILD_ID]):
             self.interaction, self.screenshot, self.record, self._name_
         )
 
+    async def error(self, exception: Exception) -> None:
+        await super(Submissions, self).error(exception)
+
 
 class TimeAttackSubmission(
     Submissions,
