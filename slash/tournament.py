@@ -755,6 +755,9 @@ async def send_records_to_db(tournament: Tournament):
         level = data.map_data.level
 
         for record in data.records:
+            user = await ExperiencePoints.find_user(record.user_id)
+            if getattr(user, "dont_submit", None):
+                continue
             search = await Record.filter_search_single(
                 map_code=code, map_level=level, user_id=record.user_id
             )

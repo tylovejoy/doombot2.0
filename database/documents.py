@@ -110,6 +110,7 @@ class ExperiencePoints(Document):
         "bo": [0, 0, 0, 0, 0],  # BO
     }
     verified_count: int = 0
+    dont_submit: Optional[bool] = False
 
     async def increment_verified(self) -> int:
         self.verified_count += 1

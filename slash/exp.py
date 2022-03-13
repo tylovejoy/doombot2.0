@@ -8,6 +8,7 @@ from discord.utils import MISSING
 from PIL import Image, ImageDraw, ImageFont
 
 from database.documents import ExperiencePoints
+from slash.parents import TournamentParent
 from slash.records import check_user
 from slash.slash_command import Slash
 from utils.constants import GUILD_ID
@@ -25,6 +26,7 @@ def setup(bot):
     bot.application_command(ChangeName)
     bot.application_command(VerificationStats)
     bot.application_command(RankLeaderboard)
+    bot.application_command(ToggleRecordSubmission)
 
 
 def format_xp(xp):
@@ -92,7 +94,7 @@ def open_logo(rank: str) -> Image:
     return Image.open(LOGO_FILE_PATH[rank]).convert("RGBA")
 
 
-class RankCard(discord.SlashCommand, name="rank"):
+class RankCard(Slash, name="rank"):
     """Display either your rank card or another users."""
 
     user: Optional[discord.Member] = discord.Option(
@@ -252,7 +254,7 @@ class RankCard(discord.SlashCommand, name="rank"):
             )
 
 
-class Alerts(discord.SlashCommand, name="alerts"):
+class Alerts(Slash, name="alerts"):
     """Enable/disable verification alerts."""
 
     value: bool = discord.Option(
@@ -274,7 +276,7 @@ class Alerts(discord.SlashCommand, name="alerts"):
         await user.save()
 
 
-class ChangeName(discord.SlashCommand, name="name"):
+class ChangeName(Slash, name="name"):
     """Change your display name for DoomBot commands."""
 
     name: str = discord.Option(
@@ -291,7 +293,7 @@ class ChangeName(discord.SlashCommand, name="name"):
         await user.save()
 
 
-class VerificationStats(discord.SlashCommand, name="verified"):
+class VerificationStats(Slash, name="verified"):
     """Display how many records a user has verified."""
 
     user: discord.Member = discord.Option(
@@ -309,3 +311,19 @@ class VerificationStats(discord.SlashCommand, name="verified"):
         )
 
         await self.interaction.edit_original_message(embed=embed)
+
+
+class ToggleRecordSubmission(Slash, name="autosubmit", parent=TournamentParent):
+    """Toggle autosubmission of tournament records."""
+
+    value: bool = discord.Option(
+        description="True, if you want your submissions to be automatically added."
+    )
+
+    async def callback(self) -> None:
+        await self.defer(ephemeral=True)
+        user = await ExperiencePoints.find_user(self.interaction.user.id)
+        setattr(user, "dont_submit", not self.value)
+        await self.interaction.edit_original_message(
+            content=f"Autosubmission changed to {self.value}."
+        )
