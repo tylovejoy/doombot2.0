@@ -125,3 +125,7 @@ class Emoji(Enum):
             return str(cls.GRANDMASTER)
         if value == "Unranked":
             return ""
+
+    @classmethod
+    def upper(cls):
+        return str(cls.UPPER)

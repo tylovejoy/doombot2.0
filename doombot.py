@@ -247,13 +247,13 @@ class DoomBot(discord.Client):
     async def on_message(message: discord.Message):
         # Suggestions
         if message.channel.id == SUGGESTIONS_ID:
-            await message.add_reaction(Emoji.UPPER)
+            await message.add_reaction(discord.PartialEmoji.from_str(Emoji.upper()))
 
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         if payload.user_id == BOT_ID:
             return
 
-        if payload.emoji != discord.PartialEmoji.from_str(Emoji.UPPER):
+        if payload.emoji != discord.PartialEmoji.from_str(Emoji.upper()):
             return
         if payload.channel_id not in [
             SUGGESTIONS_ID,

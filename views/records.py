@@ -57,7 +57,7 @@ async def verification(interaction: discord.Interaction, verified: bool):
         data = rejected(interaction, search)
 
     await orig_message.edit(content=data["edit"])
-    await orig_message.add_reaction(emoji=Emoji.UPPER)
+    await orig_message.add_reaction(emoji=discord.PartialEmoji.from_str(Emoji.upper()))
 
     if await ExperiencePoints.is_alertable(search.user_id):
         user = interaction.guild.get_member(search.user_id)
