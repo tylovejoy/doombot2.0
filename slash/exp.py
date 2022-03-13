@@ -13,6 +13,7 @@ from slash.records import check_user
 from slash.slash_command import Slash
 from utils.constants import GUILD_ID
 from utils.embed import create_embed, split_embeds, xp_embed_fields
+from utils.errors import NameTooLong
 from utils.utilities import logging_util
 from views.paginator import Paginator
 
@@ -285,6 +286,9 @@ class ChangeName(Slash, name="name"):
 
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
+        if len(self.name) > 25:
+            raise NameTooLong("Name must be less than 25 characters.")
+
         user = await ExperiencePoints.find_user(self.interaction.user.id)
         user.alias = self.name
         await self.interaction.edit_original_message(

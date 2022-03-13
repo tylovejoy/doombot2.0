@@ -44,3 +44,7 @@ class InvalidEventType(DoombotBaseException):
 
 class InvalidMapFilters(DoombotBaseException):
     """Map search must have at least one filter."""
+
+
+class NameTooLong(DoombotBaseException):
+    """User alias must be less than 25 characters."""
