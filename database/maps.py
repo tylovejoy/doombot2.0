@@ -56,7 +56,7 @@ class Map(Document):
     code: Indexed(str, unique=True)
     creator: str
     map_name: str
-    map_type: Optional[List[str]] = Field([], alias="type")
+    map_type: Optional[List[str]]
     description: Optional[str]
 
     @classmethod

@@ -249,6 +249,19 @@ class DoomBot(discord.Client):
         if message.channel.id == SUGGESTIONS_ID:
             await message.add_reaction(discord.PartialEmoji.from_str(Emoji.upper()))
 
+    @staticmethod
+    async def on_raw_message_delete(payload: discord.RawMessageDeleteEvent):
+        if payload.channel_id not in [
+            SUGGESTIONS_ID,
+            SPR_RECORDS_ID,
+            NON_SPR_RECORDS_ID,
+        ]:
+            return
+
+        search = await Starboard.find_one(Starboard.starboard_id == payload.message_id)
+        if search:
+            await search.delete()
+
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         if payload.user_id == BOT_ID:
             return
