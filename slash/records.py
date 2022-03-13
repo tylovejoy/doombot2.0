@@ -313,6 +313,17 @@ class WorldRecords(Slash, name="world-records"):
         await world_records(self.interaction, self.user)
 
 
+class WorldRecordsShort(Slash, name="wr"):
+    """View a specific users world records."""
+
+    user: discord.Member = discord.Option(
+        description="Who's world records do you want to see?",
+    )
+
+    async def callback(self) -> None:
+        await world_records(self.interaction, self.user)
+
+
 class WorldRecordsUserCommand(UserSlash, guilds=[GUILD_ID], name="world-records"):
     """View a specific users world records."""
 
@@ -321,6 +332,17 @@ class WorldRecordsUserCommand(UserSlash, guilds=[GUILD_ID], name="world-records"
 
 
 class PersonalRecords(Slash, name="personal-records"):
+    """View a specific users personal records."""
+
+    user: discord.Member = discord.Option(
+        description="Who's personal best do you want to see?",
+    )
+
+    async def callback(self) -> None:
+        await personal_best(self.interaction, self.user)
+
+
+class PersonalRecordsShort(Slash, name="pb"):
     """View a specific users personal records."""
 
     user: discord.Member = discord.Option(
