@@ -40,3 +40,7 @@ class TournamentStateError(DoombotBaseException):
 
 class InvalidEventType(DoombotBaseException):
     """Event type is invalid."""
+
+
+class InvalidMapFilters(DoombotBaseException):
+    """Map search must have at least one filter."""

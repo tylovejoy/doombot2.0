@@ -2,6 +2,7 @@ from logging import getLogger
 from typing import Optional
 
 import discord
+from discord.utils import MISSING
 
 from database.maps import Map, MapAlias
 from slash.parents import DeleteParent, EditParent, SubmitParent
@@ -9,7 +10,7 @@ from slash.slash_command import MapSlash
 from utils.constants import GUILD_ID, MAP_MAKER_ID, NEWEST_MAPS_ID
 from utils.embed import create_embed, maps_embed_fields, split_embeds
 from utils.enums import MapNames, MapTypes
-from utils.errors import InvalidMapName, SearchNotFound
+from utils.errors import InvalidMapName, SearchNotFound, InvalidMapFilters
 from utils.utilities import check_permissions, logging_util, preprocess_map_code
 from views.basic import ConfirmButton
 from views.maps import MapSubmitView
@@ -40,6 +41,12 @@ class MapSearch(MapSlash, name="map-search"):
     async def callback(self) -> None:
         """Callback for map search slash command."""
         await self.defer(ephemeral=True)
+
+        if all([x == MISSING for x in [self.map_type, self.map_type, self.creator]]):
+            raise InvalidMapFilters(
+                "You must have at least one map search filter e.g. map_type, map_name, or creator"
+            )
+
         fuzzy_name, fuzzy_type = None, None
         if self.map_name:
             fuzzy_name = MapNames.fuzz(self.map_name)
