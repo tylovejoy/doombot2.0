@@ -327,7 +327,7 @@ class DoomBot(discord.Client):
             NON_SPR_RECORDS_ID,
             SPR_RECORDS_ID,
         ]:
-            record = await Record.find_one({"message_id": payload.message_id})
+            record = await Record.find_one(Record.message_id == payload.message_id)
             if record is None:
                 return
             embed = discord.Embed(
