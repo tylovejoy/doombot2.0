@@ -102,6 +102,8 @@ class Emoji(Enum):
     DIAMOND = "<:diamond:931317455639445524>"
     GRANDMASTER = "<:grandmaster:931317469396729876>"
 
+    UPPER = "<:upper:787788134620332063>"
+
     @classmethod
     def is_verified(cls, value: bool):
         """Check for verification status. Return the proper emoji."""

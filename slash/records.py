@@ -313,7 +313,7 @@ class WorldRecords(Slash, name="world-records"):
         await world_records(self.interaction, self.user)
 
 
-class WorldRecordsUserCommand(UserSlash, name="world-records"):
+class WorldRecordsUserCommand(UserSlash, guilds=[GUILD_ID], name="world-records"):
     """View a specific users world records."""
 
     async def callback(self) -> None:
@@ -331,7 +331,7 @@ class PersonalRecords(Slash, name="personal-records"):
         await personal_best(self.interaction, self.user)
 
 
-class PersonalRecordsUserCommand(UserSlash, name="personal-records"):
+class PersonalRecordsUserCommand(UserSlash, guilds=[GUILD_ID], name="personal-records"):
     """View a specific users personal records."""
 
     async def callback(self) -> None:

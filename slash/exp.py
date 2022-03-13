@@ -327,3 +327,4 @@ class ToggleRecordSubmission(Slash, name="autosubmit", parent=TournamentParent):
         await self.interaction.edit_original_message(
             content=f"Autosubmission changed to {self.value}."
         )
+        await user.save()

@@ -29,6 +29,7 @@ from utils.constants import (
     TOURNAMENT_INFO_ID,
     TOURNAMENT_SUBMISSION_ID,
 )
+from utils.enums import Emoji
 from utils.utilities import display_record, logging_util, star_emoji
 from views.records import VerificationView
 
@@ -246,15 +247,13 @@ class DoomBot(discord.Client):
     async def on_message(message: discord.Message):
         # Suggestions
         if message.channel.id == SUGGESTIONS_ID:
-            await message.add_reaction("<:upper:929871697555914752>")
+            await message.add_reaction(Emoji.UPPER)
 
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         if payload.user_id == BOT_ID:
             return
 
-        if payload.emoji != discord.PartialEmoji.from_str(
-            "<:upper:929871697555914752>"
-        ):
+        if payload.emoji != discord.PartialEmoji.from_str(Emoji.UPPER):
             return
         if payload.channel_id not in [
             SUGGESTIONS_ID,
