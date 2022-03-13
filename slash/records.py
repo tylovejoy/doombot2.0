@@ -44,8 +44,10 @@ def setup(bot: discord.Client):
     logger.info(logging_util("Loading", "RECORDS"))
     bot.application_command(ViewRecords)
     bot.application_command(PersonalRecords)
+    bot.application_command(PersonalRecordsShort)
     bot.application_command(PersonalRecordsUserCommand)
     bot.application_command(WorldRecords)
+    bot.application_command(WorldRecordsShort)
     bot.application_command(WorldRecordsUserCommand)
     bot.application_command(Test)
 
