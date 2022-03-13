@@ -140,6 +140,7 @@ class SubmitRecord(RecordSlash, guilds=[GUILD_ID], name="record", parent=SubmitP
             )
 
         record_document.record = record_seconds
+        record_document.attachment_url = self.screenshot.url
 
         embed = create_embed(
             title="New submission", desc="", user=self.interaction.user
