@@ -53,8 +53,8 @@ def find_portrait(level) -> str:
     """Find which portrait to use."""
     number = str(ceil(level % 20 / 4))
     logger.info(number)
-    if number == 0:
-        number = 1
+    if number == "0":
+        number = "1"
     if level <= 20:
         filename = "bronze" + number + ".png"
     elif 20 <= level < 40:
