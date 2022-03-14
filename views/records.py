@@ -7,6 +7,10 @@ from utils.enums import Emoji
 from utils.records import delete_hidden
 from utils.utilities import display_record
 from views.basic import ConfirmButton
+from logging import getLogger
+
+
+logger = getLogger(__name__)
 
 
 class RecordSubmitView(discord.ui.View):
@@ -61,7 +65,10 @@ async def verification(interaction: discord.Interaction, verified: bool):
 
     if await ExperiencePoints.is_alertable(search.user_id):
         user = interaction.guild.get_member(search.user_id)
-        await user.send(data["direct_message"])
+        try:
+            await user.send(data["direct_message"])
+        except Exception as e:
+            logger.info(e)
     await delete_hidden(interaction, search)
     search.verified = data["bool"]
     await search.save()
