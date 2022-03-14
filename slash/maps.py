@@ -42,10 +42,10 @@ class MapSearch(MapSlash, name="map-search"):
         """Callback for map search slash command."""
         await self.defer(ephemeral=True)
 
-        # if all([not x for x in [self.map_type, self.map_type, self.creator]]):
-        #     raise InvalidMapFilters(
-        #         "You must have at least one map search filter e.g. map_type, map_name, or creator"
-        #     )
+        if all([x is MISSING for x in [self.map_name, self.map_type, self.creator]]):
+            raise InvalidMapFilters(
+                "You must have at least one map search filter e.g. map_type, map_name, or creator"
+            )
 
         fuzzy_name, fuzzy_type = None, None
         if self.map_name:
