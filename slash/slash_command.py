@@ -41,8 +41,8 @@ class Slash(discord.SlashCommand):
                 < 1850
             ):
                 await channel.send(
-                    f"**Error: {self._name_}**\n"
-                    f"Channel: `{self.interaction.channel}`"
+                    f"**Error: {self._name_} {self._arguments_}**\n"
+                    f"Channel: `{self.interaction.channel}`\n"
                     f"User: `{self.interaction.user}`\n```\n"
                     + "".join(
                         traceback.format_exception(
@@ -53,7 +53,7 @@ class Slash(discord.SlashCommand):
                 )
             else:
                 await channel.send(
-                    f"**Error: {self._name_}**\n"
+                    f"**Error: {self._name_} {self._arguments_}**\n"
                     f"Channel: `{self.interaction.channel}`"
                     f"User: `{self.interaction.user}`" + "\n",
                     file=discord.File(
