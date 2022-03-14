@@ -20,9 +20,7 @@ def create_embed(
     """Create a standardized embed."""
     embed = discord.Embed(title=title, description=desc, color=color)
     if not isinstance(user, str):
-        embed.set_author(
-            name=user.name, icon_url=getattr(getattr(user, "avatar", None), "url", None)
-        )
+        embed.set_author(name=user.name, icon_url=user.display_avatar.url)
     else:
         embed.set_author(name=user)
 

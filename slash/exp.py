@@ -52,6 +52,7 @@ def find_level(player_xp):
 def find_portrait(level) -> str:
     """Find which portrait to use."""
     number = str(ceil(level % 20 / 4))
+    logger.info(number)
     if number == 0:
         number = 1
     if level <= 20:
