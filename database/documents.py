@@ -42,6 +42,7 @@ class Tags(Document):
 
     name: Indexed(str, unique=True)
     content: str
+    category: str
 
     @classmethod
     async def find_all_tag_names(cls) -> List[str]:
