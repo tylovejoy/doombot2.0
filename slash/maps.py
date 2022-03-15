@@ -26,7 +26,7 @@ def setup(bot):
 
 
 class MapSearch(MapSlash, name="map-search"):
-    """Search for maps using filters."""
+    """Search for maps using filters. You must use at least one filter."""
 
     map_name: Optional[str] = discord.Option(
         description="Name of a particular Overwatch map.",
@@ -36,7 +36,10 @@ class MapSearch(MapSlash, name="map-search"):
         description="A specific type of map.",
         autocomplete=True,
     )
-    creator: Optional[str] = discord.Option(description="Name of a specific creator.")
+    creator: Optional[str] = discord.Option(
+        description="Name of a specific creator. Separate multiple creators with commas."
+    )
+
 
     async def callback(self) -> None:
         """Callback for map search slash command."""

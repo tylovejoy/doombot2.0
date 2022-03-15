@@ -92,7 +92,11 @@ class Map(Document):
         if map_type:
             search_filter.update({"map_type": map_type})
         if creator:
-            search_filter.update(RegEx("creator", creator, "i"))
+            creators = [x.strip() for x in creator.split(",")]
+            if len(creators) == 1:
+                search_filter.update(RegEx("creator", creator, "i"))
+            else:
+                search_filter.update({"$and": [RegEx("creator", x, "i") for x in creators]})
 
         return await cls.find(search_filter).to_list()
 
