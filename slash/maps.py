@@ -88,8 +88,6 @@ class SubmitMap(MapSlash, guilds=[GUILD_ID], parent=SubmitParent, name="map"):
         """Callback for map submission slash command."""
         self.map_code = preprocess_map_code(self.map_code)
 
-        await Map.check_code(self.map_code)
-
         self.map_name = MapNames.fuzz(self.map_name)
         if self.map_name not in MapNames.list():
             raise InvalidMapName("Invalid map name!")
