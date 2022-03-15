@@ -1,5 +1,6 @@
 from logging import getLogger
 from typing import Optional
+from unicodedata import category
 
 import aiohttp
 import discord
@@ -25,6 +26,7 @@ def setup(bot):
 class DeleteTag(TagSlash, guilds=[GUILD_ID], name="tag", parent=DeleteParent):
     """Delete a tag."""
 
+    category: str = discord.Option(description="Which category?", autocomplete=True)
     name: str = discord.Option(
         description="Which tag should be deleted?", autocomplete=True
     )
@@ -33,7 +35,7 @@ class DeleteTag(TagSlash, guilds=[GUILD_ID], name="tag", parent=DeleteParent):
         await self.defer(ephemeral=True)
         await check_permissions(self.interaction)
 
-        tag = await Tags.find_one(Tags.name == self.name)
+        tag = await Tags.find_one(Tags.name == self.name, Tags.category == self.category)
 
         if not tag:
             raise SearchNotFound("Tag does not exist.")
@@ -48,10 +50,11 @@ class DeleteTag(TagSlash, guilds=[GUILD_ID], name="tag", parent=DeleteParent):
 
 
 class CreateTag(
-    discord.SlashCommand, guilds=[GUILD_ID], name="tag", parent=CreateParent
+    TagSlash, guilds=[GUILD_ID], name="tag", parent=CreateParent
 ):
     """Create a tag."""
 
+    category: str = discord.Option(description="What should the category be?", autocomplete=True)
     name: str = discord.Option(description="What should the tag be called?")
     content: str = discord.Option(description="What should the content of the tag be?")
 
@@ -59,11 +62,13 @@ class CreateTag(
         await self.defer(ephemeral=True)
         await check_permissions(self.interaction)
 
-        tag = Tags(name=self.name, content=self.content)
-        if not Tags.exists(self.name):
+        
+        if await Tags.exists(self.name, self.category):
             raise SearchNotFound(
-                f"**{tag.name}** already exists! This tag was not created."
+                f"**{self.name}** already exists! This tag was not created."
             )
+
+        tag = Tags(name=self.name, content=self.content, category=self.category)
 
         view = ConfirmView()
 
@@ -78,11 +83,12 @@ class CreateTag(
 class TagsCommand(TagSlash, name="tag"):
     """Display answers for commonly asked questions."""
 
+    category: str = discord.Option(description="Which tag category?", autocomplete=True)
     name: str = discord.Option(description="Which tag to display?", autocomplete=True)
 
     async def callback(self) -> None:
         await self.defer()
-        tag = await Tags.find_one(Tags.name == self.name)
+        tag = await Tags.find_one(Tags.name == self.name, Tags.category == self.category)
         await self.interaction.edit_original_message(
             content=f"**{tag.name}**\n\n{tag.content}"
         )

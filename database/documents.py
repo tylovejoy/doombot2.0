@@ -5,6 +5,7 @@ from enum import unique
 from logging import getLogger
 from os import environ
 from typing import Dict, List, Optional, Union
+from unicodedata import category
 
 import motor
 from beanie import Document, init_beanie
@@ -33,6 +34,9 @@ class VerificationViews(Document):
     message_id: int
 
 
+class TagCategories(BaseModel):
+    category: str
+
 class TagNamesProjection(BaseModel):
     name: str
 
@@ -45,15 +49,22 @@ class Tags(Document):
     category: str
 
     @classmethod
-    async def find_all_tag_names(cls) -> List[str]:
-        tags = await cls.find().project(TagNamesProjection).to_list()
+    async def find_all_tag_names(cls, category) -> List[str]:
+        tags = await cls.find(cls.category == category).project(TagNamesProjection).to_list()
         return [x.name for x in tags]
 
     @classmethod
-    async def exists(cls, name: str) -> bool:
+    async def exists(cls, name: str, category: str) -> bool:
         """Check if document exists."""
-        return bool(await cls.find_one(cls.name == name))
+        return bool(await cls.find_one(cls.name == name, cls.category == category))
 
+    @classmethod
+    async def find_all_tag_categories(cls) -> List[str]:
+        tags = await cls.find().project(TagCategories).to_list()
+        categories = set()
+        for t in tags:
+            categories.add(t.category)
+        return sorted(categories)
 
 class Starboard(Document):
     """Collection of suggestions."""

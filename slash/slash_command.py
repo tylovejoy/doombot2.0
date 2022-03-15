@@ -1,4 +1,5 @@
 import io
+from logging import getLogger
 import traceback
 from typing import Dict, List, Union
 
@@ -14,7 +15,7 @@ from utils.utilities import case_ignore_compare
 MAPS_AUTOCOMPLETE = {k: k for k in MapNames.list()}
 MAP_TYPES_AUTOCOMPLETE = {k: k for k in MapTypes.list()}
 
-
+logger = getLogger(__name__)
 class Slash(discord.SlashCommand):
     async def error(self, exception: Exception) -> None:
         if isinstance(exception, DoombotBaseException):
@@ -120,8 +121,9 @@ class TagSlash(Slash):
     async def autocomplete(
         self, options: Dict[str, Union[int, float, str]], focused: str
     ) -> discord.AutoCompleteResponse:
-        tag_names = await Tags.find_all_tag_names()
-        return await tags_autocomplete(options, focused, tag_names)
+        categories = await Tags.find_all_tag_categories()
+        tag_names = await Tags.find_all_tag_names(options.get("category"))
+        return await tags_autocomplete(options, focused, tag_names or categories)
 
 
 class WorkshopSlash(Slash):
@@ -132,17 +134,19 @@ class WorkshopSlash(Slash):
 
 
 async def tags_autocomplete(
-    options: Dict[str, Union[int, float, str]], focused: str, list_obj: List
+    options: Dict[str, Union[int, float, str]], 
+    focused: str, 
+    list_obj: List, 
 ):
     if options[focused] == "":
         return discord.AutoCompleteResponse({k: k for k in list_obj[:25]})
 
-    if focused in ["name", "search"]:
+    if focused in ["name", "search", "category"]:
+        
         count = 0
         autocomplete_ = {}
         for k in list_obj:
             if case_ignore_compare(k, options[focused]) and count < 25:
                 autocomplete_[k] = k
                 count += 1
-
         return discord.AutoCompleteResponse(autocomplete_)
