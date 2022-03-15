@@ -19,6 +19,10 @@ class AllLevelsAgg(BaseModel):
 
     id: Link[AllLevelsSubAgg] = Field(None, alias="_id")
 
+    def __str__(self) -> str:
+        """String representation."""
+        return self.id.level
+
 
 class WorldRecordsSubAggregate(Document):
     """Projection model for World Records aggregation."""
@@ -258,8 +262,13 @@ class Record(Document):
         all_levels = (
             await cls.find(cls.code == map_code)
             .aggregate(
-                [{"$project": {"level": 1}}, {"$sort": {"level": 1}}],
-                projection_model=MapLevels,
+                [
+                    {"$match": {"code": "H3NTA"}},
+                    {"$project": {"level": 1}},
+                    {"$group": {"_id": {"level": "$level"}}},
+                    {"$sort": {"_id.level": 1}},
+                ],
+                projection_model=AllLevelsAgg,
             )
             .to_list()
         )

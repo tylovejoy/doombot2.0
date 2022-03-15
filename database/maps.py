@@ -25,6 +25,7 @@ class MapAlias(Document):
 class MapLevels(BaseModel):
     """Projection model for Map aggregation."""
 
+    _id: Optional[None]
     level: str
 
     def __str__(self) -> str:

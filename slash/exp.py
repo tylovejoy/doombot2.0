@@ -224,8 +224,10 @@ class RankCard(Slash, name="rank"):
             place_font_size = 120
         elif len(str(place)) == 2:
             place_font_size = 110
-        else:
+        elif place < 999:
             place_font_size = 100
+        else:
+            place_font_size = 85
 
         place_font = ImageFont.truetype(font_file, place_font_size)
 
