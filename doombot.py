@@ -365,7 +365,7 @@ class DoomBot(discord.Client):
             )
             user = self.get_user(record.user_id)
 
-            embed.set_author(name=user.name, icon_url=user.avatar.url)
+            embed.set_author(name=user.name, icon_url=user.display_avatar.url)
             embed.add_field(name="Original", value=f"[Jump!]({entry.jump})")
             starboard_message = await self.top_records.send(
                 f"{star_emoji(entry.stars)} **{entry.stars}** {message.channel.mention}",
