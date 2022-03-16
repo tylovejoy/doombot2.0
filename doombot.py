@@ -105,6 +105,22 @@ class DoomBot(discord.Client):
         )
         self.guild = self.get_guild(GUILD_ID)
         self.everyone = self.guild.default_role
+
+        self.suggestion_channel = self.get_channel(SUGGESTIONS_ID)
+        self.top_suggestions = self.get_channel(TOP_SUGGESTIONS_ID)
+
+        self.spr_record_channel = self.get_channel(SPR_RECORDS_ID)
+        self.other_record_channel = self.get_channel(NON_SPR_RECORDS_ID)
+
+        self.top_records = self.get_channel(TOP_RECORDS_ID)
+
+        self.channel_map = {
+            SPR_RECORDS_ID: self.spr_record_channel,
+            NON_SPR_RECORDS_ID: self.other_record_channel,
+            SUGGESTIONS_ID: self.suggestion_channel,
+        }
+
+
         self.submissions_channel = self.guild.get_channel(TOURNAMENT_SUBMISSION_ID)
         self.allow_submissions = self.submissions_channel.overwrites_for(self.everyone)
         self.disallow_submissions = self.submissions_channel.overwrites_for(
@@ -309,7 +325,7 @@ class DoomBot(discord.Client):
                 color=0xF7BD00,
             )
             embed.set_author(
-                name=message.author.name, icon_url=message.author.avatar.url
+                name=message.author.name, icon_url=message.author.display_avatar.url
             )
             embed.add_field(name="Original", value=f"[Jump!]({entry.jump})")
             starboard_message = await self.top_suggestions.send(
