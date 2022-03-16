@@ -117,6 +117,11 @@ class DoomBot(discord.Client):
             TOP_RECORDS_ID: self.top_records,
             TOP_SUGGESTIONS_ID: self.top_suggestions,
         }
+        self.channel_map_top = {
+            SPR_RECORDS_ID: self.top_records,
+            NON_SPR_RECORDS_ID: self.top_records,
+            SUGGESTIONS_ID: self.top_suggestions,
+        }
 
 
         self.submissions_channel = self.guild.get_channel(TOURNAMENT_SUBMISSION_ID)
@@ -318,7 +323,7 @@ class DoomBot(discord.Client):
         )
 
         if entry.starboard_id != 0:
-            starboard_message = self.channel_map[
+            starboard_message = self.channel_map_top[
                 payload.channel_id
             ].get_partial_message(entry.starboard_id)
             await starboard_message.edit(
