@@ -66,21 +66,15 @@ class DoomBot(discord.Client):
             intents=intents,
             slash_command_guilds=[195387617972322306],
         )
-        self.suggestion_channel = self.get_channel(SUGGESTIONS_ID)
-        self.top_suggestions = self.get_channel(TOP_SUGGESTIONS_ID)
+        self.suggestion_channel = None
+        self.top_suggestions = None
 
-        self.spr_record_channel = self.get_channel(SPR_RECORDS_ID)
-        self.other_record_channel = self.get_channel(NON_SPR_RECORDS_ID)
+        self.spr_record_channel = None
+        self.other_record_channel = None
 
-        self.top_records = self.get_channel(TOP_RECORDS_ID)
+        self.top_records = None
 
-        self.channel_map = {
-            SPR_RECORDS_ID: self.spr_record_channel,
-            NON_SPR_RECORDS_ID: self.other_record_channel,
-            SUGGESTIONS_ID: self.suggestion_channel,
-            TOP_RECORDS_ID: self.top_records,
-            TOP_SUGGESTIONS_ID: self.top_suggestions,
-        }
+        self.channel_map = None
         self.ws_list = None
         self.verification_views_added = False
         self.guild = None
@@ -120,6 +114,8 @@ class DoomBot(discord.Client):
             SPR_RECORDS_ID: self.spr_record_channel,
             NON_SPR_RECORDS_ID: self.other_record_channel,
             SUGGESTIONS_ID: self.suggestion_channel,
+            TOP_RECORDS_ID: self.top_records,
+            TOP_SUGGESTIONS_ID: self.top_suggestions,
         }
 
 
