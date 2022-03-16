@@ -78,6 +78,8 @@ class DoomBot(discord.Client):
             SPR_RECORDS_ID: self.spr_record_channel,
             NON_SPR_RECORDS_ID: self.other_record_channel,
             SUGGESTIONS_ID: self.suggestion_channel,
+            TOP_RECORDS_ID: self.top_records,
+            TOP_SUGGESTIONS_ID: self.top_suggestions,
         }
         self.ws_list = None
         self.verification_views_added = False
