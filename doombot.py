@@ -319,7 +319,16 @@ class DoomBot(discord.Client):
             .fetch()
         )
 
-        if entry.starboard_id == 0 and payload.channel_id == SUGGESTIONS_ID:
+        if entry.starboard_id != 0:
+            starboard_message = self.channel_map[
+                payload.channel_id
+            ].get_partial_message(entry.starboard_id)
+            await starboard_message.edit(
+                content=f"{star_emoji(entry.stars)} **{entry.stars}**"
+            )
+            return
+
+        if payload.channel_id == SUGGESTIONS_ID:
             embed = discord.Embed(
                 description=message.content,
                 color=0xF7BD00,
@@ -339,7 +348,7 @@ class DoomBot(discord.Client):
             )
             await thread.add_user(message.author)
 
-        elif entry.starboard_id == 0 and payload.channel_id in [
+        elif payload.channel_id in [
             NON_SPR_RECORDS_ID,
             SPR_RECORDS_ID,
         ]:
@@ -365,13 +374,7 @@ class DoomBot(discord.Client):
             entry.starboard_id = starboard_message.id
             await entry.save()
 
-        else:
-            starboard_message = self.channel_map[
-                payload.channel_id
-            ].get_partial_message(entry.starboard_id)
-            await starboard_message.edit(
-                content=f"{star_emoji(entry.stars)} **{entry.stars}**"
-            )
+        
 
     @staticmethod
     async def on_thread_update(before: discord.Thread, after: discord.Thread):
