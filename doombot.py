@@ -334,7 +334,7 @@ class DoomBot(discord.Client):
             )
             entry.starboard_id = starboard_message.id
             await entry.save()
-            thread = await starboard_message.start_thread(
+            thread = await starboard_message.create_thread(
                 name=message.content[:100], auto_archive_duration=1440
             )
             await thread.add_user(message.author)
