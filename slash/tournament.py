@@ -948,7 +948,7 @@ async def init_xp_store(tournament: Tournament) -> Dict[int, Dict[str, int]]:
     return store
 
 
-async def compute_mission_xp(tournament: Tournament, store) -> Dict[int, Dict]:
+async def compute_mission_xp(tournament: Tournament, store: dict) -> Dict[int, Dict]:
     """Compute the XP from difficulty based missions."""
 
     for category in CATEGORIES:
@@ -963,7 +963,7 @@ async def compute_mission_xp(tournament: Tournament, store) -> Dict[int, Dict]:
     return store
 
 
-async def mission_complete_check(missions, record, store):
+async def mission_complete_check(missions, record, store: dict) -> dict:
     # Goes hardest to easiest, because highest mission only
     for mission_category in MISSION_CATEGORIES:
 
