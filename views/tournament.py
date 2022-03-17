@@ -59,14 +59,23 @@ class TournamentStartView(discord.ui.View):
 
     def __init__(self, interaction: discord.Interaction):
         super().__init__(timeout=None)
-        self.confirm_button = ConfirmButton()
+        self.confirm_button = ConfirmButton(row=1)
         self.interaction = interaction
         self.ta_modal = None
         self.mc_modal = None
         self.hc_modal = None
         self.bo_modal = None
+        self.bracket = False
 
-    @discord.ui.button(label="TA", style=discord.ButtonStyle.red)
+    @discord.ui.button(label="Bracket Toggle Off", style=discord.ButtonStyle.grey, row=0)
+    async def bracket_toggle(self, button: discord.ui.Button, interaction: discord.Interaction):
+        self.bracket = not self.bracket
+        toggles = ("On", discord.ButtonStyle.blurple) if self.bracket else ("Off", discord.ButtonStyle.grey)
+        button.label = f"Bracket Toggle {toggles[0]}"
+        button.style = toggles[1]
+        await self.interaction.edit_original_message(view=self)
+
+    @discord.ui.button(label="TA", style=discord.ButtonStyle.red, row=1)
     async def ta(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Time Attack button."""
         button.style = discord.ButtonStyle.green
@@ -74,7 +83,7 @@ class TournamentStartView(discord.ui.View):
         await interaction.response.send_modal(self.ta_modal)
         await self.enable_accept_button()
 
-    @discord.ui.button(label="MC", style=discord.ButtonStyle.red)
+    @discord.ui.button(label="MC", style=discord.ButtonStyle.red, row=1)
     async def mc(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Mildcore button."""
         button.style = discord.ButtonStyle.green
@@ -82,7 +91,7 @@ class TournamentStartView(discord.ui.View):
         await interaction.response.send_modal(self.mc_modal)
         await self.enable_accept_button()
 
-    @discord.ui.button(label="HC", style=discord.ButtonStyle.red)
+    @discord.ui.button(label="HC", style=discord.ButtonStyle.red, row=1)
     async def hc(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Hardcore button."""
         button.style = discord.ButtonStyle.green
@@ -90,7 +99,7 @@ class TournamentStartView(discord.ui.View):
         await interaction.response.send_modal(self.hc_modal)
         await self.enable_accept_button()
 
-    @discord.ui.button(label="BO", style=discord.ButtonStyle.red)
+    @discord.ui.button(label="BO", style=discord.ButtonStyle.red, row=1)
     async def bo(self, button: discord.ui.Button, interaction: discord.Interaction):
         """Bonus button."""
         button.style = discord.ButtonStyle.green
@@ -100,7 +109,12 @@ class TournamentStartView(discord.ui.View):
 
     async def enable_accept_button(self):
         """Enable confirm button when other buttons are pressed."""
-        if len(self.children) != 5:
+        if any(
+            [
+                x is discord.ButtonStyle.green
+                for x in [self.bo.style, self.ta.style, self.mc.style, self.hc.style]
+            ]
+        ):
             self.add_item(self.confirm_button)
         await self.interaction.edit_original_message(view=self)
 

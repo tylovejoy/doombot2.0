@@ -171,7 +171,6 @@ class TournamentStart(
             tournament_id=last_id + 1,
             name="Doomfist Parkour Tournament",
             active=True,
-            bracket=False,
             schedule_start=self.schedule_start,
             schedule_end=self.schedule_end,
         )
@@ -252,6 +251,8 @@ class TournamentStart(
                     inline=False,
                 )
 
+        tournament_document.bracket = view.bracket
+
         view = TournamentCategoryView(self.interaction)
         mentions = await view.start(embed)
         tournament_document.mentions = mentions
@@ -260,6 +261,7 @@ class TournamentStart(
         if not view.confirm.value:
             return
 
+        
         await tournament_document.insert()
         await self.interaction.edit_original_message(
             content="Tournament scheduled.", view=view
