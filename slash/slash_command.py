@@ -32,6 +32,15 @@ class Slash(discord.SlashCommand):
         elif isinstance(exception, discord.errors.AutoCompleteResponseFormattingError):
             return
         else:
+            edit = self.interaction.edit_original_message if self.interaction.response.is_done() else self.send
+            await edit(
+                content=(
+                    "<a:ChumpyNo:868143555871387648> " 
+                    "Uh-oh, an error occured. It has been sent to @nebula." 
+                    "Try again later. <a:ChumpyNo:868143555871387648>"
+                ),
+            )
+
             channel = self.client.get_channel(ERROR_LOGS)
             if (
                 len(
