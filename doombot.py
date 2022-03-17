@@ -123,7 +123,6 @@ class DoomBot(discord.Client):
             SUGGESTIONS_ID: self.top_suggestions,
         }
 
-
         self.submissions_channel = self.guild.get_channel(TOURNAMENT_SUBMISSION_ID)
         self.allow_submissions = self.submissions_channel.overwrites_for(self.everyone)
         self.disallow_submissions = self.submissions_channel.overwrites_for(
@@ -376,8 +375,6 @@ class DoomBot(discord.Client):
             )
             entry.starboard_id = starboard_message.id
             await entry.save()
-
-        
 
     @staticmethod
     async def on_thread_update(before: discord.Thread, after: discord.Thread):

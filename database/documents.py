@@ -37,6 +37,7 @@ class VerificationViews(Document):
 class TagCategories(BaseModel):
     category: str
 
+
 class TagNamesProjection(BaseModel):
     name: str
 
@@ -50,7 +51,11 @@ class Tags(Document):
 
     @classmethod
     async def find_all_tag_names(cls, category) -> List[str]:
-        tags = await cls.find(cls.category == category).project(TagNamesProjection).to_list()
+        tags = (
+            await cls.find(cls.category == category)
+            .project(TagNamesProjection)
+            .to_list()
+        )
         return [x.name for x in tags]
 
     @classmethod
@@ -65,6 +70,7 @@ class Tags(Document):
         for t in tags:
             categories.add(t.category)
         return sorted(categories)
+
 
 class Starboard(Document):
     """Collection of suggestions."""

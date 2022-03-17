@@ -35,7 +35,9 @@ class DeleteTag(TagSlash, guilds=[GUILD_ID], name="tag", parent=DeleteParent):
         await self.defer(ephemeral=True)
         await check_permissions(self.interaction)
 
-        tag = await Tags.find_one(Tags.name == self.name, Tags.category == self.category)
+        tag = await Tags.find_one(
+            Tags.name == self.name, Tags.category == self.category
+        )
 
         if not tag:
             raise SearchNotFound("Tag does not exist.")
@@ -49,12 +51,12 @@ class DeleteTag(TagSlash, guilds=[GUILD_ID], name="tag", parent=DeleteParent):
             await tag.delete()
 
 
-class CreateTag(
-    TagSlash, guilds=[GUILD_ID], name="tag", parent=CreateParent
-):
+class CreateTag(TagSlash, guilds=[GUILD_ID], name="tag", parent=CreateParent):
     """Create a tag."""
 
-    category: str = discord.Option(description="What should the category be?", autocomplete=True)
+    category: str = discord.Option(
+        description="What should the category be?", autocomplete=True
+    )
     name: str = discord.Option(description="What should the tag be called?")
     content: str = discord.Option(description="What should the content of the tag be?")
 
@@ -62,7 +64,6 @@ class CreateTag(
         await self.defer(ephemeral=True)
         await check_permissions(self.interaction)
 
-        
         if await Tags.exists(self.name, self.category):
             raise SearchNotFound(
                 f"**{self.name}** already exists! This tag was not created."
@@ -88,7 +89,9 @@ class TagsCommand(TagSlash, name="tag"):
 
     async def callback(self) -> None:
         await self.defer()
-        tag = await Tags.find_one(Tags.name == self.name, Tags.category == self.category)
+        tag = await Tags.find_one(
+            Tags.name == self.name, Tags.category == self.category
+        )
         await self.interaction.edit_original_message(
             content=f"**{tag.name}**\n\n{tag.content}"
         )

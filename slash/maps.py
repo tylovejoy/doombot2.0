@@ -40,7 +40,6 @@ class MapSearch(MapSlash, name="map-search"):
         description="Name of a specific creator. Separate multiple creators with commas."
     )
 
-
     async def callback(self) -> None:
         """Callback for map search slash command."""
         await self.defer(ephemeral=True)

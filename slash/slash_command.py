@@ -16,6 +16,8 @@ MAPS_AUTOCOMPLETE = {k: k for k in MapNames.list()}
 MAP_TYPES_AUTOCOMPLETE = {k: k for k in MapTypes.list()}
 
 logger = getLogger(__name__)
+
+
 class Slash(discord.SlashCommand):
     async def error(self, exception: Exception) -> None:
         if isinstance(exception, DoombotBaseException):
@@ -134,15 +136,15 @@ class WorkshopSlash(Slash):
 
 
 async def tags_autocomplete(
-    options: Dict[str, Union[int, float, str]], 
-    focused: str, 
-    list_obj: List, 
+    options: Dict[str, Union[int, float, str]],
+    focused: str,
+    list_obj: List,
 ):
     if options[focused] == "":
         return discord.AutoCompleteResponse({k: k for k in list_obj[:25]})
 
     if focused in ["name", "search", "category"]:
-        
+
         count = 0
         autocomplete_ = {}
         for k in list_obj:

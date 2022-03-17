@@ -96,7 +96,9 @@ class Map(Document):
             if len(creators) == 1:
                 search_filter.update(RegEx("creator", creator, "i"))
             else:
-                search_filter.update({"$and": [RegEx("creator", x, "i") for x in creators]})
+                search_filter.update(
+                    {"$and": [RegEx("creator", x, "i") for x in creators]}
+                )
 
         return await cls.find(search_filter).to_list()
 
