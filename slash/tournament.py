@@ -139,7 +139,6 @@ class TournamentStart(
             tournament_id=last_id + 1,
             name="Doomfist Parkour Tournament",
             active=True,
-            bracket=False,
             schedule_start=self.schedule_start,
             schedule_end=self.schedule_end,
         )
@@ -220,6 +219,8 @@ class TournamentStart(
                     inline=False,
                 )
 
+        tournament_document.bracket = view.bracket
+
         view = TournamentCategoryView(self.interaction)
         mentions = await view.start(embed)
         tournament_document.mentions = mentions
@@ -228,6 +229,7 @@ class TournamentStart(
         if not view.confirm.value:
             return
 
+        
         await tournament_document.insert()
         await self.interaction.edit_original_message(
             content="Tournament scheduled.", view=view
@@ -679,34 +681,35 @@ async def end_tournament(client: discord.Client, tournament: Tournament):
     """
     tournament.active = False
     tournament.schedule_end = datetime.datetime(year=1, month=1, day=1)
-    xp_store = await compute_xp(tournament)
+    if not tournament.bracket:
+        xp_store = await compute_xp(tournament)
 
-    for user_id, data in xp_store.items():
-        user = await ExperiencePoints.find_user(user_id)
-        user.xp += round(data["xp"])
+        for user_id, data in xp_store.items():
+            user = await ExperiencePoints.find_user(user_id)
+            user.xp += round(data["xp"])
 
-        for key in user.xp_avg:
-            user.xp_avg[key].pop(0)
-            user.xp_avg[key].append(round(data[key]))
+            for key in user.xp_avg:
+                user.xp_avg[key].pop(0)
+                user.xp_avg[key].append(round(data[key]))
 
-            # Find current average for ending summary
-            usable_user_xps = [xp for xp in user.xp_avg[key] if xp != 0]
-            xp_store[user_id][f"{key}_cur_avg"] = sum(usable_user_xps) / (
-                len(usable_user_xps) or 1
+                # Find current average for ending summary
+                usable_user_xps = [xp for xp in user.xp_avg[key] if xp != 0]
+                xp_store[user_id][f"{key}_cur_avg"] = sum(usable_user_xps) / (
+                    len(usable_user_xps) or 1
+                )
+
+            await user.save()
+
+        tournament.xp = xp_store
+        await init_workbook(tournament)
+        await client.get_channel(TOURNAMENT_ORG_ID).send(
+            file=discord.File(
+                fp=r"DPK_Tournament.xlsx",
+                filename=f"DPK_Tournament_{datetime.datetime.today().strftime('%d-%m-%Y')}.xlsx",
             )
-
-        await user.save()
-
-    tournament.xp = xp_store
-    await init_workbook(tournament)
-    await client.get_channel(TOURNAMENT_ORG_ID).send(
-        file=discord.File(
-            fp=r"DPK_Tournament.xlsx",
-            filename=f"DPK_Tournament_{datetime.datetime.today().strftime('%d-%m-%Y')}.xlsx",
         )
-    )
 
-    tournament.xp = {str(k): v for k, v in tournament.xp.items()}
+        tournament.xp = {str(k): v for k, v in tournament.xp.items()}
 
     await tournament.save()
 
@@ -766,12 +769,13 @@ async def send_records_to_db(tournament: Tournament):
 
 
 async def export_records(tournament: Tournament, thread: discord.Thread):
-    await thread.send(
-        file=discord.File(
-            fp=r"DPK_Tournament.xlsx",
-            filename="XP_Spreadsheet.xlsx",
+    if not tournament.bracket:
+        await thread.send(
+            file=discord.File(
+                fp=r"DPK_Tournament.xlsx",
+                filename="XP_Spreadsheet.xlsx",
+            )
         )
-    )
     for category in ["ta", "mc", "hc", "bo"]:
         data: TournamentData = getattr(tournament, category, None)
         await thread.send(
@@ -929,7 +933,7 @@ async def init_xp_store(tournament: Tournament) -> Dict[int, Dict[str, int]]:
     return store
 
 
-async def compute_mission_xp(tournament: Tournament, store) -> Dict[int, Dict]:
+async def compute_mission_xp(tournament: Tournament, store: dict) -> Dict[int, Dict]:
     """Compute the XP from difficulty based missions."""
 
     for category in CATEGORIES:
@@ -944,7 +948,7 @@ async def compute_mission_xp(tournament: Tournament, store) -> Dict[int, Dict]:
     return store
 
 
-async def mission_complete_check(missions, record, store):
+async def mission_complete_check(missions, record, store: dict) -> dict:
     # Goes hardest to easiest, because highest mission only
     for mission_category in MISSION_CATEGORIES:
 

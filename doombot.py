@@ -66,19 +66,15 @@ class DoomBot(discord.Client):
             intents=intents,
             slash_command_guilds=[195387617972322306],
         )
-        self.suggestion_channel = self.get_channel(SUGGESTIONS_ID)
-        self.top_suggestions = self.get_channel(TOP_SUGGESTIONS_ID)
+        self.suggestion_channel = None
+        self.top_suggestions = None
 
-        self.spr_record_channel = self.get_channel(SPR_RECORDS_ID)
-        self.other_record_channel = self.get_channel(NON_SPR_RECORDS_ID)
+        self.spr_record_channel = None
+        self.other_record_channel = None
 
-        self.top_records = self.get_channel(TOP_RECORDS_ID)
+        self.top_records = None
 
-        self.channel_map = {
-            SPR_RECORDS_ID: self.spr_record_channel,
-            NON_SPR_RECORDS_ID: self.other_record_channel,
-            SUGGESTIONS_ID: self.suggestion_channel,
-        }
+        self.channel_map = None
         self.ws_list = None
         self.verification_views_added = False
         self.guild = None
@@ -105,6 +101,28 @@ class DoomBot(discord.Client):
         )
         self.guild = self.get_guild(GUILD_ID)
         self.everyone = self.guild.default_role
+
+        self.suggestion_channel = self.get_channel(SUGGESTIONS_ID)
+        self.top_suggestions = self.get_channel(TOP_SUGGESTIONS_ID)
+
+        self.spr_record_channel = self.get_channel(SPR_RECORDS_ID)
+        self.other_record_channel = self.get_channel(NON_SPR_RECORDS_ID)
+
+        self.top_records = self.get_channel(TOP_RECORDS_ID)
+
+        self.channel_map = {
+            SPR_RECORDS_ID: self.spr_record_channel,
+            NON_SPR_RECORDS_ID: self.other_record_channel,
+            SUGGESTIONS_ID: self.suggestion_channel,
+            TOP_RECORDS_ID: self.top_records,
+            TOP_SUGGESTIONS_ID: self.top_suggestions,
+        }
+        self.channel_map_top = {
+            SPR_RECORDS_ID: self.top_records,
+            NON_SPR_RECORDS_ID: self.top_records,
+            SUGGESTIONS_ID: self.top_suggestions,
+        }
+
         self.submissions_channel = self.guild.get_channel(TOURNAMENT_SUBMISSION_ID)
         self.allow_submissions = self.submissions_channel.overwrites_for(self.everyone)
         self.disallow_submissions = self.submissions_channel.overwrites_for(
@@ -149,7 +167,7 @@ class DoomBot(discord.Client):
 
         schedules = [tournament.schedule_start, tournament.schedule_end]
         sentinel = datetime.datetime(year=1, month=1, day=1)
-
+        logger.info(datetime.datetime.now())
         # Deactivate ended tournament
         if all([s == sentinel for s in schedules]):
             tournament.active = False
@@ -226,6 +244,9 @@ class DoomBot(discord.Client):
 
     @staticmethod
     async def on_member_join(member: discord.Member):
+        search = await ExperiencePoints.find_user(member.id)
+        if search:
+            return
         new_user = ExperiencePoints(
             user_id=member.id,
             alias=member.name,
@@ -303,13 +324,22 @@ class DoomBot(discord.Client):
             .fetch()
         )
 
-        if entry.starboard_id == 0 and payload.channel_id == SUGGESTIONS_ID:
+        if entry.starboard_id != 0:
+            starboard_message = self.channel_map_top[
+                payload.channel_id
+            ].get_partial_message(entry.starboard_id)
+            await starboard_message.edit(
+                content=f"{star_emoji(entry.stars)} **{entry.stars}**"
+            )
+            return
+
+        if payload.channel_id == SUGGESTIONS_ID:
             embed = discord.Embed(
                 description=message.content,
                 color=0xF7BD00,
             )
             embed.set_author(
-                name=message.author.name, icon_url=message.author.avatar.url
+                name=message.author.name, icon_url=message.author.display_avatar.url
             )
             embed.add_field(name="Original", value=f"[Jump!]({entry.jump})")
             starboard_message = await self.top_suggestions.send(
@@ -318,12 +348,12 @@ class DoomBot(discord.Client):
             )
             entry.starboard_id = starboard_message.id
             await entry.save()
-            thread = await starboard_message.start_thread(
+            thread = await starboard_message.create_thread(
                 name=message.content[:100], auto_archive_duration=1440
             )
             await thread.add_user(message.author)
 
-        elif entry.starboard_id == 0 and payload.channel_id in [
+        elif payload.channel_id in [
             NON_SPR_RECORDS_ID,
             SPR_RECORDS_ID,
         ]:
@@ -340,7 +370,7 @@ class DoomBot(discord.Client):
             )
             user = self.get_user(record.user_id)
 
-            embed.set_author(name=user.name, icon_url=user.avatar.url)
+            embed.set_author(name=user.name, icon_url=user.display_avatar.url)
             embed.add_field(name="Original", value=f"[Jump!]({entry.jump})")
             starboard_message = await self.top_records.send(
                 f"{star_emoji(entry.stars)} **{entry.stars}** {message.channel.mention}",
@@ -348,14 +378,6 @@ class DoomBot(discord.Client):
             )
             entry.starboard_id = starboard_message.id
             await entry.save()
-
-        else:
-            starboard_message = self.channel_map[
-                payload.channel_id
-            ].get_partial_message(entry.starboard_id)
-            await starboard_message.edit(
-                content=f"{star_emoji(entry.stars)} **{entry.stars}**"
-            )
 
     @staticmethod
     async def on_thread_update(before: discord.Thread, after: discord.Thread):

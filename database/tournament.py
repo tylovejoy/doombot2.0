@@ -94,6 +94,7 @@ class Tournament(Document):
     tournament_id: int
     name: str
     active: bool
+    bracket: Optional[bool]
     embed: Optional[dict]
     mentions: Optional[str]
     schedule_start: datetime
