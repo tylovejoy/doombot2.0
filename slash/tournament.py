@@ -3,12 +3,10 @@ import datetime
 import operator
 import re
 from logging import getLogger
-from types import FunctionType
 from typing import Dict, List, Literal, Optional, Union
 
 import dateparser
 import discord
-from discord.app import _OptionData
 from discord.utils import MISSING, format_dt
 
 from database.documents import ExperiencePoints
@@ -89,41 +87,11 @@ MISSION_CATEGORIES = ["expert", "hard", "medium", "easy"]
 
 
 def setup(bot):
-
-    update_arguments(TimeAttackSubmission)
-    update_arguments(MildcoreSubmission)
-    update_arguments(HardcoreSubmission)
-    update_arguments(BonusSubmission)
-
     logger.info(logging_util("Loading", "TOURNAMENT"))
     bot.application_command(TimeAttackSubmission)
     bot.application_command(MildcoreSubmission)
     bot.application_command(HardcoreSubmission)
     bot.application_command(BonusSubmission)
-
-
-def update_arguments(class_):
-    arguments = []
-    for name, _type in class_.__annotations__.items():
-        if name.startswith("_") or _type in {FunctionType, classmethod, staticmethod}:
-            continue
-
-        v = _type or str
-        default = description = min_ = max_ = MISSING
-        autocomplete = False
-        if isinstance(_type, discord.Option):
-            default = _type.default
-            description = _type.description
-            autocomplete = _type.autocomplete
-            min_ = _type.min
-            max_ = _type.max
-
-        elif _type is not MISSING:
-            default = _type
-        opt = _OptionData(name, v, autocomplete, description, default, min_, max_)
-        if opt not in class_._arguments_:
-            arguments.append(opt)
-    class_._arguments_ = class_._arguments_ + arguments
 
 
 class TournamentStart(
@@ -363,8 +331,8 @@ class ViewTournamentRecords(Slash, name="leaderboard", parent=TournamentParent):
         await view.start(self.interaction)
 
 
-class Submissions(Slash, guilds=[GUILD_ID]):
-    """Tournament submission."""
+class TimeAttackSubmission(Slash, name="ta"):
+    """Time Attack tournament submission."""
 
     screenshot: discord.Attachment = discord.Option(
         description="Screenshot of your record."
@@ -375,39 +343,56 @@ class Submissions(Slash, guilds=[GUILD_ID]):
 
     async def callback(self) -> None:
         await tournament_submissions(
-            self.interaction, self.screenshot, self.record, self._name_
+            self.interaction, self.screenshot, self.record, "ta"
         )
 
-    async def error(self, exception: Exception) -> None:
-        await super(Submissions, self).error(exception)
 
-
-class TimeAttackSubmission(
-    Submissions,
-    name="ta",
-):
-    """Time Attack tournament submission."""
-
-
-class MildcoreSubmission(
-    Submissions,
-    name="mc",
-):
+class MildcoreSubmission(Slash, name="mc"):
     """Mildcore tournament submission."""
 
+    screenshot: discord.Attachment = discord.Option(
+        description="Screenshot of your record."
+    )
+    record: str = discord.Option(
+        description="What is the record you'd like to submit? HH:MM:SS.ss format. "
+    )
 
-class HardcoreSubmission(
-    Submissions,
-    name="hc",
-):
+    async def callback(self) -> None:
+        await tournament_submissions(
+            self.interaction, self.screenshot, self.record, "mc"
+        )
+
+
+class HardcoreSubmission(Slash, name="hc"):
     """Hardcore tournament submission."""
 
+    screenshot: discord.Attachment = discord.Option(
+        description="Screenshot of your record."
+    )
+    record: str = discord.Option(
+        description="What is the record you'd like to submit? HH:MM:SS.ss format. "
+    )
 
-class BonusSubmission(
-    Submissions,
-    name="bo",
-):
+    async def callback(self) -> None:
+        await tournament_submissions(
+            self.interaction, self.screenshot, self.record, "hc"
+        )
+
+
+class BonusSubmission(Slash, name="bo"):
     """Bonus tournament submission."""
+
+    screenshot: discord.Attachment = discord.Option(
+        description="Screenshot of your record."
+    )
+    record: str = discord.Option(
+        description="What is the record you'd like to submit? HH:MM:SS.ss format. "
+    )
+
+    async def callback(self) -> None:
+        await tournament_submissions(
+            self.interaction, self.screenshot, self.record, "bo"
+        )
 
 
 class TournamentAnnouncement(
