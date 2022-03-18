@@ -92,8 +92,9 @@ class TagsCommand(TagSlash, name="tag"):
         tag = await Tags.find_one(
             Tags.name == self.name, Tags.category == self.category
         )
+        content = tag.content.replace(r"\\n", "\n")
         await self.interaction.edit_original_message(
-            content=f"**{tag.name}**\n\n{tag.content}"
+            content=f"**{tag.name}**\n\n{content}"
         )
 
 
