@@ -62,7 +62,9 @@ class CreateTag(TagSlash, guilds=[GUILD_ID], name="tag", parent=CreateParent):
 
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
-        await check_permissions(self.interaction)
+        await check_permissions(
+            self.interaction, self.interaction.user.id == 248892037804457984
+        )
 
         if await Tags.exists(self.name, self.category):
             raise SearchNotFound(
@@ -92,7 +94,7 @@ class TagsCommand(TagSlash, name="tag"):
         tag = await Tags.find_one(
             Tags.name == self.name, Tags.category == self.category
         )
-        content = tag.content.replace(r"\\n", "\n")
+        content = tag.content.replace("\\n", "\n")
         await self.interaction.edit_original_message(
             content=f"**{tag.name}**\n\n{content}"
         )
