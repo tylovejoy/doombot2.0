@@ -167,7 +167,7 @@ class DoomBot(discord.Client):
 
         schedules = [tournament.schedule_start, tournament.schedule_end]
         sentinel = datetime.datetime(year=1, month=1, day=1)
-        logger.info(datetime.datetime.now())
+
         # Deactivate ended tournament
         if all([s == sentinel for s in schedules]):
             tournament.active = False
