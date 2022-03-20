@@ -48,3 +48,7 @@ class InvalidMapFilters(DoombotBaseException):
 
 class NameTooLong(DoombotBaseException):
     """User alias must be less than 25 characters."""
+
+
+class UserNotFound(DoombotBaseException):
+    """User hasn't submitted a time to the tournament in this category."""

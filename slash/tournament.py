@@ -229,7 +229,6 @@ class TournamentStart(
         if not view.confirm.value:
             return
 
-        
         await tournament_document.insert()
         await self.interaction.edit_original_message(
             content="Tournament scheduled.", view=view
@@ -395,6 +394,55 @@ class BonusSubmission(Slash, name="bo"):
         await tournament_submissions(
             self.interaction, self.screenshot, self.record, "bo"
         )
+
+
+class TournamentDeleteRecord(
+    Slash,
+    guilds=[GUILD_ID],
+    name="delete-record",
+    parent=TournamentOrgParent,
+):
+    """Delete a users record."""
+
+    category: Literal["Time Attack", "Mildcore", "Hardcore", "Bonus"] = discord.Option(
+        description="Which tournament category?",
+    )
+    user: discord.Member = discord.Option(
+        description="Which user do you want to alter?"
+    )
+
+    async def callback(self) -> None:
+        await self.interaction.response.defer(ephemeral=True)
+        tournament = await Tournament.find_active()
+        if not tournament:
+            raise TournamentStateError("Tournament not active!")
+
+        category_attr = getattr(
+            tournament, tournament_category_map_reverse[self.category]
+        )
+        if not category_attr:
+            raise TournamentStateError("This category is not active.")
+
+        records = category_attr.records
+        user_record = None
+        for i, record in enumerate(records):
+            if record.user_id == self.user.id:
+                user_record = record
+                del records[i]
+                break
+        else:
+            raise UserNotFound("User hasn't submitted to this category!")
+
+        message_content = (
+            f"Attempting to delete {self.user}'s {self.category} "
+            f"submission of {display_record(user_record.record, True)}"
+        )
+
+        message_content += "\nIs this correct?"
+
+        view = ConfirmView()
+        if await view.start(self.interaction, message_content, "Confirmed."):
+            await records.save()
 
 
 class TournamentAnnouncement(
