@@ -1,6 +1,6 @@
 import datetime
 import re
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Literal
 
 import discord
 from string import ascii_lowercase
@@ -174,7 +174,9 @@ async def no_perms_warning(interaction: discord.Interaction):
     )
 
 
-def tournament_category_map(category: str) -> str:
+def tournament_category_map(
+    category: str,
+) -> Literal["Unranked", "Gold", "Diamond", "Grandmaster", None]:
     return {
         "ta": "Time Attack",
         "mc": "Mildcore",
@@ -184,7 +186,9 @@ def tournament_category_map(category: str) -> str:
     }.get(category, None)
 
 
-def tournament_category_map_reverse(category: str) -> str:
+def tournament_category_map_reverse(
+    category: str,
+) -> Literal["ta", "mc", "hc", "bo", "tr", "br", None]:
     return {
         "Time Attack": "ta",
         "Mildcore": "mc",
