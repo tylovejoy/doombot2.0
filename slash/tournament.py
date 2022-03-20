@@ -296,6 +296,18 @@ class ChangeRank(
             await user.save()
 
 
+class TournamentDeleteRecordUser(Slash, name="delete-record", parent=TournamentParent):
+    """Delete your tournament submission."""
+
+    category: Literal["Time Attack", "Mildcore", "Hardcore", "Bonus"] = discord.Option(
+        description="Which tournament category?",
+    )
+
+    async def callback(self) -> None:
+        await self.interaction.response.defer(ephemeral=True)
+        await delete_record(self.interaction, self.category, self.interaction.user)
+
+
 class ViewTournamentRecords(Slash, name="leaderboard", parent=TournamentParent):
     """View leaderboard for a particular tournament category and optionally tournament rank."""
 
@@ -419,36 +431,7 @@ class TournamentDeleteRecord(
     async def callback(self) -> None:
         await self.interaction.response.defer(ephemeral=True)
         await check_permissions(self.interaction)
-        tournament = await Tournament.find_active()
-        if not tournament:
-            raise TournamentStateError("Tournament not active!")
-
-        category_attr = getattr(
-            tournament, tournament_category_map_reverse(self.category)
-        )
-        if not category_attr:
-            raise TournamentStateError("This category is not active.")
-
-        records = category_attr.records
-        user_record = None
-        for i, record in enumerate(records):
-            if record.user_id == self.user.id:
-                user_record = record
-                del records[i]
-                break
-        else:
-            raise UserNotFound("User hasn't submitted to this category!")
-
-        message_content = (
-            f"Attempting to delete {self.user}'s {self.category} "
-            f"submission of {display_record(user_record.record, True)}"
-        )
-
-        message_content += "\nIs this correct?"
-
-        view = ConfirmView()
-        if await view.start(self.interaction, message_content, "Confirmed."):
-            await tournament.save()
+        await delete_record(self.interaction, self.category, self.user)
 
 
 class TournamentAnnouncement(
@@ -1110,3 +1093,29 @@ async def general_mission_missions(mission, user_id, data, store):
     if encompass_missions[target_difficulty] >= target_amt:
         store[user_id]["general"] += 1
         store[user_id]["xp"] += 2000
+
+
+async def delete_record(interaction: discord.Interaction, category, user):
+    tournament = await Tournament.find_active()
+    if not tournament:
+        raise TournamentStateError("Tournament not active!")
+    category_attr = getattr(tournament, tournament_category_map_reverse(category))
+    if not category_attr:
+        raise TournamentStateError("This category is not active.")
+    records = category_attr.records
+    user_record = None
+    for i, record in enumerate(records):
+        if record.user_id == user.id:
+            user_record = record
+            del records[i]
+            break
+    else:
+        raise UserNotFound("You haven't submitted to this category!")
+    message_content = (
+        f"Attempting to delete {user}'s {category} "
+        f"submission of {display_record(user_record.record, True)}"
+    )
+    message_content += "\nIs this correct?"
+    view = ConfirmView()
+    if await view.start(interaction, message_content, "Confirmed."):
+        await tournament.save()
