@@ -322,9 +322,9 @@ class ViewTournamentRecords(Slash, name="leaderboard", parent=TournamentParent):
 
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
-        self.category = tournament_category_map_reverse(self.category)
+        category = tournament_category_map_reverse(self.category)
 
-        records = await Tournament.get_records(self.category, rank=self.rank)
+        records = await Tournament.get_records(category, rank=self.rank)
         if not records:
             raise SearchNotFound("No records found.")
 
@@ -334,7 +334,7 @@ class ViewTournamentRecords(Slash, name="leaderboard", parent=TournamentParent):
             rank_str = "- " + self.rank
 
         embed = create_embed(
-            title=f"{tournament_category_map(self.category)} {rank_str}",
+            title=f"{tournament_category_map(category)} {rank_str}",
             desc="",
             user=self.interaction.user,
         )
@@ -342,7 +342,7 @@ class ViewTournamentRecords(Slash, name="leaderboard", parent=TournamentParent):
             embed,
             records,
             records_tournament_embed_fields,
-            category=self.category,
+            category=category,
             rank=self.rank,
         )
         view = Paginator(embeds, self.interaction.user)
@@ -1102,8 +1102,8 @@ async def delete_record(interaction: discord.Interaction, category, user):
     category_attr = getattr(tournament, tournament_category_map_reverse(category))
     if not category_attr:
         raise TournamentStateError("This category is not active.")
-    records = category_attr.records
-    user_record = None
+    records: List[Optional[TournamentRecords]] = category_attr.records
+
     for i, record in enumerate(records):
         if record.user_id == user.id:
             user_record = record
@@ -1111,6 +1111,7 @@ async def delete_record(interaction: discord.Interaction, category, user):
             break
     else:
         raise UserNotFound("You haven't submitted to this category!")
+
     message_content = (
         f"Attempting to delete {user}'s {category} "
         f"submission of {display_record(user_record.record, True)}"
