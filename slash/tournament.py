@@ -418,6 +418,7 @@ class TournamentDeleteRecord(
 
     async def callback(self) -> None:
         await self.interaction.response.defer(ephemeral=True)
+        await check_permissions(self.interaction)
         tournament = await Tournament.find_active()
         if not tournament:
             raise TournamentStateError("Tournament not active!")
