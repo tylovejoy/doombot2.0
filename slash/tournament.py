@@ -447,7 +447,7 @@ class TournamentDeleteRecord(
 
         view = ConfirmView()
         if await view.start(self.interaction, message_content, "Confirmed."):
-            await records.save()
+            await tournament.save()
 
 
 class TournamentAnnouncement(
