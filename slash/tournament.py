@@ -41,7 +41,12 @@ from utils.embed import (
     split_embeds,
 )
 from utils.enums import Emoji
-from utils.errors import RecordNotFaster, SearchNotFound, TournamentStateError
+from utils.errors import (
+    RecordNotFaster,
+    SearchNotFound,
+    TournamentStateError,
+    UserNotFound,
+)
 from utils.excel_exporter import init_workbook
 from utils.utilities import (
     check_permissions,
@@ -418,7 +423,7 @@ class TournamentDeleteRecord(
             raise TournamentStateError("Tournament not active!")
 
         category_attr = getattr(
-            tournament, tournament_category_map_reverse[self.category]
+            tournament, tournament_category_map_reverse(self.category)
         )
         if not category_attr:
             raise TournamentStateError("This category is not active.")
