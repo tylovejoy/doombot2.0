@@ -3,12 +3,10 @@ import datetime
 import operator
 import re
 from logging import getLogger
-from types import FunctionType
 from typing import Dict, List, Literal, Optional, Union
 
 import dateparser
 import discord
-from discord.app import _OptionData
 from discord.utils import MISSING, format_dt
 
 from database.documents import ExperiencePoints
@@ -43,7 +41,12 @@ from utils.embed import (
     split_embeds,
 )
 from utils.enums import Emoji
-from utils.errors import RecordNotFaster, SearchNotFound, TournamentStateError
+from utils.errors import (
+    RecordNotFaster,
+    SearchNotFound,
+    TournamentStateError,
+    UserNotFound,
+)
 from utils.excel_exporter import init_workbook
 from utils.utilities import (
     check_permissions,
@@ -89,41 +92,11 @@ MISSION_CATEGORIES = ["expert", "hard", "medium", "easy"]
 
 
 def setup(bot):
-
-    update_arguments(TimeAttackSubmission)
-    update_arguments(MildcoreSubmission)
-    update_arguments(HardcoreSubmission)
-    update_arguments(BonusSubmission)
-
     logger.info(logging_util("Loading", "TOURNAMENT"))
     bot.application_command(TimeAttackSubmission)
     bot.application_command(MildcoreSubmission)
     bot.application_command(HardcoreSubmission)
     bot.application_command(BonusSubmission)
-
-
-def update_arguments(class_):
-    arguments = []
-    for name, _type in class_.__annotations__.items():
-        if name.startswith("_") or _type in {FunctionType, classmethod, staticmethod}:
-            continue
-
-        v = _type or str
-        default = description = min_ = max_ = MISSING
-        autocomplete = False
-        if isinstance(_type, discord.Option):
-            default = _type.default
-            description = _type.description
-            autocomplete = _type.autocomplete
-            min_ = _type.min
-            max_ = _type.max
-
-        elif _type is not MISSING:
-            default = _type
-        opt = _OptionData(name, v, autocomplete, description, default, min_, max_)
-        if opt not in class_._arguments_:
-            arguments.append(opt)
-    class_._arguments_ = class_._arguments_ + arguments
 
 
 class TournamentStart(
@@ -261,7 +234,6 @@ class TournamentStart(
         if not view.confirm.value:
             return
 
-        
         await tournament_document.insert()
         await self.interaction.edit_original_message(
             content="Tournament scheduled.", view=view
@@ -324,6 +296,18 @@ class ChangeRank(
             await user.save()
 
 
+class TournamentDeleteRecordUser(Slash, name="delete-record", parent=TournamentParent):
+    """Delete your tournament submission."""
+
+    category: Literal["Time Attack", "Mildcore", "Hardcore", "Bonus"] = discord.Option(
+        description="Which tournament category?",
+    )
+
+    async def callback(self) -> None:
+        await self.interaction.response.defer(ephemeral=True)
+        await delete_record(self.interaction, self.category, self.interaction.user)
+
+
 class ViewTournamentRecords(Slash, name="leaderboard", parent=TournamentParent):
     """View leaderboard for a particular tournament category and optionally tournament rank."""
 
@@ -338,9 +322,9 @@ class ViewTournamentRecords(Slash, name="leaderboard", parent=TournamentParent):
 
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
-        self.category = tournament_category_map_reverse(self.category)
+        category = tournament_category_map_reverse(self.category)
 
-        records = await Tournament.get_records(self.category, rank=self.rank)
+        records = await Tournament.get_records(category, rank=self.rank)
         if not records:
             raise SearchNotFound("No records found.")
 
@@ -350,7 +334,7 @@ class ViewTournamentRecords(Slash, name="leaderboard", parent=TournamentParent):
             rank_str = "- " + self.rank
 
         embed = create_embed(
-            title=f"{tournament_category_map(self.category)} {rank_str}",
+            title=f"{tournament_category_map(category)} {rank_str}",
             desc="",
             user=self.interaction.user,
         )
@@ -358,15 +342,15 @@ class ViewTournamentRecords(Slash, name="leaderboard", parent=TournamentParent):
             embed,
             records,
             records_tournament_embed_fields,
-            category=self.category,
+            category=category,
             rank=self.rank,
         )
         view = Paginator(embeds, self.interaction.user)
         await view.start(self.interaction)
 
 
-class Submissions(Slash, guilds=[GUILD_ID]):
-    """Tournament submission."""
+class TimeAttackSubmission(Slash, name="ta"):
+    """Time Attack tournament submission."""
 
     screenshot: discord.Attachment = discord.Option(
         description="Screenshot of your record."
@@ -377,39 +361,77 @@ class Submissions(Slash, guilds=[GUILD_ID]):
 
     async def callback(self) -> None:
         await tournament_submissions(
-            self.interaction, self.screenshot, self.record, self._name_
+            self.interaction, self.screenshot, self.record, "ta"
         )
 
-    async def error(self, exception: Exception) -> None:
-        await super(Submissions, self).error(exception)
 
-
-class TimeAttackSubmission(
-    Submissions,
-    name="ta",
-):
-    """Time Attack tournament submission."""
-
-
-class MildcoreSubmission(
-    Submissions,
-    name="mc",
-):
+class MildcoreSubmission(Slash, name="mc"):
     """Mildcore tournament submission."""
 
+    screenshot: discord.Attachment = discord.Option(
+        description="Screenshot of your record."
+    )
+    record: str = discord.Option(
+        description="What is the record you'd like to submit? HH:MM:SS.ss format. "
+    )
 
-class HardcoreSubmission(
-    Submissions,
-    name="hc",
-):
+    async def callback(self) -> None:
+        await tournament_submissions(
+            self.interaction, self.screenshot, self.record, "mc"
+        )
+
+
+class HardcoreSubmission(Slash, name="hc"):
     """Hardcore tournament submission."""
 
+    screenshot: discord.Attachment = discord.Option(
+        description="Screenshot of your record."
+    )
+    record: str = discord.Option(
+        description="What is the record you'd like to submit? HH:MM:SS.ss format. "
+    )
 
-class BonusSubmission(
-    Submissions,
-    name="bo",
-):
+    async def callback(self) -> None:
+        await tournament_submissions(
+            self.interaction, self.screenshot, self.record, "hc"
+        )
+
+
+class BonusSubmission(Slash, name="bo"):
     """Bonus tournament submission."""
+
+    screenshot: discord.Attachment = discord.Option(
+        description="Screenshot of your record."
+    )
+    record: str = discord.Option(
+        description="What is the record you'd like to submit? HH:MM:SS.ss format. "
+    )
+
+    async def callback(self) -> None:
+        await tournament_submissions(
+            self.interaction, self.screenshot, self.record, "bo"
+        )
+
+
+class TournamentDeleteRecord(
+    Slash,
+    guilds=[GUILD_ID],
+    name="delete-record",
+    parent=TournamentOrgParent,
+):
+    """Delete a users record."""
+
+    category: Literal["Time Attack", "Mildcore", "Hardcore", "Bonus"] = discord.Option(
+        description="Which tournament category?",
+    )
+    user: discord.Member = discord.Option(
+        description="Which user do you want to alter?"
+    )
+
+    async def callback(self) -> None:
+        await self.interaction.response.defer(ephemeral=True)
+        await check_permissions(self.interaction)
+        await delete_record(self.interaction, self.category, self.user)
 
 
 class TournamentAnnouncement(
@@ -1071,3 +1093,30 @@ async def general_mission_missions(mission, user_id, data, store):
     if encompass_missions[target_difficulty] >= target_amt:
         store[user_id]["general"] += 1
         store[user_id]["xp"] += 2000
+
+
+async def delete_record(interaction: discord.Interaction, category, user):
+    tournament = await Tournament.find_active()
+    if not tournament:
+        raise TournamentStateError("Tournament not active!")
+    category_attr = getattr(tournament, tournament_category_map_reverse(category))
+    if not category_attr:
+        raise TournamentStateError("This category is not active.")
+    records: List[Optional[TournamentRecords]] = category_attr.records
+
+    for i, record in enumerate(records):
+        if record.user_id == user.id:
+            user_record = record
+            del records[i]
+            break
+    else:
+        raise UserNotFound("You haven't submitted to this category!")
+
+    message_content = (
+        f"Attempting to delete {user}'s {category} "
+        f"submission of {display_record(user_record.record, True)}"
+    )
+    message_content += "\nIs this correct?"
+    view = ConfirmView()
+    if await view.start(interaction, message_content, "Confirmed."):
+        await tournament.save()
