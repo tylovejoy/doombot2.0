@@ -78,12 +78,7 @@ class ViewGuide(
         await view.start(self.interaction)
 
 
-class SubmitGuide(
-    RecordSlash,
-    guilds=[GUILD_ID],
-    name="guide",
-    parent=SubmitParent,
-):
+class SubmitGuide(RecordSlash, guilds=[GUILD_ID], name="guide", parent=SubmitParent):
     """Submit a guide for a specific map."""
 
     map_code: str = discord.Option(

@@ -67,10 +67,18 @@ class TournamentStartView(discord.ui.View):
         self.bo_modal = None
         self.bracket = False
 
-    @discord.ui.button(label="Bracket Toggle Off", style=discord.ButtonStyle.grey, row=0)
-    async def bracket_toggle(self, button: discord.ui.Button, interaction: discord.Interaction):
+    @discord.ui.button(
+        label="Bracket Toggle Off", style=discord.ButtonStyle.grey, row=0
+    )
+    async def bracket_toggle(
+        self, button: discord.ui.Button, interaction: discord.Interaction
+    ):
         self.bracket = not self.bracket
-        toggles = ("On", discord.ButtonStyle.blurple) if self.bracket else ("Off", discord.ButtonStyle.grey)
+        toggles = (
+            ("On", discord.ButtonStyle.blurple)
+            if self.bracket
+            else ("Off", discord.ButtonStyle.grey)
+        )
         button.label = f"Bracket Toggle {toggles[0]}"
         button.style = toggles[1]
         await self.interaction.edit_original_message(view=self)
