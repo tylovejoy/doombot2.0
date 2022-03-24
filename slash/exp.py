@@ -146,7 +146,7 @@ class RankCard(Slash, name="rank"):
         img.paste(rank_card)
 
         with io.BytesIO() as avatar_binary:
-            await user.avatar.save(fp=avatar_binary)
+            await user.display_avatar.save(fp=avatar_binary)
             avatar = Image.open(avatar_binary).convert("RGBA")
             avatar.thumbnail((200, 200))
             av_mask = Image.new("L", avatar.size, 0)
