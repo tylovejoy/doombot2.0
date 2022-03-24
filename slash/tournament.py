@@ -670,6 +670,7 @@ async def tournament_submissions(
                 )
             already_posted = True
             r.record = record_seconds
+            r.attachment_url = screenshot.url
             submission = r
             break
 
