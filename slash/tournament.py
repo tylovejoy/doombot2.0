@@ -1053,7 +1053,7 @@ async def gen_mission_top(all_records, mission, store, user_id):
 
 
 async def compute_xp(tournament: Tournament):
-    store = init_xp_store(tournament)
+    store = await init_xp_store(tournament)
     all_records = {}
 
     # Leaderboard
