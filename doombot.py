@@ -381,6 +381,7 @@ class DoomBot(discord.Client):
 
     @staticmethod
     async def on_thread_update(before: discord.Thread, after: discord.Thread):
+        return
         if after.archived and after.locked:
             return  # Ignore if locked
 
