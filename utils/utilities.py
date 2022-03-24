@@ -204,7 +204,7 @@ def format_missions(type_: str, target: Union[str, int, float]) -> str:
     formatted = ""
     # General missions
     if type_ == "xp":
-        formatted += f"Get {target} XP (excluding missions)\n"
+        formatted += f"Get {target} XP (excluding this mission)\n"
     elif type_ == "missions":
         formatted += f"Complete {target} missions\n"
     elif type_ == "top":
