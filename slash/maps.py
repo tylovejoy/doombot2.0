@@ -262,7 +262,7 @@ class RandomMap(MapSlash, name="random_map"):
     """Find random maps."""
 
     number: Optional[int] = discord.Option(
-        description="How many random maps to find? default: 1", default=1
+        description="How many random maps to find? default: 1", default=1, min=1
     )
 
     async def callback(self) -> None:
