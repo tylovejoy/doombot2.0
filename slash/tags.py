@@ -1,16 +1,14 @@
 from logging import getLogger
 from typing import Optional
-from unicodedata import category
 
-import aiohttp
 import discord
 
 from database.documents import Tags
 from slash.parents import CreateParent, DeleteParent
-from slash.slash_command import TagSlash, WorkshopSlash
-from utils.constants import GUILD_ID
+from slash.slash_command import Slash, TagSlash, WorkshopSlash
+from utils.constants import GUILD_ID, PARKOUR_HELP_ID
 from utils.embed import create_embed
-from utils.errors import SearchNotFound
+from utils.errors import IncorrectChannel, SearchNotFound
 from utils.utilities import check_permissions, logging_util
 from views.basic import ConfirmView
 
@@ -21,6 +19,21 @@ def setup(bot):
     logger.info(logging_util("Loading", "TAGS"))
     bot.application_command(TagsCommand)
     bot.application_command(WorkshopHelp)
+    # bot.application_command(PostMessage)
+
+
+# class PostMessage(Slash, name="post-message", guilds=[GUILD_ID]):
+#     """Post a message to a channel as DoomBot. Nebula only."""
+
+#     channel_id: discord.TextChannel = discord.Option(description="Which channel?")
+#     message: str = discord.Option(description="What message?")
+
+#     async def callback(self) -> None:
+#         if self.interaction.user.id != 141372217677053952:
+#             return
+#         self.channel_id = int(self.channel_id.strip("<").strip(">").strip("#"))
+#         await self.client.get_channel(self.channel_id).send(self.message)
+#         await self.interaction.response.send_message("Message sent.")
 
 
 class DeleteTag(TagSlash, guilds=[GUILD_ID], name="tag", parent=DeleteParent):
@@ -90,7 +103,9 @@ class TagsCommand(TagSlash, name="tag"):
     name: str = discord.Option(description="Which tag to display?", autocomplete=True)
 
     async def callback(self) -> None:
-        await self.defer()
+        if self.interaction.channel.id != PARKOUR_HELP_ID:
+            raise IncorrectChannel("This command can only be used in the #parkour-help channel.")
+        await self.defer()   
         tag = await Tags.find_one(
             Tags.name == self.name, Tags.category == self.category
         )
