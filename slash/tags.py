@@ -103,9 +103,9 @@ class TagsCommand(TagSlash, name="tag"):
     name: str = discord.Option(description="Which tag to display?", autocomplete=True)
 
     async def callback(self) -> None:
+        await self.defer()
         if self.interaction.channel.id != PARKOUR_HELP_ID:
             raise IncorrectChannel("This command can only be used in the #parkour-help channel.")
-        await self.defer()   
         tag = await Tags.find_one(
             Tags.name == self.name, Tags.category == self.category
         )
