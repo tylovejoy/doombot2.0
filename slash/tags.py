@@ -125,6 +125,8 @@ class WorkshopHelp(WorkshopSlash, name="workshop"):
 
     async def callback(self) -> None:
         await self.defer(ephemeral=self.hidden)
+        if self.interaction.channel.id != PARKOUR_HELP_ID:
+            raise IncorrectChannel("This command can only be used in the #parkour-help channel.")
         self.search = self.search.replace(" ", "-")
         url = f"https://workshop.codes/wiki/search/{self.search}.json"
         async with self.client.session.get(url) as resp:
