@@ -4,17 +4,18 @@ import discord
 from database.documents import ColorRoles, ExperiencePoints
 
 
-async def add_remove_roles(interaction, role):
-    await interaction.response.defer(ephemeral=True)
+async def add_remove_roles(interaction: discord.Interaction, role):
     if role in interaction.user.roles:
         await interaction.user.remove_roles(role)
-        await interaction.edit_original_message(
-            content=f"Removed {role.name} role."
+        await interaction.response.send_message(
+            content=f"Removed {role.name} role.",
+            ephemeral=True,
         )
     else:
         await interaction.user.add_roles(role)
-        await interaction.edit_original_message(
-            content=f"Added {role.name} role."
+        await interaction.response.edit_message(
+            content=f"Added {role.name} role.",
+            ephemeral=True,
         )
 
 
@@ -40,7 +41,15 @@ class ColorSelect(discord.ui.Select):
         await interaction.user.remove_roles(all_roles)
 
         if self.values[0] == "None":
+            await interaction.response.edit_message(
+                content="Removed color role.",
+                ephemeral=True,
+            )
             return
+        await interaction.response.edit_message(
+            content="Added color role.",
+            ephemeral=True,
+        )
         await interaction.user.add_roles(
             interaction.guild.get_role(int(self.values[0]))
         )
