@@ -73,7 +73,7 @@ class ServerRelatedPings(discord.ui.View):
         style=discord.ButtonStyle.blurple,
         custom_id="announcements",
     )
-    async def announcements(self, interaction: discord.Interaction, item):
+    async def announcements(self, item, interaction: discord.Interaction):
         role = interaction.guild.get_role(802259719229800488)
         await add_remove_roles(interaction, role)
 
@@ -83,7 +83,7 @@ class ServerRelatedPings(discord.ui.View):
         custom_id="eu_sleep_ping",
         row=1,
     )
-    async def eu_ping(self, interaction: discord.Interaction, item):
+    async def eu_ping(self, item, interaction: discord.Interaction):
         role = interaction.guild.get_role(805542050060828682)
         await add_remove_roles(interaction, role)
     
@@ -93,7 +93,7 @@ class ServerRelatedPings(discord.ui.View):
         custom_id="na_sleep_ping",
         row=1,
     )
-    async def na_ping(self, interaction: discord.Interaction, item):
+    async def na_ping(self, item, interaction: discord.Interaction):
         role = interaction.guild.get_role(808478386825330718)
         await add_remove_roles(interaction, role)
 
@@ -103,7 +103,7 @@ class ServerRelatedPings(discord.ui.View):
         custom_id="asia_sleep_ping",
         row=1,
     )
-    async def asia_ping(self, interaction: discord.Interaction, item):
+    async def asia_ping(self, item, interaction: discord.Interaction):
         role = interaction.guild.get_role(874438907763228743)
         await add_remove_roles(interaction, role)
     
@@ -113,7 +113,7 @@ class ServerRelatedPings(discord.ui.View):
         custom_id="oce_sleep_ping",
         row=1,
     )
-    async def oce_ping(self, interaction: discord.Interaction, item):
+    async def oce_ping(self, item, interaction: discord.Interaction):
         role = interaction.guild.get_role(937726966080094229)
         await add_remove_roles(interaction, role)
 
@@ -123,7 +123,7 @@ class ServerRelatedPings(discord.ui.View):
         custom_id="movie_night",
         row=2,
     )
-    async def movie_night(self, interaction: discord.Interaction, item):
+    async def movie_night(self, item, interaction: discord.Interaction):
         role = interaction.guild.get_role(903667495922180167)
         await add_remove_roles(interaction, role)
 
@@ -133,7 +133,7 @@ class ServerRelatedPings(discord.ui.View):
         custom_id="game_night",
         row=2,
     )
-    async def game_night(self, interaction: discord.Interaction, item):
+    async def game_night(self, item, interaction: discord.Interaction):
         role = interaction.guild.get_role(903667578549968896)
         await add_remove_roles(interaction, role)
 
@@ -150,7 +150,7 @@ class PronounRoles(discord.ui.View):
         style=discord.ButtonStyle.grey,
         custom_id="they_pronoun",
     )
-    async def they(self, interaction: discord.Interaction, item):
+    async def they(self, item, interaction: discord.Interaction):
         role = interaction.guild.get_role(884346785949167616)
         await add_remove_roles(interaction, role)
 
@@ -159,7 +159,7 @@ class PronounRoles(discord.ui.View):
         style=discord.ButtonStyle.grey,
         custom_id="she_pronoun",
     )
-    async def she(self, interaction: discord.Interaction, item):
+    async def she(self, item, interaction: discord.Interaction):
         role = interaction.guild.get_role(884346748334653481)
         await add_remove_roles(interaction, role)
 
@@ -168,7 +168,7 @@ class PronounRoles(discord.ui.View):
         style=discord.ButtonStyle.grey,
         custom_id="he_pronoun",
     )
-    async def he(self, interaction: discord.Interaction, item):
+    async def he(self, item, interaction: discord.Interaction):
         role = interaction.guild.get_role(884346610652446720)
         await add_remove_roles(interaction, role)
 
@@ -185,7 +185,7 @@ class TherapyRole(discord.ui.View):
         style=discord.ButtonStyle.green,
         custom_id="therapy",
     )
-    async def therapy_access(self, interaction: discord.Interaction, item):
+    async def therapy_access(self, item, interaction: discord.Interaction):
         await interaction.defer(ephemeral=True)
         user = await ExperiencePoints.find_user(interaction.user.id)
         if getattr(user, "therapy_banned", None):
