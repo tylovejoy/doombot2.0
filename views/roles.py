@@ -36,6 +36,8 @@ class ColorSelect(discord.ui.Select):
                 emoji=option.emoji
             )
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        
         all_roles = [interaction.guild.get_role(int(role.value)) for role in self.options if role.value != "None"]
         
         for role in all_roles:
@@ -47,6 +49,7 @@ class ColorSelect(discord.ui.Select):
                 ephemeral=True,
             )
             return
+        
         await interaction.response.send_message(
             content="Added color role.",
             ephemeral=True,
