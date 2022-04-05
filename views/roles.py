@@ -2,7 +2,9 @@ from typing import List
 import discord
 
 from database.documents import ColorRoles, ExperiencePoints
+from logging import getLogger
 
+logger = getLogger(__name__)
 
 async def add_remove_roles(interaction: discord.Interaction, role):
     if role in interaction.user.roles:
@@ -36,10 +38,12 @@ class ColorSelect(discord.ui.Select):
                 emoji=option.emoji
             )
     async def callback(self, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True)
         
         all_roles = [interaction.guild.get_role(int(role.value)) for role in self.options if role.value != "None"]
-        
+        logger.info(all_roles)
+        logger.info(interaction.user.roles)
+        logger.info(self.options)
+        logger.info(self.values)
         for role in all_roles:
             await interaction.user.remove_roles(role)
 
