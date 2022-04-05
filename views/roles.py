@@ -37,6 +37,7 @@ class ColorSelect(discord.ui.Select):
             )
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
+        await interaction.message.edit()
         
         all_roles = [interaction.guild.get_role(int(role.value)) for role in self.options if role.value != "None"]
         
@@ -44,14 +45,14 @@ class ColorSelect(discord.ui.Select):
             await interaction.user.remove_roles(role)
 
         if self.values[0] == "None":
-            await interaction.response.edit_message(
-                content="Removed color role.",
-            )
+            # await interaction.response.edit_message(
+            #     content="Removed color role.",
+            # )
             return
         
-        await interaction.response.edit_message(
-            content="Added color role.",
-        )
+        # await interaction.response.edit_message(
+        #     content="Added color role.",
+        # )
         await interaction.user.add_roles(
             interaction.guild.get_role(int(self.values[0]))
         )
