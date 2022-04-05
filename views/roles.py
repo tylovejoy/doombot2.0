@@ -13,7 +13,7 @@ async def add_remove_roles(interaction: discord.Interaction, role):
         )
     else:
         await interaction.user.add_roles(role)
-        await interaction.response.edit_message(
+        await interaction.response.send_message(
             content=f"Added {role.name} role.",
             ephemeral=True,
         )
@@ -41,12 +41,12 @@ class ColorSelect(discord.ui.Select):
         await interaction.user.remove_roles(all_roles)
 
         if self.values[0] == "None":
-            await interaction.response.edit_message(
+            await interaction.response.send_message(
                 content="Removed color role.",
                 ephemeral=True,
             )
             return
-        await interaction.response.edit_message(
+        await interaction.response.send_message(
             content="Added color role.",
             ephemeral=True,
         )
