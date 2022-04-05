@@ -193,10 +193,13 @@ class TherapyRole(discord.ui.View):
         custom_id="therapy",
     )
     async def therapy_access(self, item, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True)
+
         user = await ExperiencePoints.find_user(interaction.user.id)
         if getattr(user, "therapy_banned", None):
-            raise Exception("You are banned from the therapy channel.")
-
+            await interaction.response.send_message(
+                ephemeral=True,
+                content="You are banned from therapy. Please contact a staff member for more information.",
+            )
+            return
         role = interaction.guild.get_role(815041888566116422)
         await add_remove_roles(interaction, role)
