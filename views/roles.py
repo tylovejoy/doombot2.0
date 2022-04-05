@@ -38,24 +38,14 @@ class ColorSelect(discord.ui.Select):
                 emoji=option.emoji
             )
     async def callback(self, interaction: discord.Interaction):
-        
+        await interaction.response.defer(ephemeral=True)
         all_roles = [interaction.guild.get_role(int(role.value)) for role in self.options if role.value != "None"]
-        logger.info(all_roles)
-        logger.info(interaction.user.roles)
-        logger.info(self.options)
-        logger.info(self.values)
         for role in all_roles:
             await interaction.user.remove_roles(role)
 
         if self.values[0] == "None":
-            # await interaction.response.edit_message(
-            #     content="Removed color role.",
-            # )
             return
-        
-        # await interaction.response.edit_message(
-        #     content="Added color role.",
-        # )
+
         await interaction.user.add_roles(
             interaction.guild.get_role(int(self.values[0]))
         )
