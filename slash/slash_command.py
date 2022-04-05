@@ -73,7 +73,7 @@ class Slash(discord.SlashCommand):
                     f"Channel: `{self.interaction.channel}`"
                     f"User: `{self.interaction.user}`" + "\n",
                     file=discord.File(
-                        fp=io.BytesIO(exception.encode(errors="ignore")),
+                        fp=io.BytesIO(bytearray(str(exception), "utf-8")),
                         filename="error.log",
                     ),
                 )

@@ -8,13 +8,13 @@ from discord.utils import MISSING
 from PIL import Image, ImageDraw, ImageFont
 
 from database.documents import ExperiencePoints
-from slash.parents import TournamentParent
+from slash.parents import ModParent, TournamentParent
 from slash.records import check_user
 from slash.slash_command import Slash
 from utils.constants import GUILD_ID
 from utils.embed import create_embed, split_embeds, xp_embed_fields
 from utils.errors import NameTooLong
-from utils.utilities import logging_util
+from utils.utilities import check_roles, logging_util
 from views.paginator import Paginator
 
 logger = getLogger(__name__)
@@ -334,5 +334,27 @@ class ToggleRecordSubmission(Slash, name="autosubmit", parent=TournamentParent):
         setattr(user, "dont_submit", not self.value)
         await self.interaction.edit_original_message(
             content=f"Autosubmission changed to {self.value}."
+        )
+        await user.save()
+
+class TherapyBan(Slash, name="therapy-ban", parent=ModParent):
+    """Ban a user from using the therapy command."""
+
+    user: discord.Member = discord.Option(
+        description="Enter a user to ban from using the therapy command."
+    )
+
+    value: bool = discord.Option(
+        description="True, if you want to ban the user from using the therapy command."
+    )
+
+    async def callback(self) -> None:
+        await self.defer(ephemeral=True)
+        check_roles(self.interaction)
+        user = await ExperiencePoints.find_user(self.user.id)
+        setattr(user, "therapy_banned", self.value)
+        status = "banned" if self.value else "unbanned"
+        await self.interaction.edit_original_message(
+            content=f"{self.user} has been {status} from using the therapy command."
         )
         await user.save()

@@ -7,6 +7,7 @@ import discord
 from discord.ext import commands, tasks
 
 from database.documents import (
+    ColorRoles,
     Events,
     ExperiencePoints,
     EXPRanks,
@@ -32,6 +33,7 @@ from utils.constants import (
 from utils.enums import Emoji
 from utils.utilities import display_record, logging_util, star_emoji
 from views.records import VerificationView
+from views.roles import ColorRolesView, PronounRoles, ServerRelatedPings, TherapyRole
 
 logger = getLogger(__name__)
 
@@ -77,6 +79,7 @@ class DoomBot(discord.Client):
         self.channel_map = None
         self.ws_list = None
         self.verification_views_added = False
+        self.persistent_views_added = False
         self.guild = None
 
         self.everyone = None
@@ -151,6 +154,16 @@ class DoomBot(discord.Client):
                     .replace('"', "")
                     .split(",")
                 )
+
+        if not self.persistent_views_added:
+            colors = await ColorRoles.find().to_list()
+            self.add_view(ColorRolesView(colors), message_id=0)
+            self.add_view(ServerRelatedPings(), message_id=0)
+            self.add_view(PronounRoles(), message_id=0)
+            self.add_view(TherapyRole(), message_id=0)
+
+            self.persistent_views_added = True
+
         if not self.verification_views_added:
             logger.info(logging_util("Task Initialize", "VERIFICATION VIEWS"))
             views = await VerificationViews.find().to_list()

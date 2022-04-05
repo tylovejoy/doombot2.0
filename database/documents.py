@@ -16,6 +16,13 @@ from pymongo.errors import ServerSelectionTimeoutError
 logger = getLogger(__name__)
 
 
+class ColorRoles(Document):
+    """Collection of colors roles."""
+    emoji: str
+    label: str
+    role_id: int
+
+
 class Events(Document):
     """Collection of events."""
 
@@ -129,6 +136,7 @@ class ExperiencePoints(Document):
     }
     verified_count: int = 0
     dont_submit: Optional[bool] = False
+    therapy_banned: Optional[bool] = False
 
     async def increment_verified(self) -> int:
         self.verified_count += 1

@@ -17,11 +17,15 @@ def setup(bot: discord.Client):
     bot.application_command(CreateParent)
     bot.application_command(TournamentMissionsParent)
     bot.application_command(TournamentOrgParent)
+    bot.application_command(ModParent)
 
 
 class CreateParent(discord.SlashCommand, guilds=[GUILD_ID], name="create"):
     """Create slash command parent class."""
 
+
+class ModParent(discord.SlashCommand, guilds=[GUILD_ID], name="mod"):
+    """Create slash command parent class."""
 
 class SubmitParent(discord.SlashCommand, guilds=[GUILD_ID], name="submit"):
     """Submit slash command parent class."""
