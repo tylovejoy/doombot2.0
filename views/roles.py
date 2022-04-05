@@ -5,7 +5,7 @@ from database.documents import ColorRoles, ExperiencePoints
 
 
 async def add_remove_roles(interaction, role):
-    interaction.defer(ephemeral=True)
+    await interaction.response.defer(ephemeral=True)
     if role in interaction.user.roles:
         await interaction.user.remove_roles(role)
         await interaction.edit_original_message(
