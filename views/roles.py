@@ -44,15 +44,13 @@ class ColorSelect(discord.ui.Select):
             await interaction.user.remove_roles(role)
 
         if self.values[0] == "None":
-            await interaction.response.send_message(
+            await interaction.response.edit_message(
                 content="Removed color role.",
-                ephemeral=True,
             )
             return
         
-        await interaction.response.send_message(
+        await interaction.response.edit_message(
             content="Added color role.",
-            ephemeral=True,
         )
         await interaction.user.add_roles(
             interaction.guild.get_role(int(self.values[0]))
