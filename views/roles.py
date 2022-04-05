@@ -41,7 +41,8 @@ class ColorSelect(discord.ui.Select):
         await interaction.response.defer()
         all_roles = [interaction.guild.get_role(int(role.value)) for role in self.options if role.value != "None"]
         for role in all_roles:
-            await interaction.user.remove_roles(role)
+            if role in interaction.user.roles:
+                await interaction.user.remove_roles(role)
 
         if self.values[0] == "None":
             return

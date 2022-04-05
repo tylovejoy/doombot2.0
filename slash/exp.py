@@ -355,6 +355,6 @@ class TherapyBan(Slash, name="therapy-ban", parent=ModParent):
         setattr(user, "therapy_banned", self.value)
         status = "banned" if self.value else "unbanned"
         await self.interaction.edit_original_message(
-            content=f"{self.user} has been {status} from using the therapy command."
+            content=f"{self.user} has been {status} from using the therapy channel."
         )
         await user.save()
