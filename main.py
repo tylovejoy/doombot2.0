@@ -14,6 +14,7 @@ from slash import (
     tournament,
     store,
     migration_tasks,
+    mods,
 )
 from utils.utilities import logging_util
 
@@ -41,6 +42,7 @@ def load_all_extensions():
     tags.setup(bot)
     guides.setup(bot)
     events.setup(bot)
+    mods.setup(bot)
     # store.setup(bot)
     logger.info(logging_util("Loading Complete", "SLASH COMMANDS"))
 

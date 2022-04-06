@@ -20,33 +20,33 @@ def setup(bot):
     logger.info(logging_util("Loading", "TAGS"))
     bot.application_command(TagsCommand)
     bot.application_command(WorkshopHelp)
-    bot.application_command(PostMessage)
+    # bot.application_command(PostMessage)
 
 
-class PostMessage(Slash, name="post-message", guilds=[GUILD_ID]):
-    """Post a message to a channel as DoomBot. Nebula only."""
+# class PostMessage(Slash, name="post-message", guilds=[GUILD_ID]):
+#     """Post a message to a channel as DoomBot. Nebula only."""
 
-    channel_id: discord.TextChannel = discord.Option(description="Which channel?")
+#     channel_id: discord.TextChannel = discord.Option(description="Which channel?")
 
-    async def callback(self) -> None:
-        if self.interaction.user.id != 141372217677053952:
-            return
-        self.channel_id = int(self.channel_id.strip("<").strip(">").strip("#"))
+#     async def callback(self) -> None:
+#         if self.interaction.user.id != 141372217677053952:
+#             return
+#         self.channel_id = int(self.channel_id.strip("<").strip(">").strip("#"))
 
-        colors = await ColorRoles.find().to_list()
-        embed = create_embed("Color Roles", "Choose your colors here!", "")
-        await self.client.get_channel(self.channel_id).send(embed=embed, view=ColorRolesView(colors))
+#         colors = await ColorRoles.find().to_list()
+#         embed = create_embed("Color Roles", "Choose your colors here!", "")
+#         await self.client.get_channel(self.channel_id).send(embed=embed, view=ColorRolesView(colors))
 
-        embed = create_embed("Server Announcement Pings", " ", "")
-        await self.client.get_channel(self.channel_id).send(embed=embed, view=ServerRelatedPings())
+#         embed = create_embed("Server Announcement Pings", " ", "")
+#         await self.client.get_channel(self.channel_id).send(embed=embed, view=ServerRelatedPings())
 
-        embed = create_embed("Pronoun Roles", " ", "")
-        await self.client.get_channel(self.channel_id).send(embed=embed, view=PronounRoles())
+#         embed = create_embed("Pronoun Roles", " ", "")
+#         await self.client.get_channel(self.channel_id).send(embed=embed, view=PronounRoles())
 
-        embed = create_embed("Therapy Channel Access", " ", "")
-        await self.client.get_channel(self.channel_id).send(embed=embed, view=TherapyRole())
+#         embed = create_embed("Therapy Channel Access", " ", "")
+#         await self.client.get_channel(self.channel_id).send(embed=embed, view=TherapyRole())
 
-        await self.interaction.response.send_message("Message sent.", ephemeral=True)
+#         await self.interaction.response.send_message("Message sent.", ephemeral=True)
 
 
 class DeleteTag(TagSlash, guilds=[GUILD_ID], name="tag", parent=DeleteParent):

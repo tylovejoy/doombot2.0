@@ -16,6 +16,14 @@ from pymongo.errors import ServerSelectionTimeoutError
 logger = getLogger(__name__)
 
 
+class Voting(Document):
+    """Collection of Votes."""
+
+    message_id: int
+    voters: Optional[List[int]] = []
+    choices: Optional[Dict[str, int]] = {}
+    
+
 class ColorRoles(Document):
     """Collection of colors roles."""
     emoji: str
