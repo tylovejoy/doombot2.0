@@ -20,6 +20,7 @@ class Voting(Document):
     """Collection of Votes."""
 
     message_id: int
+    channel_id: int
     voters: Optional[List[int]] = []
     choices: Optional[Dict[str, int]] = {}
     
