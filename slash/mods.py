@@ -53,7 +53,7 @@ class Vote(Slash, name="vote", guilds=[GUILD_ID], parent=ModParent):
         view = VotingView(message, options)
         
         await message.edit(view=view)
-        vote_document = Voting(message_id=message.id)
+        vote_document = Voting(message_id=message.id, channel_id=message.channel.id)
         await vote_document.save()
 
 class VotingView(discord.ui.View):

@@ -13,9 +13,11 @@ from database.documents import (
     EXPRanks,
     Starboard,
     VerificationViews,
+    Voting,
 )
 from database.records import Record
 from database.tournament import Announcement, Tournament
+from slash.mods import VotingView
 
 from slash.tournament import end_tournament, start_tournament
 
@@ -161,6 +163,17 @@ class DoomBot(discord.Client):
             self.add_view(ServerRelatedPings(), message_id=960946617169612850)
             self.add_view(PronounRoles(), message_id=960946618142699560)
             self.add_view(TherapyRole(), message_id=960946619111571476)
+
+            # Votes
+            votes = await Voting.find().to_list()
+            for vote in votes:
+                self.add_view(
+                    VotingView(
+                        self.guild.get_channel(vote.channel_id).fetch_message(vote.message_id),
+                        list(vote.choices.keys()),
+                    ),
+                    message_id=vote.message_id,
+                )
 
             self.persistent_views_added = True
 
