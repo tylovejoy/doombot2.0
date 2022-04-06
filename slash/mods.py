@@ -45,7 +45,7 @@ class Vote(Slash, name="vote", guilds=[GUILD_ID], parent=ModParent):
 
         embed = create_embed(
             "Vote!",
-            "Be careful, you can only vote _once_!\n\n" + self.vote,
+            "You can change your vote, but you cannot cast multiple!\n\n" + self.vote,
             self.interaction.user
         )
 
