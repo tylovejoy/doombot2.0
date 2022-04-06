@@ -79,7 +79,7 @@ class EndVote(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction) -> None:
         self.view: VotingView
         await check_permissions(interaction)
-        await self.view.message.edit(content="VOTE ENDED.")
+        await self.view.message.edit(content=f"VOTE ENDED BY {interaction.user.mention}")
         document = await Voting.find_one(Voting.message_id == self.view.message.id)
         if not document:
             return
