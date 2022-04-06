@@ -100,12 +100,12 @@ class VotingButton(discord.ui.Button):
         if not document:
             return
         if interaction.user.id in document.voters:
-            return
+            list(document.choices.keys())[document.voters[interaction.user.id]] -= 1
         
         document.choices.update(
             {self.label: document.choices.get(self.label, 0) + 1}
         )
-        document.voters.append(interaction.user.id)
+        document.voters.update({interaction.user.id: list(document.choices.keys()).index(self.label)})
         await document.save()
 
         image = await plot(list(document.choices.keys()), list(document.choices.values()))
