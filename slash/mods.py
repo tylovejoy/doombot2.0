@@ -55,7 +55,11 @@ class Vote(Slash, name="vote", guilds=[GUILD_ID], parent=ModParent):
         view = VotingView(message, options)
 
         await message.edit(view=view)
-        vote_document = Voting(message_id=message.id, channel_id=message.channel.id)
+        vote_document = Voting(
+            message_id=message.id,
+            channel_id=message.channel.id,
+            user_id=self.interaction.user.id,
+        )
         await vote_document.save()
 
 
@@ -74,17 +78,18 @@ class EndVote(discord.ui.Button):
     """Ends vote view."""
 
     def __init__(self):
-        super().__init__(style=discord.ButtonStyle.danger, label="End Vote (MOD Only)")
+        super().__init__(style=discord.ButtonStyle.danger, label="End Vote")
 
     async def callback(self, interaction: discord.Interaction) -> None:
         self.view: VotingView
-        await check_permissions(interaction)
+
+        document = await Voting.find_one(Voting.message_id == self.view.message.id)
+        if not document or document.user_id != interaction.user.id:
+            return
+
         await self.view.message.edit(
             content=f"VOTE ENDED BY {interaction.user.mention}"
         )
-        document = await Voting.find_one(Voting.message_id == self.view.message.id)
-        if not document:
-            return
         await document.delete()
         self.view.stop()
 
