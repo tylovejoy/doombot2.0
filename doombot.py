@@ -164,19 +164,6 @@ class DoomBot(discord.Client):
             self.add_view(PronounRoles(), message_id=960946618142699560)
             self.add_view(TherapyRole(), message_id=960946619111571476)
 
-            # Votes
-            votes = await Voting.find().to_list()
-            for vote in votes:
-                self.add_view(
-                    VotingView(
-                        self.guild.get_channel(vote.channel_id).fetch_message(
-                            vote.message_id
-                        ),
-                        list(vote.choices.keys()),
-                    ),
-                    message_id=vote.message_id,
-                )
-
             self.persistent_views_added = True
 
         if not self.verification_views_added:
