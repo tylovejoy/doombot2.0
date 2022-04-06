@@ -21,7 +21,7 @@ class Voting(Document):
 
     message_id: int
     channel_id: int
-    voters: Optional[Dict[int, int]] = {}
+    voters: Optional[Dict[str, int]] = {}
     choices: Optional[Dict[str, int]] = {}
 
 
