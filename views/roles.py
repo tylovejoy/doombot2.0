@@ -6,6 +6,7 @@ from logging import getLogger
 
 logger = getLogger(__name__)
 
+
 async def add_remove_roles(interaction: discord.Interaction, role):
     if role in interaction.user.roles:
         await interaction.user.remove_roles(role)
@@ -33,13 +34,16 @@ class ColorSelect(discord.ui.Select):
         )
         for option in options:
             self.add_option(
-                label=option.label,
-                value=str(option.role_id),
-                emoji=option.emoji
+                label=option.label, value=str(option.role_id), emoji=option.emoji
             )
+
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
-        all_roles = [interaction.guild.get_role(int(role.value)) for role in self.options if role.value != "None"]
+        all_roles = [
+            interaction.guild.get_role(int(role.value))
+            for role in self.options
+            if role.value != "None"
+        ]
         for role in all_roles:
             if role in interaction.user.roles:
                 await interaction.user.remove_roles(role)
@@ -52,8 +56,6 @@ class ColorSelect(discord.ui.Select):
         )
 
 
-
-
 class ColorRolesView(discord.ui.View):
     """Persistent reaction color roles."""
 
@@ -63,14 +65,12 @@ class ColorRolesView(discord.ui.View):
         self.add_item(self.select)
 
 
-
 class ServerRelatedPings(discord.ui.View):
     """Persistent reaction server related roles."""
 
     def __init__(self):
         super().__init__(timeout=None)
-        
-    
+
     @discord.ui.button(
         label="Announcements",
         style=discord.ButtonStyle.blurple,
@@ -89,7 +89,7 @@ class ServerRelatedPings(discord.ui.View):
     async def eu_ping(self, item, interaction: discord.Interaction):
         role = interaction.guild.get_role(805542050060828682)
         await add_remove_roles(interaction, role)
-    
+
     @discord.ui.button(
         label="NA Sleep Ping",
         style=discord.ButtonStyle.grey,
@@ -109,7 +109,7 @@ class ServerRelatedPings(discord.ui.View):
     async def asia_ping(self, item, interaction: discord.Interaction):
         role = interaction.guild.get_role(874438907763228743)
         await add_remove_roles(interaction, role)
-    
+
     @discord.ui.button(
         label="OCE Sleep Ping",
         style=discord.ButtonStyle.grey,
@@ -140,14 +140,13 @@ class ServerRelatedPings(discord.ui.View):
         role = interaction.guild.get_role(903667578549968896)
         await add_remove_roles(interaction, role)
 
-    
+
 class PronounRoles(discord.ui.View):
     """Persistent reaction server related roles."""
 
     def __init__(self):
         super().__init__(timeout=None)
-        
-    
+
     @discord.ui.button(
         label="They/Them",
         style=discord.ButtonStyle.grey,
@@ -181,8 +180,7 @@ class TherapyRole(discord.ui.View):
 
     def __init__(self):
         super().__init__(timeout=None)
-        
-    
+
     @discord.ui.button(
         label="Therapy",
         style=discord.ButtonStyle.green,

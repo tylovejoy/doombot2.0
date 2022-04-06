@@ -21,7 +21,7 @@ ROLE_WHITELIST = (
         699145313520320542,  # LIVE - Admin
         725198459627634689,  # LIVE - Mod
         758399333942558800,  # LIVE - Tourny Org
-        #808426677562114122,  # LIVE - Record Org
+        # 808426677562114122,  # LIVE - Record Org
     ]
 )
 

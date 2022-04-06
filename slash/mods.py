@@ -14,8 +14,10 @@ from slash.slash_command import Slash
 
 logger = getLogger(__name__)
 
+
 def setup(bot: discord.Client):
     logger.info(logging_util("Loading", "MODS"))
+
 
 class Vote(Slash, name="vote", guilds=[GUILD_ID], parent=ModParent):
     """Create a vote interface."""
@@ -46,15 +48,16 @@ class Vote(Slash, name="vote", guilds=[GUILD_ID], parent=ModParent):
         embed = create_embed(
             "Vote!",
             "You can change your vote, but you cannot cast multiple!\n\n" + self.vote,
-            self.interaction.user
+            self.interaction.user,
         )
 
         message = await self.interaction.channel.send(embed=embed)
         view = VotingView(message, options)
-        
+
         await message.edit(view=view)
         vote_document = Voting(message_id=message.id, channel_id=message.channel.id)
         await vote_document.save()
+
 
 class VotingView(discord.ui.View):
     """View for the voting interface."""
@@ -65,21 +68,20 @@ class VotingView(discord.ui.View):
         for option in options:
             self.add_item(VotingButton(option))
         self.add_item(EndVote())
-    
+
 
 class EndVote(discord.ui.Button):
     """Ends vote view."""
-    
+
     def __init__(self):
-        super().__init__(
-            style=discord.ButtonStyle.danger,
-            label="End Vote (MOD Only)"
-        )
+        super().__init__(style=discord.ButtonStyle.danger, label="End Vote (MOD Only)")
 
     async def callback(self, interaction: discord.Interaction) -> None:
         self.view: VotingView
         await check_permissions(interaction)
-        await self.view.message.edit(content=f"VOTE ENDED BY {interaction.user.mention}")
+        await self.view.message.edit(
+            content=f"VOTE ENDED BY {interaction.user.mention}"
+        )
         document = await Voting.find_one(Voting.message_id == self.view.message.id)
         if not document:
             return
@@ -100,38 +102,36 @@ class VotingButton(discord.ui.Button):
         if not document:
             return
         if str(interaction.user.id) in document.voters:
-            list(document.choices.keys())[document.voters[str(interaction.user.id)]] -= 1
-        
-        document.choices.update(
-            {self.label: document.choices.get(self.label, 0) + 1}
+            list(document.choices.keys())[
+                document.voters[str(interaction.user.id)]
+            ] -= 1
+
+        document.choices.update({self.label: document.choices.get(self.label, 0) + 1})
+        document.voters.update(
+            {str(interaction.user.id): list(document.choices.keys()).index(self.label)}
         )
-        document.voters.update({str(interaction.user.id): list(document.choices.keys()).index(self.label)})
         await document.save()
 
-        image = await plot(list(document.choices.keys()), list(document.choices.values()))
+        image = await plot(
+            list(document.choices.keys()), list(document.choices.values())
+        )
 
         await self.view.message.edit(
             embed=self.view.message.embeds[0].set_image(
                 url="attachment://vote_chart.png"
-            ), 
+            ),
             file=image,
         )
 
 
-
 async def plot(labels: List[str], values: List[int]):
-    fig = plt.figure(figsize = (6, 5))
+    fig = plt.figure(figsize=(6, 5))
     plt.axes().yaxis.set_major_locator(MaxNLocator(integer=True))
-    plt.bar(
-        labels, 
-        values, 
-        color ='black',
-        width = 0.4
-    )
+    plt.bar(labels, values, color="black", width=0.4)
     plt.xlabel("Options")
-    plt.ylabel("# of Votes")    
+    plt.ylabel("# of Votes")
     b = io.BytesIO()
-    plt.savefig(b, format='png')
+    plt.savefig(b, format="png")
     plt.close()
     b.seek(0)
     return discord.File(b, filename="vote_chart.png")

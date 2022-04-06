@@ -337,6 +337,7 @@ class ToggleRecordSubmission(Slash, name="autosubmit", parent=TournamentParent):
         )
         await user.save()
 
+
 class TherapyBan(Slash, name="therapy-ban", parent=ModParent):
     """Ban a user from using the therapy command."""
 

@@ -23,10 +23,11 @@ class Voting(Document):
     channel_id: int
     voters: Optional[Dict[int, int]] = {}
     choices: Optional[Dict[str, int]] = {}
-    
+
 
 class ColorRoles(Document):
     """Collection of colors roles."""
+
     emoji: str
     label: str
     role_id: int

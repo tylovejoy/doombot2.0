@@ -27,6 +27,7 @@ class CreateParent(discord.SlashCommand, guilds=[GUILD_ID], name="create"):
 class ModParent(discord.SlashCommand, guilds=[GUILD_ID], name="mod"):
     """Create slash command parent class."""
 
+
 class SubmitParent(discord.SlashCommand, guilds=[GUILD_ID], name="submit"):
     """Submit slash command parent class."""
 

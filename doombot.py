@@ -169,7 +169,9 @@ class DoomBot(discord.Client):
             for vote in votes:
                 self.add_view(
                     VotingView(
-                        self.guild.get_channel(vote.channel_id).fetch_message(vote.message_id),
+                        self.guild.get_channel(vote.channel_id).fetch_message(
+                            vote.message_id
+                        ),
                         list(vote.choices.keys()),
                     ),
                     message_id=vote.message_id,

@@ -118,7 +118,9 @@ class TagsCommand(TagSlash, name="tag"):
     async def callback(self) -> None:
         await self.defer()
         if self.interaction.channel.id != PARKOUR_HELP_ID:
-            raise IncorrectChannel(f"This command can only be used in the <#{PARKOUR_HELP_ID}> channel.")
+            raise IncorrectChannel(
+                f"This command can only be used in the <#{PARKOUR_HELP_ID}> channel."
+            )
         tag = await Tags.find_one(
             Tags.name == self.name, Tags.category == self.category
         )
@@ -139,7 +141,9 @@ class WorkshopHelp(WorkshopSlash, name="workshop"):
     async def callback(self) -> None:
         await self.defer(ephemeral=self.hidden)
         if self.interaction.channel.id != PARKOUR_HELP_ID:
-            raise IncorrectChannel(f"This command can only be used in the <#{PARKOUR_HELP_ID}> channel.")
+            raise IncorrectChannel(
+                f"This command can only be used in the <#{PARKOUR_HELP_ID}> channel."
+            )
         self.search = self.search.replace(" ", "-")
         url = f"https://workshop.codes/wiki/search/{self.search}.json"
         async with self.client.session.get(url) as resp:
