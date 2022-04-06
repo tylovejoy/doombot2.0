@@ -18,7 +18,7 @@ logger = getLogger(__name__)
 
 class Voting(Document):
     """Collection of Votes."""
-
+    user_id: int
     message_id: int
     channel_id: int
     voters: Optional[Dict[str, int]] = {}
