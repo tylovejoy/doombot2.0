@@ -1,6 +1,6 @@
 import io
 from discord.utils import MISSING
-from typing import List, Optional
+from typing import List, Literal, Optional
 import discord
 from logging import getLogger
 from database.documents import Voting
@@ -19,10 +19,18 @@ def setup(bot: discord.Client):
     logger.info(logging_util("Loading", "MODS"))
 
 
+anonymity_convert = {
+    "Anonymous": 0,
+    "Private": 1,
+    "Public": 2,
+}
+
+
 class Vote(Slash, name="vote", guilds=[GUILD_ID], parent=ModParent):
     """Create a vote interface."""
 
     vote: str = discord.Option(description="Content of the vote.")
+    anonymity: Literal["Anonymous", "Private", "Public"] = discord.Option(description="Type of results.")
     option_one: str = discord.Option(description="Option 1")
     option_two: str = discord.Option(description="Option 2")
     option_three: Optional[str] = discord.Option(description="Option 3")
@@ -59,6 +67,7 @@ class Vote(Slash, name="vote", guilds=[GUILD_ID], parent=ModParent):
             message_id=message.id,
             channel_id=message.channel.id,
             user_id=self.interaction.user.id,
+            anonymity=anonymity_convert(self.anonymity),
         )
         await vote_document.save()
 
@@ -90,8 +99,38 @@ class EndVote(discord.ui.Button):
         await self.view.message.edit(
             content=f"VOTE ENDED BY {interaction.user.mention}"
         )
+
+        self.create_results(interaction, document)
+
         await document.delete()
         self.view.stop()
+    
+    async def create_results(self, interaction: discord.Interaction, document: Voting) -> None:
+        if document.anonymity == 0:
+            return
+        embed = create_embed(
+            "Results",
+            "",
+            interaction.user,
+        )
+        for i, choice in enumerate(document.choices):
+            user_str = ""
+            for user, value in document.voters.items():
+                if value == i:
+                    user_str += f"<@{user}>\n"
+
+            embed.add_field(
+                name=choice.option,
+                value=user_str,
+                inline=False,
+            )
+
+        if document.anonymity == 1:
+            await interaction.user.send(embed=embed)
+
+        elif document.anonymity == 2:
+            await interaction.guild.get_channel(document.channel_id).send(embed=embed)
+        
 
 
 class VotingButton(discord.ui.Button):
