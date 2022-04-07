@@ -120,7 +120,7 @@ class EndVote(discord.ui.Button):
                     user_str += f"<@{user}>\n"
 
             embed.add_field(
-                name=choice.option,
+                name=choice,
                 value=user_str,
                 inline=False,
             )
