@@ -159,7 +159,10 @@ class DoomBot(discord.Client):
 
         if not self.persistent_views_added:
             colors = await ColorRoles.find().sort("sort_order+").to_list()
-            self.add_view(ColorRolesView(colors), message_id=960946616288813066)
+            view = ColorRolesView(colors)
+            self.add_view(view, message_id=960946616288813066)
+            await self.guild.get_channel(752273327749464105).get_partial_message(960946616288813066).edit(view=view)
+
             self.add_view(ServerRelatedPings(), message_id=960946617169612850)
             self.add_view(PronounRoles(), message_id=960946618142699560)
             self.add_view(TherapyRole(), message_id=960946619111571476)
