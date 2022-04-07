@@ -67,7 +67,7 @@ class Vote(Slash, name="vote", guilds=[GUILD_ID], parent=ModParent):
             message_id=message.id,
             channel_id=message.channel.id,
             user_id=self.interaction.user.id,
-            anonymity=anonymity_convert(self.anonymity),
+            anonymity=anonymity_convert[self.anonymity],
         )
         await vote_document.save()
 
