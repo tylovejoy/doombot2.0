@@ -100,7 +100,7 @@ class EndVote(discord.ui.Button):
             content=f"VOTE ENDED BY {interaction.user.mention}"
         )
 
-        self.create_results(interaction, document)
+        await self.create_results(interaction, document)
 
         await document.delete()
         self.view.stop()
