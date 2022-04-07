@@ -1049,10 +1049,10 @@ async def gen_mission_top(all_records, mission, store, user_id):
                     temp_store[category] += 1
                     break
     if sum(temp_store.values()) >= int(mission.target):
-        logger.info(store)
-        logger.info(user_id)
         store[user_id]["general"] += 1
         store[user_id]["xp"] += 2000
+    
+    return store
 
 
 async def compute_xp(tournament: Tournament):
