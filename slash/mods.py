@@ -146,6 +146,8 @@ class VotingButton(discord.ui.Button):
         if not document:
             return
         if str(interaction.user.id) in document.voters:
+            if document.voters[str(interaction.user.id)] == list(document.choices.keys()).index(self.label):
+                return
             document.choices[list(document.choices.keys())[
                 document.voters[str(interaction.user.id)]]
             ] -= 1
