@@ -33,6 +33,7 @@ class ColorRoles(Document):
     emoji: str
     label: str
     role_id: int
+    sort_order: int
 
 
 class Events(Document):
