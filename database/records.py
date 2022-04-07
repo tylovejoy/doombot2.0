@@ -263,7 +263,6 @@ class Record(Document):
             await cls.find(cls.code == map_code)
             .aggregate(
                 [
-                    {"$match": {"code": "H3NTA"}},
                     {"$project": {"level": 1}},
                     {"$group": {"_id": {"level": "$level"}}},
                     {"$sort": {"_id.level": 1}},
