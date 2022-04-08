@@ -399,9 +399,6 @@ class DoomBot(discord.Client):
 
     @staticmethod
     async def on_thread_update(before: discord.Thread, after: discord.Thread):
-        return
-        if after.archived and after.locked:
-            return  # Ignore if locked
-
-        # Auto unarchive
-        await after.edit(archived=False)
+        if after.archived and not after.locked:
+            await after.edit(archived=False)
+            logger.info(f"Auto-unarchived thread: {after.id}")
