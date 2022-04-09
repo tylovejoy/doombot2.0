@@ -49,7 +49,6 @@ def setup(bot: discord.Client):
     bot.application_command(WorldRecords)
     bot.application_command(WorldRecordsShort)
     bot.application_command(WorldRecordsUserCommand)
-    bot.application_command(Test)
 
 
 async def check_user(interaction):
@@ -64,20 +63,6 @@ async def check_user(interaction):
         await new_user.insert()
         return new_user
     return user
-
-
-class Test(
-    discord.SlashCommand,
-    guilds=[GUILD_ID],
-    name="test",
-):
-    """Test"""
-
-    level_name: str
-
-    # TODO: Remove before prod
-    async def callback(self) -> None:
-        return
 
 
 class SubmitRecord(RecordSlash, guilds=[GUILD_ID], name="record", parent=SubmitParent):

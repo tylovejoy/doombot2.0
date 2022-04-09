@@ -13,7 +13,6 @@ from slash import (
     tags,
     tournament,
     store,
-    migration_tasks,
     mods,
 )
 from utils.utilities import logging_util
