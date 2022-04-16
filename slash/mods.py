@@ -30,7 +30,9 @@ class Vote(Slash, name="vote", guilds=[GUILD_ID], parent=ModParent):
     """Create a vote interface."""
 
     vote: str = discord.Option(description="Content of the vote.")
-    anonymity: Literal["Anonymous", "Private", "Public"] = discord.Option(description="Type of results.")
+    anonymity: Literal["Anonymous", "Private", "Public"] = discord.Option(
+        description="Type of results."
+    )
     option_one: str = discord.Option(description="Option 1")
     option_two: str = discord.Option(description="Option 2")
     option_three: Optional[str] = discord.Option(description="Option 3")
@@ -104,8 +106,10 @@ class EndVote(discord.ui.Button):
 
         await document.delete()
         self.view.stop()
-    
-    async def create_results(self, interaction: discord.Interaction, document: Voting) -> None:
+
+    async def create_results(
+        self, interaction: discord.Interaction, document: Voting
+    ) -> None:
         if document.anonymity == 0:
             return
         embed = create_embed(
@@ -118,6 +122,8 @@ class EndVote(discord.ui.Button):
             for user, value in document.voters.items():
                 if value == i:
                     user_str += f"<@{user}>\n"
+            else:
+                user_str = "No results"
 
             embed.add_field(
                 name=choice,
@@ -130,7 +136,6 @@ class EndVote(discord.ui.Button):
 
         elif document.anonymity == 2:
             await interaction.guild.get_channel(document.channel_id).send(embed=embed)
-        
 
 
 class VotingButton(discord.ui.Button):
@@ -146,8 +151,8 @@ class VotingButton(discord.ui.Button):
         if not document:
             return
         if str(interaction.user.id) in document.voters:
-            document.choices[list(document.choices.keys())[
-                document.voters[str(interaction.user.id)]]
+            document.choices[
+                list(document.choices.keys())[document.voters[str(interaction.user.id)]]
             ] -= 1
 
         document.choices.update({self.label: document.choices.get(self.label, 0) + 1})
