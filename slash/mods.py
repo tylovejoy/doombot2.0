@@ -99,14 +99,11 @@ class EndVote(discord.ui.Button):
             return
 
         await document.delete()
-        for child in self.view.children:
-            self.view.remove_item(child)
-        self.view.stop()
-
+        self.view.clear_items()
         await self.view.message.edit(
             content=f"VOTE ENDED BY {interaction.user.mention}", view=self.view
         )
-
+        self.view.stop()
         await self.create_results(interaction, document)
 
     @staticmethod
