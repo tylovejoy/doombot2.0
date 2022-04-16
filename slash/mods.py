@@ -98,17 +98,20 @@ class EndVote(discord.ui.Button):
         if not document or document.user_id != interaction.user.id:
             return
 
+        await document.delete()
+        for child in self.view.children:
+            self.view.remove_item(child)
+        self.view.stop()
+
         await self.view.message.edit(
-            content=f"VOTE ENDED BY {interaction.user.mention}"
+            content=f"VOTE ENDED BY {interaction.user.mention}", view=self.view
         )
 
         await self.create_results(interaction, document)
 
-        await document.delete()
-        self.view.stop()
-
+    @staticmethod
     async def create_results(
-        self, interaction: discord.Interaction, document: Voting
+        interaction: discord.Interaction, document: Voting
     ) -> None:
         if document.anonymity == 0:
             return
@@ -122,12 +125,10 @@ class EndVote(discord.ui.Button):
             for user, value in document.voters.items():
                 if value == i:
                     user_str += f"<@{user}>\n"
-            else:
-                user_str = "No results"
 
             embed.add_field(
                 name=choice,
-                value=user_str,
+                value=user_str if user_str else "No results",
                 inline=False,
             )
 
