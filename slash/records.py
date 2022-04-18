@@ -30,6 +30,7 @@ from utils.utilities import (
     find_alt_map_code,
     logging_util,
     make_ordinal,
+    preprocess_level_name,
     preprocess_map_code,
     time_convert,
 )
@@ -91,8 +92,7 @@ class SubmitRecord(RecordSlash, guilds=[GUILD_ID], name="record", parent=SubmitP
 
         self.map_code = preprocess_map_code(self.map_code)
         self.map_code, code_changed = await find_alt_map_code(self.map_code)
-
-        self.map_level = self.map_level.upper()
+        self.map_level = preprocess_level_name(self.map_level)
 
         record_seconds = time_convert(self.record)
         await check_user(self.interaction)
@@ -212,7 +212,7 @@ class DeleteRecord(RecordSlash, guilds=[GUILD_ID], name="record", parent=DeleteP
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
         self.map_code = preprocess_map_code(self.map_code)
-        self.map_level = self.map_level.upper()
+        self.map_level = preprocess_level_name(self.map_level)
 
         if self.user:
             await check_permissions(self.interaction)
@@ -260,7 +260,7 @@ class ViewRecords(RecordSlash, name="leaderboard"):
         self.map_code, _ = await find_alt_map_code(self.map_code)
         level_name = ""
         if self.map_level is not MISSING:
-            self.map_level = self.map_level.upper()
+            self.map_level = preprocess_level_name(self.map_level)
             level_name = discord.utils.escape_markdown(self.map_level)
 
         embed = create_embed(
