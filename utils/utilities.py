@@ -1,3 +1,4 @@
+from asyncio.log import logger
 import datetime
 import re
 from typing import List, Tuple, Union, Literal
@@ -25,7 +26,7 @@ TIME_REGEX = re.compile(
 def preprocess_level_name(level_name: str):
     """Preprocess level names.
     User upper() on only the English alphabet."""
-    level_name = re.escape(level_name)
+    
     return level_name.translate(str.maketrans(ascii_lowercase, ascii_lowercase.upper()))
 
 

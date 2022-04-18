@@ -9,6 +9,10 @@ from beanie.odm.operators.find.evaluation import RegEx
 from pydantic import BaseModel, Field
 
 from database.maps import MapCodes, MapLevels
+from logging import getLogger
+
+
+logger = getLogger(__name__)
 
 
 class AllLevelsSubAgg(Document):
@@ -248,9 +252,11 @@ class Record(Document):
         if map_code:
             search_filter.update({"code": map_code})
         if map_level:
+            _level = discord.utils.escape_markdown(map_level).replace(")", "\)").replace("(", "\(")
             search_filter.update(
-                RegEx("level", f"^{discord.utils.escape_markdown(re.escape(map_level))}$")
+                RegEx("level", f"^{_level}$")
             )
+
         if user_id:
             search_filter.update({"user_id": user_id})
         if verified:

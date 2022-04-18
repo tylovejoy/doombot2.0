@@ -92,6 +92,7 @@ class SubmitRecord(RecordSlash, guilds=[GUILD_ID], name="record", parent=SubmitP
 
         self.map_code = preprocess_map_code(self.map_code)
         self.map_code, code_changed = await find_alt_map_code(self.map_code)
+
         self.map_level = preprocess_level_name(self.map_level)
 
         record_seconds = time_convert(self.record)
