@@ -1,4 +1,5 @@
 from __future__ import annotations
+import re
 
 from typing import Any, Generator, List, Optional, Set
 
@@ -248,7 +249,7 @@ class Record(Document):
             search_filter.update({"code": map_code})
         if map_level:
             search_filter.update(
-                RegEx("level", f"^{discord.utils.escape_markdown(map_level)}$")
+                RegEx("level", f"^{discord.utils.escape_markdown(re.escape(map_level))}$")
             )
         if user_id:
             search_filter.update({"user_id": user_id})
