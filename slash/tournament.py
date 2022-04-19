@@ -243,6 +243,39 @@ class TournamentStart(
         )
 
 
+class XPUpdate(
+    Slash, 
+    guilds=[GUILD_ID], 
+    name="update-xp",
+    parent=TournamentOrgParent,
+):
+    """Update the XP for a player."""
+
+    player: discord.Member = discord.Option(
+        description="Player to update XP for.",
+    )
+    
+    xp: int = discord.Option(
+        description="XP amount. ",
+    )
+
+    async def callback(self) -> None:
+        await self.defer(ephemeral=True)
+        await check_permissions(self.interaction)
+
+        user = await ExperiencePoints.find_user(self.player.id)
+        if not user:
+            raise UserNotFound("User doesn't exist.")
+
+        user.xp += self.xp
+        await user.save()
+
+        await self.interaction.edit_original_message(
+            content=f"XP updated for {self.player.display_name}.",
+            view=None,
+        )
+
+
 class ChangeRank(
     Slash,
     guilds=[GUILD_ID],
