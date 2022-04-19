@@ -271,7 +271,7 @@ class XPUpdate(
         await user.save()
 
         await self.interaction.edit_original_message(
-            content=f"XP updated for {self.player.display_name}.",
+            content=f"XP updated for {self.player.display_name}.\nAdded {self.xp} XP for a total of {user.xp}.",
             view=None,
         )
 
