@@ -147,13 +147,17 @@ class Record(Document):
         cls, map_code: str, map_level: str, user_id: int
     ) -> CurrentRecordPlacement:
         """Find the current rank placement of a record."""
+        sort_order = 1
+        if map_code == "R88AY" and map_level == "TOWER DEFENCE":
+            sort_order *= -1
+
         return (
             await cls.find(cls.code == map_code, cls.level == map_level)
             .aggregate(
                 [
                     {
                         "$setWindowFields": {
-                            "sortBy": {"record": 1},
+                            "sortBy": {"record": sort_order},
                             "output": {"rank": {"$rank": {}}},
                         }
                     },
@@ -232,9 +236,13 @@ class Record(Document):
     @classmethod
     async def filter_search(cls, **filters: Any) -> List[Record]:
         """Get all amps with a particular filter."""
+        sort_order = "+record"
+        if filters.get("map_code") == "R88AY" and filters.get("map_level") == "TOWER DEFENCE":
+            sort_order = "-record"
+
         search_filter = await cls.filter_search_(filters)
         return (
-            await cls.find(search_filter).sort("+record", "+code", "+level").to_list()
+            await cls.find(search_filter).sort(sort_order, "+code", "+level").to_list()
         )
 
     @classmethod
