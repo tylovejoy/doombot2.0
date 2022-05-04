@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 from logging import getLogger
+from typing import List
 
 import aiohttp
 import discord
@@ -16,13 +17,14 @@ from database.documents import (
     Voting,
 )
 from database.records import Record
-from database.tournament import Announcement, Tournament
+from database.tournament import Announcement, Duel, Tournament
 from slash.mods import VotingView
 
 from slash.tournament import end_tournament, start_tournament
 
 from utils.constants import (
     BOT_ID,
+    DUELS_ID,
     GUILD_ID,
     NON_SPR_RECORDS_ID,
     SPR_RECORDS_ID,
@@ -161,7 +163,9 @@ class DoomBot(discord.Client):
             colors = await ColorRoles.find().sort("+sort_order").to_list()
             view = ColorRolesView(colors)
             self.add_view(view, message_id=960946616288813066)
-            await self.guild.get_channel(752273327749464105).get_partial_message(960946616288813066).edit(view=view)
+            await self.guild.get_channel(752273327749464105).get_partial_message(
+                960946616288813066
+            ).edit(view=view)
 
             self.add_view(ServerRelatedPings(), message_id=960946617169612850)
             self.add_view(PronounRoles(), message_id=960946618142699560)
@@ -175,6 +179,42 @@ class DoomBot(discord.Client):
             for view in views:
                 self.add_view(VerificationView(), message_id=view.message_id)
             self.verification_views_added = True
+
+    @tasks.loop(seconds=30)
+    async def duel_checker(self):
+        """Check for duel endings."""
+        all_duels: List[Duel] = await Duel.find_all().to_list()
+        if not all_duels:
+            return
+
+        for duel in all_duels:
+            if duel.end_time >= discord.utils.utcnow():
+                if duel.player1.record < duel.player2.record:
+                    await ExperiencePoints.change_xp(duel.player1.user_id, duel.wager)
+                    await ExperiencePoints.change_xp(duel.player2.user_id, -duel.wager)
+
+                    await ExperiencePoints.add_win(duel.player1.user_id)
+                    await ExperiencePoints.add_loss(duel.player2.user_id)
+
+                    winner = duel.player1.user_id
+                else:
+                    await ExperiencePoints.change_xp(duel.player2.user_id, duel.wager)
+                    await ExperiencePoints.change_xp(duel.player1.user_id, -duel.wager)
+
+                    await ExperiencePoints.add_win(duel.player2.user_id)
+                    await ExperiencePoints.add_loss(duel.player1.user_id)
+
+                    winner = duel.player2.user_id
+                winner = self.get_guild(GUILD_ID).get_member(winner)
+                msg = (
+                    await self.get_guild(GUILD_ID)
+                    .get_channel(DUELS_ID)
+                    .fetch_message(duel.message)
+                )
+                await msg.edit(
+                    content=f"THE WINNER IS {winner.mention}!\n" + msg.content
+                )
+                await duel.delete()
 
     @tasks.loop(seconds=30)
     async def tournament_checker(self):

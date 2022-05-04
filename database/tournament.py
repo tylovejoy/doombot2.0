@@ -206,3 +206,39 @@ class Tournament(Document):
         for mission in self.general:
             missions += f"- {format_missions(mission.type, mission.target)}"
         return missions
+
+
+class DuelPlayer(BaseModel):
+    """Player in duel."""
+
+    user_id: int
+    record: Optional[int]
+    attachment_url: Optional[str]
+    ready: bool
+
+
+class Duel(Document):
+    """Duel."""
+
+    player1: DuelPlayer
+    player2: DuelPlayer
+    message: int
+    thread: int
+    wager: int
+    standby_time: datetime
+    start_time: Optional[datetime]
+    end_time: Optional[datetime]
+
+    @classmethod
+    async def find_duel(cls, user_id):
+        return await cls.find_one(cls.player1.user_id == user_id)
+
+    @classmethod
+    async def find_duel_thread(cls, user_id: int, thread_id: int):
+        return await cls.find_one(
+            cls.player2.user_id == user_id, cls.thread == thread_id
+        )
+
+    @classmethod
+    async def find_duel_thread_only(cls, thread_id: int):
+        return await cls.find_one(cls.thread == thread_id)

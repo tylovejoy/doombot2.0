@@ -150,6 +150,8 @@ class ExperiencePoints(Document):
     verified_count: int = 0
     dont_submit: Optional[bool] = False
     therapy_banned: Optional[bool] = False
+    wins: Optional[int]
+    losses: Optional[int]
 
     async def increment_verified(self) -> int:
         self.verified_count += 1
@@ -165,9 +167,28 @@ class ExperiencePoints(Document):
         return await cls.find().sort("-xp").project(XPOnly).to_list()
 
     @classmethod
-    async def find_user(cls, user_id) -> ExperiencePoints:
+    async def find_user(cls, user_id: int) -> ExperiencePoints:
         """Find a user."""
         return await cls.find_one(cls.user_id == user_id)
+
+    @classmethod
+    async def add_win(cls, user_id: int):
+        user = await cls.find_user(user_id)
+        user.wins += 1
+        await user.save()
+
+    @classmethod
+    async def add_loss(cls, user_id: int):
+        user = await cls.find_user(user_id)
+        user.losses += 1
+        await user.save()
+
+    @classmethod
+    async def change_xp(cls, user_id: int, amount: int):
+        """Change a user's XP by a specific amount."""
+        user: ExperiencePoints = await cls.find_one(cls.user_id == user_id)
+        user.xp += amount
+        await user.save()
 
     @classmethod
     async def get_alias(cls, user_id: int) -> str:

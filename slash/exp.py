@@ -124,14 +124,14 @@ class RankCard(Slash, name="rank"):
         ta_logo = Image.open(LOGO_FILE_PATH[search.rank.ta]).convert("RGBA")
         mc_logo = Image.open(LOGO_FILE_PATH[search.rank.mc]).convert("RGBA")
         hc_logo = Image.open(LOGO_FILE_PATH[search.rank.hc]).convert("RGBA")
-        bo_logo = Image.open(LOGO_FILE_PATH[search.rank.bo]).convert("RGBA")
+        # bo_logo = Image.open(LOGO_FILE_PATH[search.rank.bo]).convert("RGBA")
 
         ta_logo.thumbnail((100, 100))
         mc_logo.thumbnail((100, 100))
         hc_logo.thumbnail((100, 100))
-        bo_logo.thumbnail((100, 100))
+        # bo_logo.thumbnail((100, 100))
 
-        rank_card = Image.open("data/rankcard_bg.png").convert("RGBA")
+        rank_card = Image.open("data/rankcard_bg_duels.png").convert("RGBA")
 
         old_x = 15
         old_y = 66
@@ -163,7 +163,7 @@ class RankCard(Slash, name="rank"):
         rank_x_offset = 50
         rank_y_offset = 37
         for x_val, logo in zip(
-            [375, 508, 641, 774], [ta_logo, mc_logo, hc_logo, bo_logo]
+            [375, 508, 641, 774], [ta_logo, mc_logo, hc_logo]  # bo_logo]
         ):
             img.paste(
                 logo,
@@ -177,6 +177,23 @@ class RankCard(Slash, name="rank"):
         name_font = ImageFont.truetype(font2_file, 50)
         name_pos = x // 2 - d.textlength(name, font=name_font) // 2 + old_x
         d.text((name_pos, 170 + old_y // 2), name, fill=(255, 255, 255), font=name_font)
+
+        # W/L Duels
+        duels_font = ImageFont.truetype(font_file, 30)
+        losses = search.losses
+        if losses is None:
+            losses = 0
+        wins = search.wins
+        if wins is None:
+            wins = 0
+        wins = str(wins) + " W"
+        losses = str(losses) + " L"
+        wins_pos = 729 + (849 - 729) // 2 - d.textlength(wins, font=duels_font) // 2
+        losses_pos = 729 + (849 - 729) // 2 - d.textlength(losses, font=duels_font) // 2
+
+        # between 729 -> 849 is box
+        d.text((wins_pos, 98), wins, fill=(255, 255, 255), font=duels_font)
+        d.text((losses_pos, 138), losses, fill=(255, 255, 255), font=duels_font)
 
         # XP
         xp_font = ImageFont.truetype(font_file, 40)

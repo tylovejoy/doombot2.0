@@ -4,6 +4,7 @@ from os import environ
 from database.documents import database_init
 from doombot import DoomBot
 from slash import (
+    duel,
     events,
     exp,
     guides,
@@ -42,6 +43,7 @@ def load_all_extensions():
     guides.setup(bot)
     events.setup(bot)
     mods.setup(bot)
+    duel.setup(bot)
     # store.setup(bot)
     logger.info(logging_util("Loading Complete", "SLASH COMMANDS"))
 

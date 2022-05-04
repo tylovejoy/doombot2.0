@@ -1,3 +1,5 @@
+import datetime
+
 import discord
 from discord.ui import TextInput
 
@@ -7,6 +9,7 @@ from utils.utilities import (
     tournament_category_map_reverse,
 )
 from views.basic import ConfirmButton
+from database.tournament import Duel
 
 
 class TournamentAnnouncementModal(discord.ui.Modal):
@@ -177,3 +180,38 @@ class TournamentCategoriesSelect(discord.ui.Select):
         """Callback for tournament categories dropdown."""
         self.view.mentions = self.values
         await select_button_enable(self.view, self)
+
+
+class DuelReadyView(discord.ui.View):
+    """"""
+
+    def __init__(self, original_interaction):
+        super().__init__(timeout=43200)
+        self.original_interaction = original_interaction
+        self.message = None
+
+    @discord.ui.button(label="READY UP", style=discord.ButtonStyle.green, row=1)
+    async def ready(self, button: discord.ui.Button, interaction: discord.Interaction):
+        duel = await Duel.find_duel_thread(interaction.user.id, interaction.channel_id)
+        if not duel:
+            await interaction.user.send("You are not in this duel!")
+            return
+        duel.start_time = discord.utils.utcnow()
+        duel.end_time = discord.utils.utcnow() + datetime.timedelta(hours=24)
+        await self.message.edit(
+            content=(
+                self.message.content
+                + "\n\nReady, _set_, ***GO***!\n\nGet your best time by: \n"
+                f"{discord.utils.format_dt(duel.end_time)} | "
+                f"{discord.utils.format_dt(duel.end_time, style='R')}"
+            ),
+            view=None,
+        )
+        await duel.save()
+
+    async def on_timeout(self):
+        duel = await Duel.find_duel_thread_only(self.message.channel.id)
+        await duel.delete()
+        await self.message.edit(
+            content="CANCELLED, Player 2 did not ready up!", view=None
+        )
