@@ -182,8 +182,11 @@ class ForfeitDuel(Slash, guilds=[GUILD_ID], name="forfeit", parent=DuelParent):
         if not duel:
             raise TournamentStateError("You are not in a duel.")
 
-        if duel.player1.ready and duel.player2.ready:
-            raise TournamentStateError("You can't forfeit a duel that has started.")
+        if not duel.player1.ready or not duel.player2.ready:
+            raise TournamentStateError(
+                "You can't forfeit a duel that hasn't started. "
+                "Cancel the duel with the CANCEL button!"
+            )
 
         view = RecordSubmitView()
         await self.interaction.edit_original_message(
