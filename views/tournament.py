@@ -196,7 +196,6 @@ class DuelReadyView(discord.ui.View):
         if not duel:
             await interaction.user.send("You are not in this duel!")
             return
-        duel.start_time = discord.utils.utcnow()
         duel.end_time = discord.utils.utcnow() + datetime.timedelta(hours=24)
         await self.message.edit(
             content=(
