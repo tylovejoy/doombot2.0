@@ -232,7 +232,9 @@ class Duel(Document):
 
     @classmethod
     async def find_duel(cls, user_id) -> Duel:
-        return await cls.find_one(cls.player1.user_id == user_id)
+        return await cls.find_one(
+            Or(cls.player1.user_id == user_id, cls.player2.user_id == user_id)
+        )
 
     @classmethod
     async def find_duel_thread(cls, user_id: int, thread_id: int) -> Duel:
