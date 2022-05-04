@@ -52,7 +52,10 @@ class DuelStart(
         await self.defer(ephemeral=True)
 
         if await Duel.find_duel(self.interaction.user.id):
-            return
+            raise TournamentStateError("You are already in a duel.")
+
+        if self.interaction.user.id == self.user.id:
+            raise TournamentStateError("You cannot duel yourself.")
 
         self.map_code = preprocess_map_code(self.map_code)
         self.map_level = preprocess_level_name(self.map_level)
