@@ -16,7 +16,7 @@ logger = getLogger(__name__)
 
 
 def setup(bot):
-    logger.info(logging_util("Loading", "TOURNAMENT"))
+    logger.info(logging_util("Loading", "EVENTS"))
     bot.application_command(CreateEvent)
     bot.application_command(EndEvent)
 

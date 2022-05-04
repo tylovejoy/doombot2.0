@@ -147,6 +147,10 @@ class DoomBot(discord.Client):
         if not self.events_checker.is_running():
             logger.info(logging_util("Task Initialize", "EVENTS"))
             self.events_checker.start()
+        if not self.duel_checker.is_running():
+            logger.info(logging_util("Task Initialze", "DUELS"))
+            self.duel_checker.start()
+        
         async with aiohttp.ClientSession() as session:
 
             url = "https://workshop.codes/wiki/dictionary"
