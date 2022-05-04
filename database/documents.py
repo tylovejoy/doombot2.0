@@ -191,6 +191,14 @@ class ExperiencePoints(Document):
         await user.save()
 
     @classmethod
+    async def duel_end(cls, *, winner: int, loser: int, wager: int):
+        """Deal duel earnings and incremement W/L."""
+        await cls.change_xp(winner, wager)
+        await cls.change_xp(loser, -wager)
+        await cls.add_win(winner)
+        await cls.add_loss(loser)
+
+    @classmethod
     async def get_alias(cls, user_id: int) -> str:
         """Get an alias of a user."""
         user = await cls.find_user(user_id)

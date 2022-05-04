@@ -237,7 +237,10 @@ class Record(Document):
     async def filter_search(cls, **filters: Any) -> List[Record]:
         """Get all amps with a particular filter."""
         sort_order = "+record"
-        if filters.get("map_code") == "R88AY" and filters.get("map_level") == "TOWER DEFENCE":
+        if (
+            filters.get("map_code") == "R88AY"
+            and filters.get("map_level") == "TOWER DEFENCE"
+        ):
             sort_order = "-record"
 
         search_filter = await cls.filter_search_(filters)
@@ -260,10 +263,12 @@ class Record(Document):
         if map_code:
             search_filter.update({"code": map_code})
         if map_level:
-            _level = discord.utils.escape_markdown(map_level).replace(")", "\)").replace("(", "\(")
-            search_filter.update(
-                RegEx("level", f"^{_level}$")
+            _level = (
+                discord.utils.escape_markdown(map_level)
+                .replace(")", "\)")
+                .replace("(", "\(")
             )
+            search_filter.update(RegEx("level", f"^{_level}$"))
 
         if user_id:
             search_filter.update({"user_id": user_id})

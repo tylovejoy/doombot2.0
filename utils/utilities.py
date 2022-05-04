@@ -26,7 +26,7 @@ TIME_REGEX = re.compile(
 def preprocess_level_name(level_name: str):
     """Preprocess level names.
     User upper() on only the English alphabet."""
-    
+
     return level_name.translate(str.maketrans(ascii_lowercase, ascii_lowercase.upper()))
 
 

@@ -244,8 +244,8 @@ class TournamentStart(
 
 
 class XPUpdate(
-    Slash, 
-    guilds=[GUILD_ID], 
+    Slash,
+    guilds=[GUILD_ID],
     name="update-xp",
     parent=TournamentOrgParent,
 ):
@@ -254,7 +254,7 @@ class XPUpdate(
     player: discord.Member = discord.Option(
         description="Player to update XP for.",
     )
-    
+
     xp: int = discord.Option(
         description="XP amount. ",
     )
@@ -1084,7 +1084,7 @@ async def gen_mission_top(all_records, mission, store, user_id):
     if sum(temp_store.values()) >= int(mission.target):
         store[user_id]["general"] += 1
         store[user_id]["xp"] += 2000
-    
+
     return store
 
 

@@ -190,7 +190,7 @@ class DuelReadyView(discord.ui.View):
         self.original_interaction = original_interaction
         self.message = None
 
-    @discord.ui.button(label="READY UP", style=discord.ButtonStyle.green, row=1)
+    @discord.ui.button(label="READY UP", style=discord.ButtonStyle.green)
     async def ready(self, button: discord.ui.Button, interaction: discord.Interaction):
         duel = await Duel.find_duel_thread(interaction.user.id, interaction.channel_id)
         if not duel:
@@ -207,6 +207,17 @@ class DuelReadyView(discord.ui.View):
             view=None,
         )
         await duel.save()
+
+    @discord.ui.button(label="CANCEL", style=discord.ButtonStyle.red)
+    async def cancel(self, button: discord.ui.Button, interaction: discord.Interaction):
+        duel = await Duel.find_duel_thread_two_players(
+            interaction.user.id, interaction.channel_id
+        )
+        if not duel:
+            await interaction.user.send("You are not in this duel!")
+            return
+        await duel.delete()
+        await self.message.edit(content="CANCELLED!", view=None)
 
     async def on_timeout(self):
         duel = await Duel.find_duel_thread_only(self.message.channel.id)

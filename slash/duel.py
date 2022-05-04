@@ -2,6 +2,7 @@ from logging import getLogger
 
 import datetime
 import discord
+from database.documents import ExperiencePoints
 
 from slash.records import check_user
 from utils.constants import DUELS_ID, GUILD_ID
@@ -78,7 +79,7 @@ class DuelStart(
         channel = self.interaction.guild.get_channel(DUELS_ID)
         message = await channel.send(start_msg)
         thread = await channel.create_thread(
-            name=f"DUEL! {self.interaction.user.name} VS. {self.user.name}",
+            name=f"{self.interaction.user.name} VS. {self.user.name}",
             message=message,
         )
         standby = discord.utils.utcnow() + datetime.timedelta(hours=12)
@@ -168,7 +169,7 @@ class DuelSubmit(Slash, guilds=[GUILD_ID], name="submit", parent=DuelParent):
         )
 
 
-class CancelDuel(Slash, guilds=[GUILD_ID], name="cancel", parent=DuelParent):
+class ForfeitDuel(Slash, guilds=[GUILD_ID], name="forfeit", parent=DuelParent):
     async def callback(self):
         await self.defer(ephemeral=True)
 
@@ -177,22 +178,38 @@ class CancelDuel(Slash, guilds=[GUILD_ID], name="cancel", parent=DuelParent):
             raise TournamentStateError("You are not in a duel.")
 
         if duel.player1.ready and duel.player2.ready:
-            raise TournamentStateError("You can't cancel a duel that has started.")
+            raise TournamentStateError("You can't forfeit a duel that has started.")
 
         view = RecordSubmitView()
         await self.interaction.edit_original_message(
-            content="Do you want to cancel your duel?",
+            content="Do you want to forfeit your duel?",
             view=view,
         )
         await view.wait()
         if not view.confirm.value:
             return
         await self.interaction.guild.get_channel_or_thread(duel.thread).delete()
-        await duel.delete()
+
+        winner = None
+        loser = None
+        if duel.player1.user_id == self.interaction.user.id:
+            loser = duel.player1.user_id
+            winner = duel.player2.user_id
+        elif duel.player2.user_id == self.interaction.user.id:
+            loser = duel.player2.user_id
+            winner = duel.player1.user_id
+
+        await ExperiencePoints.duel_end(
+            winner=winner,
+            loser=loser,
+            wager=duel.wager,
+        )
+
         await self.interaction.edit_original_message(
-            content="Cancelled!",
+            content=f"{self.interaction.user.mention} forfeited and lost {duel.wager} XP!",
             view=None,
         )
+        await duel.delete()
 
 
 class DeleteDuel(Slash, guilds=[GUILD_ID], name="delete-record", parent=DuelParent):

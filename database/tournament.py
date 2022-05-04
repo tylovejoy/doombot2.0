@@ -5,6 +5,7 @@ from logging import getLogger
 from typing import Generator, List, Literal, Optional, Union
 
 from beanie import Document
+from beanie.odm.operators.find.logical import Or
 from discord.utils import MISSING
 from pydantic import BaseModel
 
@@ -237,6 +238,13 @@ class Duel(Document):
     async def find_duel_thread(cls, user_id: int, thread_id: int):
         return await cls.find_one(
             cls.player2.user_id == user_id, cls.thread == thread_id
+        )
+
+    @classmethod
+    async def find_duel_thread_two_players(cls, user_id: int, thread_id: int):
+        return await cls.find_one(
+            Or(cls.player2.user_id == user_id, cls.player1.user_id == user_id),
+            cls.thread == thread_id,
         )
 
     @classmethod
