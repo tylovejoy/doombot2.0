@@ -219,7 +219,8 @@ class ForfeitDuel(Slash, guilds=[GUILD_ID], name="forfeit", parent=DuelParent):
             loser=loser,
             wager=duel.wager,
         )
-        msg = await self.interaction.guild.get_channel(DUELS_ID).fetch_message(duel.message)
+        thread = self.interaction.guild.get_thread(duel.thread)
+        msg = [m async for m in thread.history(limit=1, after=thread.created_at)][0]
         await msg.edit(content= f"{self.interaction.user.mention} forfeited and lost {duel.wager} XP!" + msg.content)
         await self.interaction.edit_original_message(
             content=f"Forfeit!",
