@@ -203,6 +203,7 @@ class DuelReadyView(discord.ui.View):
         elif duel.player2.user_id == interaction.user.id:
             duel.player2.ready = True
         partial = self.message.content.split("\n")
+        await interaction.channel.get_partial_message(self.message).delete()
         await interaction.channel.send(
             content=(
                 partial[0].split(" ")[0] + partial[1].split(" ")[0]
