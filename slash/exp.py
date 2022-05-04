@@ -112,7 +112,7 @@ class RankCard(Slash, name="rank"):
 
         search = await ExperiencePoints.find_one({"user_id": self.user.id})
         if not search:
-            search = await check_user(self.interaction)
+            search = await check_user(self.interaction.user)
 
         user = self.user
 

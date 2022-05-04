@@ -52,13 +52,13 @@ def setup(bot: discord.Client):
     bot.application_command(WorldRecordsUserCommand)
 
 
-async def check_user(interaction):
+async def check_user(user: discord.User):
     """Check if user exists, if not create a new user."""
-    user = await ExperiencePoints.find_user(interaction.user.id)
+    user = await ExperiencePoints.find_user(user.id)
     if not user:
         new_user = ExperiencePoints(
-            user_id=interaction.user.id,
-            alias=interaction.user.name,
+            user_id=user.id,
+            alias=user.name,
             alerts_enabled=True,
         )
         await new_user.insert()
@@ -96,7 +96,7 @@ class SubmitRecord(RecordSlash, guilds=[GUILD_ID], name="record", parent=SubmitP
         self.map_level = preprocess_level_name(self.map_level)
 
         record_seconds = time_convert(self.record)
-        await check_user(self.interaction)
+        await check_user(self.interaction.user)
 
         record_document = await Record.filter_search_single(
             map_code=self.map_code,

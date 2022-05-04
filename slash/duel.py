@@ -61,6 +61,9 @@ class DuelStart(
         self.map_code = preprocess_map_code(self.map_code)
         self.map_level = preprocess_level_name(self.map_level)
 
+        await check_user(self.interaction.user)
+        await check_user(self.user)
+
         view = ConfirmView()
 
         start_msg = (
@@ -135,7 +138,7 @@ class DuelSubmit(Slash, guilds=[GUILD_ID], name="submit", parent=DuelParent):
             raise TournamentStateError("Both players are not ready!")
 
         record_seconds = time_convert(self.record)
-        await check_user(self.interaction)
+        await check_user(self.interaction.user)
 
         player = None
         if duel.player1.user_id == self.interaction.user.id:
