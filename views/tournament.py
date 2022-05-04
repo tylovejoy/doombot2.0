@@ -202,10 +202,10 @@ class DuelReadyView(discord.ui.View):
             duel.player1.ready = True
         elif duel.player2.user_id == interaction.user.id:
             duel.player2.ready = True
-
-        await self.message.edit(
+        partial = self.message.content.split("\n")
+        await interaction.channel.send(
             content=(
-                self.message.content
+                partial[0].split(" ")[0] + partial[1].split(" ")[0]
                 + "\n\nReady, _set_, ***GO***!\n\nGet your best time by: \n"
                 f"{discord.utils.format_dt(duel.end_time)} | "
                 f"{discord.utils.format_dt(duel.end_time, style='R')}"
