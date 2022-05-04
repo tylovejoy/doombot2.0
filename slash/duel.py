@@ -221,7 +221,7 @@ class ForfeitDuel(Slash, guilds=[GUILD_ID], name="forfeit", parent=DuelParent):
             loser=loser,
             wager=duel.wager,
         )
-        msg = self.interaction.guild.get_channel(DUELS_ID).fetch_message(
+        msg = await self.interaction.guild.get_channel(DUELS_ID).fetch_message(
             duel.channel_msg
         )
 
