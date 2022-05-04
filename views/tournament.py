@@ -198,9 +198,9 @@ class DuelReadyView(discord.ui.View):
             return
         duel.end_time = discord.utils.utcnow() + datetime.timedelta(hours=24)
         
-        if duel.player1.user_id == self.interaction.user.id:
+        if duel.player1.user_id == interaction.user.id:
             duel.player1.ready = True
-        elif duel.player2.user_id == self.interaction.user.id:
+        elif duel.player2.user_id == interaction.user.id:
             duel.player2.ready = True
         
         await self.message.edit(

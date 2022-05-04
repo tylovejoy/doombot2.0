@@ -192,7 +192,7 @@ class DoomBot(discord.Client):
             return
 
         for duel in all_duels:
-            if duel.end_time >= discord.utils.utcnow():
+            if duel.end_time and duel.end_time >= discord.utils.utcnow():
                 if duel.player1.record < duel.player2.record:
                     await ExperiencePoints.duel_end(
                         winner=duel.player1.user_id,
