@@ -25,8 +25,7 @@ logger = getLogger(__name__)
 
 def setup(bot):
     logger.info(logging_util("Loading", "TOURNAMENT"))
-    bot.application_command(DuelStart)
-    bot.application_command(DuelSubmit)
+    bot.application_command(DuelParent)
 
 
 class DuelParent(Slash, guilds=[GUILD_ID], name="duel"):

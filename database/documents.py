@@ -150,6 +150,8 @@ class ExperiencePoints(Document):
     verified_count: int = 0
     dont_submit: Optional[bool] = False
     therapy_banned: Optional[bool] = False
+    wins: Optional[int]
+    losses: Optional[int]
 
     async def increment_verified(self) -> int:
         self.verified_count += 1
@@ -168,6 +170,18 @@ class ExperiencePoints(Document):
     async def find_user(cls, user_id: int) -> ExperiencePoints:
         """Find a user."""
         return await cls.find_one(cls.user_id == user_id)
+
+    @classmethod
+    async def add_win(cls, user_id: int):
+        user = await cls.find_user(user_id)
+        user.wins += 1
+        await user.save()
+
+    @classmethod
+    async def add_loss(cls, user_id: int):
+        user = await cls.find_user(user_id)
+        user.losses += 1
+        await user.save()
 
     @classmethod
     async def change_xp(cls, user_id: int, amount: int):

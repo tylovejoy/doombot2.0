@@ -189,14 +189,20 @@ class DoomBot(discord.Client):
 
         for duel in all_duels:
             if duel.end_time >= discord.utils.utcnow():
-                if duel.player1.record > duel.player2.record:
+                if duel.player1.record < duel.player2.record:
                     await ExperiencePoints.change_xp(duel.player1.user_id, duel.wager)
                     await ExperiencePoints.change_xp(duel.player2.user_id, -duel.wager)
+
+                    await ExperiencePoints.add_win(duel.player1.user_id)
+                    await ExperiencePoints.add_loss(duel.player2.user_id)
 
                     winner = duel.player1.user_id
                 else:
                     await ExperiencePoints.change_xp(duel.player2.user_id, duel.wager)
                     await ExperiencePoints.change_xp(duel.player1.user_id, -duel.wager)
+
+                    await ExperiencePoints.add_win(duel.player2.user_id)
+                    await ExperiencePoints.add_loss(duel.player1.user_id)
 
                     winner = duel.player2.user_id
                 winner = self.get_guild(GUILD_ID).get_member(winner)
