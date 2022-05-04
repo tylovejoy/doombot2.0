@@ -39,7 +39,7 @@ class DuelStart(
     name="start",
     parent=DuelParent,
 ):
-    """Start duel between another player."""
+    """Start a duel with another player."""
 
     user: discord.Member = discord.Option(description="Which user do you want to duel?")
     wager: int = discord.Option(
@@ -114,7 +114,7 @@ class DuelStart(
 
 
 class DuelSubmit(Slash, guilds=[GUILD_ID], name="submit", parent=DuelParent):
-    """Submit to your duel."""
+    """Submit record to your duel."""
 
     screenshot: discord.Attachment = discord.Option(
         description="Screenshot of your record."
@@ -170,6 +170,8 @@ class DuelSubmit(Slash, guilds=[GUILD_ID], name="submit", parent=DuelParent):
 
 
 class ForfeitDuel(Slash, guilds=[GUILD_ID], name="forfeit", parent=DuelParent):
+    """Forfeit your duel and wager after the duel has started."""
+
     async def callback(self):
         await self.defer(ephemeral=True)
 
