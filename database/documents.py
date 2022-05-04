@@ -174,12 +174,16 @@ class ExperiencePoints(Document):
     @classmethod
     async def add_win(cls, user_id: int):
         user = await cls.find_user(user_id)
+        if user.wins is None:
+            user.wins = 0
         user.wins += 1
         await user.save()
 
     @classmethod
     async def add_loss(cls, user_id: int):
         user = await cls.find_user(user_id)
+        if user.losses is None:
+            user.losses = 0
         user.losses += 1
         await user.save()
 
