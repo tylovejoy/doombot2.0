@@ -213,6 +213,7 @@ class DoomBot(discord.Client):
                 await msg.edit(
                     content=f"THE WINNER IS {winner.mention}!\n" + msg.content
                 )
+                await self.get_channel(duel.thread).archive(locked=True)
                 await duel.delete()
 
     @tasks.loop(seconds=30)

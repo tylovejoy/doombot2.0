@@ -190,7 +190,6 @@ class ForfeitDuel(Slash, guilds=[GUILD_ID], name="forfeit", parent=DuelParent):
         await view.wait()
         if not view.confirm.value:
             return
-        await self.interaction.guild.get_channel_or_thread(duel.thread).delete()
 
         winner = None
         loser = None
@@ -211,6 +210,7 @@ class ForfeitDuel(Slash, guilds=[GUILD_ID], name="forfeit", parent=DuelParent):
             content=f"{self.interaction.user.mention} forfeited and lost {duel.wager} XP!",
             view=None,
         )
+        await self.interaction.guild.get_thread(duel.thread).archive(locked=True)
         await duel.delete()
 
 
