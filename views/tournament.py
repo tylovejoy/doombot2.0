@@ -1,3 +1,5 @@
+import datetime
+
 import discord
 from discord.ui import TextInput
 
@@ -8,6 +10,7 @@ from utils.utilities import (
 )
 from views.basic import ConfirmButton
 from database.tournament import Duel
+
 
 class TournamentAnnouncementModal(discord.ui.Modal):
     def __init__(self) -> None:
@@ -197,9 +200,11 @@ class DuelReadyView(discord.ui.View):
         duel.end_time = discord.utils.utcnow() + datetime.timedelta(hours=24)
         await self.message.edit(
             content=(
-                self.message.content + "\n\nReady, _set_, ***GO***!\n\nGet your best time by: \n" 
-                f"{discord.utils.format_dt(standby)} | {discord.utils.format_dt(standby, style='R')}"
-            ), 
+                self.message.content
+                + "\n\nReady, _set_, ***GO***!\n\nGet your best time by: \n"
+                f"{discord.utils.format_dt(duel.end_time)} | "
+                f"{discord.utils.format_dt(duel.end_time, style='R')}"
+            ),
             view=None,
         )
         await duel.save()
@@ -207,4 +212,6 @@ class DuelReadyView(discord.ui.View):
     async def on_timeout(self):
         duel = await Duel.find_duel_thread_only(self.message.channel.id)
         await duel.delete()
-        await self.message.edit(content="CANCELLED, Player 2 did not ready up!", view=None)
+        await self.message.edit(
+            content="CANCELLED, Player 2 did not ready up!", view=None
+        )

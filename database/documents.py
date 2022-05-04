@@ -165,9 +165,16 @@ class ExperiencePoints(Document):
         return await cls.find().sort("-xp").project(XPOnly).to_list()
 
     @classmethod
-    async def find_user(cls, user_id) -> ExperiencePoints:
+    async def find_user(cls, user_id: int) -> ExperiencePoints:
         """Find a user."""
         return await cls.find_one(cls.user_id == user_id)
+
+    @classmethod
+    async def change_xp(cls, user_id: int, amount: int):
+        """Change a user's XP by a specific amount."""
+        user: ExperiencePoints = await cls.find_one(cls.user_id == user_id)
+        user.xp += amount
+        await user.save()
 
     @classmethod
     async def get_alias(cls, user_id: int) -> str:
