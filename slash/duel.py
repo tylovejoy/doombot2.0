@@ -61,7 +61,7 @@ class DuelStart(
         self.map_code = preprocess_map_code(self.map_code)
         self.map_level = preprocess_level_name(self.map_level)
 
-        xp = (await check_user(self.interaction.user)).xp 
+        xp = (await check_user(self.interaction.user)).xp
         xp_opponent = (await check_user(self.user)).xp
         if xp is None:
             xp = 0
@@ -69,8 +69,9 @@ class DuelStart(
             xp_opponent = 0
 
         if self.wager > xp or self.wager > xp_opponent:
-            raise TournamentStateError("You can't wager more XP than either player has.")
-
+            raise TournamentStateError(
+                "You can't wager more XP than either player has."
+            )
 
         view = ConfirmView()
 
@@ -220,9 +221,16 @@ class ForfeitDuel(Slash, guilds=[GUILD_ID], name="forfeit", parent=DuelParent):
             loser=loser,
             wager=duel.wager,
         )
-        msg = self.interaction.guild.get_channel(DUELS_ID).fetch_message(duel.channel_msg)
+        msg = self.interaction.guild.get_channel(DUELS_ID).fetch_message(
+            duel.channel_msg
+        )
 
-        await msg.edit(content= f"{self.interaction.user.mention} forfeited and lost {duel.wager} XP!\n" + msg.content)
+        await msg.edit(
+            content=(
+                f"{self.interaction.user.mention} forfeited and lost {duel.wager} XP!\n"
+            )
+            + msg.content
+        )
         await self.interaction.edit_original_message(
             content=f"Forfeit!",
             view=None,
