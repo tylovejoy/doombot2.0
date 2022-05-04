@@ -41,7 +41,7 @@ class DuelStart(
 ):
     """Start a duel with another player."""
 
-    user: discord.Member = discord.Option(description="Which user do you want to duel?")
+    user: discord.User = discord.Option(description="Which user do you want to duel?")
     wager: int = discord.Option(
         description="How much XP would you like to wager?",
         min=0,
