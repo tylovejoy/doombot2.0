@@ -185,7 +185,7 @@ class TournamentCategoriesSelect(discord.ui.Select):
 class DuelReadyView(discord.ui.View):
     """"""
 
-    def __init__(self, original_interaction):
+    def __init__(self, original_interaction: discord.Interaction):
         super().__init__(timeout=43200)
         self.original_interaction = original_interaction
         self.message = None
@@ -222,12 +222,11 @@ class DuelReadyView(discord.ui.View):
         if not duel:
             await interaction.user.send("You are not in this duel!")
             return
+        await interaction.guild.get_thread(duel.thread).delete()
         await duel.delete()
-        await self.message.edit(content="CANCELLED!", view=None)
+        await self.original_interaction.message.delete()
 
     async def on_timeout(self):
         duel = await Duel.find_duel_thread_only(self.message.channel.id)
         await duel.delete()
-        await self.message.edit(
-            content="CANCELLED, Player 2 did not ready up!", view=None
-        )
+        await self.original_interaction.message.delete()
