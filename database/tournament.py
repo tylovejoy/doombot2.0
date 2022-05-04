@@ -224,6 +224,7 @@ class Duel(Document):
     player1: DuelPlayer
     player2: DuelPlayer
     message: int
+    channel_msg: int
     thread: int
     wager: int
     standby_time: datetime
