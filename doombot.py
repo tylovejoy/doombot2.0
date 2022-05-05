@@ -192,7 +192,7 @@ class DoomBot(discord.Client):
             return
 
         for duel in all_duels:
-            if duel.end_time and duel.end_time >= datetime.datetime.now():
+            if duel.end_time and duel.end_time <= datetime.datetime.now():
                 if not duel.player1.record and not duel.player2.record:
                     await self.get_guild(GUILD_ID).get_channel_or_thread(DUELS_ID).get_partial_message(duel.channel_msg).delete()
                     await self.get_guild(GUILD_ID).get_channel_or_thread(duel.thread).delete()
