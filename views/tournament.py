@@ -2,6 +2,7 @@ import datetime
 
 import discord
 from discord.ui import TextInput
+from constants import DUELS_ID
 
 from utils.utilities import (
     get_mention,
@@ -196,7 +197,7 @@ class DuelReadyView(discord.ui.View):
         if not duel:
             await interaction.user.send("You are not in this duel!")
             return
-        duel.end_time = discord.utils.utcnow() + datetime.timedelta(hours=24)
+        duel.end_time = datetime.datetime.now() + datetime.timedelta(hours=24)
 
         if duel.player1.user_id == interaction.user.id:
             duel.player1.ready = True
@@ -224,10 +225,11 @@ class DuelReadyView(discord.ui.View):
             await interaction.user.send("You are not in this duel!")
             return
         await interaction.guild.get_thread(duel.thread).delete()
+        await interaction.guild.get_channel(DUELS_ID).get_partial_message(duel.channel_msg).delete()
         await duel.delete()
-        await self.original_interaction.message.delete()
 
     async def on_timeout(self):
         duel = await Duel.find_duel_thread_only(self.message.channel.id)
+        await self.original_interaction.guild.get_thread(duel.thread).delete()
+        await self.original_interaction.guild.get_channel(DUELS_ID).get_partial_message(duel.channel_msg).delete()
         await duel.delete()
-        await self.original_interaction.message.delete()

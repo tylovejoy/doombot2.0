@@ -94,7 +94,7 @@ class DuelStart(
             name=f"{self.interaction.user.name} VS. {self.user.name}",
             message=message,
         )
-        standby = discord.utils.utcnow() + datetime.timedelta(hours=12)
+        standby = datetime.datetime.now() + datetime.timedelta(hours=12)
 
         await thread.add_user(self.user)
         await thread.add_user(self.interaction.user)
