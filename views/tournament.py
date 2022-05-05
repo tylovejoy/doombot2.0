@@ -2,7 +2,7 @@ import datetime
 
 import discord
 from discord.ui import TextInput
-from constants import DUELS_ID
+from utils.constants import DUELS_ID
 
 from utils.utilities import (
     get_mention,
