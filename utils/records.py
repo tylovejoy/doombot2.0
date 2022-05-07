@@ -20,14 +20,14 @@ async def delete_hidden(interaction: discord.Interaction, record_document: Recor
             VERIFICATION_CHANNEL_ID
         ).fetch_message(record_document.hidden_id)
         await hidden_msg.delete()
-    except (discord.NotFound, discord.HTTPException):
+    except (discord.NotFound, discord.HTTPException, AttributeError):
         pass
     try:
         verification = await VerificationViews.find_one(
             VerificationViews.message_id == record_document.hidden_id
         )
         await verification.delete()
-    except (discord.NotFound, discord.HTTPException):
+    except (discord.NotFound, discord.HTTPException, AttributeError):
         pass
 
 

@@ -215,7 +215,7 @@ class DeleteRecord(RecordSlash, guilds=[GUILD_ID], name="record", parent=DeleteP
         self.map_code = preprocess_map_code(self.map_code)
         self.map_level = preprocess_level_name(self.map_level)
 
-        if self.user:
+        if self.user != self.interaction.user:
             await check_permissions(self.interaction)
             user_id = self.user.id
         else:
