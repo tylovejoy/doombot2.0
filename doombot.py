@@ -188,10 +188,10 @@ class DoomBot(discord.Client):
                 self.add_view(VerificationView(), message_id=view.message_id)
             self.verification_views_added = True
 
-    @tasks.loop(minutes=15)
+    @tasks.loop(minutes=10)
     async def cool_lounge(self):
         """Rotate members in cool lounge."""
-        choices = random.choices(self.guild.members, k=5)
+        choices = random.choices([x for x in self.guild.members if (x.status == discord.Status.online or x.web_status == discord.Status.online) and x.timed_out == False], k=5)
         channel = self.guild.get_channel(976939041712922634)
         for member in channel.overwrites:
             if isinstance(member, discord.Member):
