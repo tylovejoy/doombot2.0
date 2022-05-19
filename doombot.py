@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 from logging import getLogger
+import random
 from typing import List
 
 import aiohttp
@@ -150,6 +151,9 @@ class DoomBot(discord.Client):
         if not self.duel_checker.is_running():
             logger.info(logging_util("Task Initialze", "DUELS"))
             self.duel_checker.start()
+        if not self.cool_lounge.is_running():
+            logger.info(logging_util("Task Initialze", "COOL LOUNGE"))
+            self.cool_lounge.start()
 
         async with aiohttp.ClientSession() as session:
 
@@ -183,6 +187,19 @@ class DoomBot(discord.Client):
             for view in views:
                 self.add_view(VerificationView(), message_id=view.message_id)
             self.verification_views_added = True
+
+    @tasks.loop(minutes=15)
+    async def cool_lounge(self):
+        """Rotate members in cool lounge."""
+        choices = random.choices(self.guild.members, k=5)
+        channel = self.guild.get_channel(976939041712922634)
+        for member in channel.overwrites:
+            if isinstance(member, discord.Member):
+                await channel.set_permissions(member, overwrite=None, reason="Cool Lounge -")
+
+        for member in choices:
+            await channel.set_permissions(member, overwrite=discord.PermissionOverwrite(read_messages=True), reason="Cool Lounge +")
+
 
     @tasks.loop(seconds=30)
     async def duel_checker(self):
