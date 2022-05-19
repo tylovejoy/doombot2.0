@@ -191,7 +191,7 @@ class DoomBot(discord.Client):
     @tasks.loop(minutes=10)
     async def cool_lounge(self):
         """Rotate members in cool lounge."""
-        choices = random.choices([x for x in self.guild.members if x.raw_status.lower() == "online"], k=5)
+        choices = random.choices(self.guild.members, k=10)
         channel = self.guild.get_channel(976939041712922634)
         for member in channel.overwrites:
             if isinstance(member, discord.Member):
