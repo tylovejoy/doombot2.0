@@ -224,7 +224,7 @@ class DoomBot(discord.Client):
                 msg = (
                     await self.get_guild(GUILD_ID)
                     .get_channel(DUELS_ID)
-                    .fetch_message(duel.message)
+                    .fetch_message(duel.channel_msg)
                 )
                 await msg.edit(
                     content=f"THE WINNER IS {winner.mention}!\n" + msg.content

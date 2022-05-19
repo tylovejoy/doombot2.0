@@ -205,7 +205,7 @@ class DuelReadyView(discord.ui.View):
             duel.player2.ready = True
         partial = self.message.content.split("\n")
         await self.message.delete()
-        await interaction.channel.send(
+        new_message = await interaction.channel.send(
             content=(
                 partial[0].split(" ")[0] + partial[1].split(" ")[0]
                 + "\n\nReady, _set_, ***GO***!\n\nGet your best time by: \n"
@@ -214,6 +214,7 @@ class DuelReadyView(discord.ui.View):
             ),
             view=None,
         )
+        duel.message = new_message.id
         await duel.save()
 
     @discord.ui.button(label="CANCEL", style=discord.ButtonStyle.red)
