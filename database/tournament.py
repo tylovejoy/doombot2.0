@@ -213,7 +213,7 @@ class DuelPlayer(BaseModel):
     """Player in duel."""
 
     user_id: int
-    record: Optional[int]
+    record: Optional[float]
     attachment_url: Optional[str]
     ready: bool
 

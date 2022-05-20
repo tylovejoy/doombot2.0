@@ -39,7 +39,7 @@ def is_time_format(s: str) -> bool:
     return bool(TIME_REGEX.match(s))
 
 
-def time_convert(time_input: str) -> Union[float, str]:
+def time_convert(time_input: str) -> Union[float, None]:
     """Convert time (str) into seconds (float)."""
     try:
         neg_time = -1 if time_input[0] == "-" else 1
