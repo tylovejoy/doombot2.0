@@ -51,7 +51,7 @@ class VerificationView(discord.ui.View):
 async def verification(interaction: discord.Interaction, verified: bool):
     """Verify a record."""
     search = await Record.find_one(Record.hidden_id == interaction.message.id)
-    orig_message = await find_orig_msg(interaction, search)
+    orig_message: discord.Message = await find_orig_msg(interaction, search)
 
     if verified:
         data = accepted(interaction, search)
@@ -61,6 +61,9 @@ async def verification(interaction: discord.Interaction, verified: bool):
         data = rejected(interaction, search)
 
     await orig_message.edit(content=data["edit"])
+    if len(orig_message.reactions) >= 20:
+        await orig_message.clear_reaction(orig_message.reactions[-1])
+        
     await orig_message.add_reaction(emoji=discord.PartialEmoji.from_str(Emoji.upper()))
 
     if await ExperiencePoints.is_alertable(search.user_id):
