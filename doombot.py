@@ -210,45 +210,49 @@ class DoomBot(discord.Client):
             return
 
         for duel in all_duels:
-            if duel.end_time and duel.end_time <= datetime.datetime.now():
-                if not duel.player1.record and not duel.player2.record:
-                    await self.get_guild(GUILD_ID).get_channel_or_thread(DUELS_ID).get_partial_message(duel.channel_msg).delete()
-                    await self.get_guild(GUILD_ID).get_channel_or_thread(duel.thread).delete()
-                    await duel.delete()
-                    return
-
-                if duel.player1.record is None:
-                    duel.player1.record = duel.player2.record * 2
-                elif duel.player2.record is None:
-                    duel.player2.record = duel.player1.record * 2
-
-
-                if duel.player1.record < duel.player2.record:
-                    await ExperiencePoints.duel_end(
-                        winner=duel.player1.user_id,
-                        loser=duel.player2.user_id,
-                        wager=duel.wager,
-                    )
-                    winner = duel.player1.user_id
-
-                else:
-                    await ExperiencePoints.duel_end(
-                        winner=duel.player2.user_id,
-                        loser=duel.player1.user_id,
-                        wager=duel.wager,
-                    )
-                    winner = duel.player2.user_id
-                winner = self.get_guild(GUILD_ID).get_member(winner)
-                msg = (
-                    await self.get_guild(GUILD_ID)
-                    .get_channel(DUELS_ID)
-                    .fetch_message(duel.channel_msg)
-                )
-                await msg.edit(
-                    content=f"THE WINNER IS {winner.mention}!\n" + msg.content
-                )
-                await self.get_channel(duel.thread).archive(locked=True)
+            if not duel.end_time:
+                return
+            if duel.end_time > datetime.datetime.now():
+                return
+                
+            if not duel.player1.record and not duel.player2.record:
+                await self.get_guild(GUILD_ID).get_channel_or_thread(DUELS_ID).get_partial_message(duel.channel_msg).delete()
+                await self.get_guild(GUILD_ID).get_channel_or_thread(duel.thread).delete()
                 await duel.delete()
+                return
+
+            if duel.player1.record is None:
+                duel.player1.record = duel.player2.record * 2
+            elif duel.player2.record is None:
+                duel.player2.record = duel.player1.record * 2
+
+
+            if duel.player1.record < duel.player2.record:
+                await ExperiencePoints.duel_end(
+                    winner=duel.player1.user_id,
+                    loser=duel.player2.user_id,
+                    wager=duel.wager,
+                )
+                winner = duel.player1.user_id
+
+            else:
+                await ExperiencePoints.duel_end(
+                    winner=duel.player2.user_id,
+                    loser=duel.player1.user_id,
+                    wager=duel.wager,
+                )
+                winner = duel.player2.user_id
+            winner = self.get_guild(GUILD_ID).get_member(winner)
+            msg = (
+                await self.get_guild(GUILD_ID)
+                .get_channel(DUELS_ID)
+                .fetch_message(duel.channel_msg)
+            )
+            await msg.edit(
+                content=f"THE WINNER IS {winner.mention}!\n" + msg.content
+            )
+            await self.get_channel(duel.thread).archive(locked=True)
+            await duel.delete()
 
     @tasks.loop(seconds=30)
     async def tournament_checker(self):

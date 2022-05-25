@@ -231,6 +231,8 @@ class DuelReadyView(discord.ui.View):
 
     async def on_timeout(self):
         duel = await Duel.find_duel_thread_only(self.message.channel.id)
+        if duel.end_time:
+            return
         await self.original_interaction.guild.get_thread(duel.thread).delete()
         await self.original_interaction.guild.get_channel(DUELS_ID).get_partial_message(duel.channel_msg).delete()
         await duel.delete()
