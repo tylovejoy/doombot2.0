@@ -425,7 +425,7 @@ class DoomBot(discord.Client):
                 payload.channel_id
             ].get_partial_message(entry.starboard_id)
             await starboard_message.edit(
-                content=f"{star_emoji(entry.stars)} **{entry.stars}**"
+                content=f"{star_emoji(entry.stars)} **{entry.stars}** {message.channel.mention}"
             )
             return
 
