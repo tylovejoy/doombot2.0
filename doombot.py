@@ -477,7 +477,7 @@ class DoomBot(discord.Client):
 
     @staticmethod
     async def on_thread_update(before: discord.Thread, after: discord.Thread):
-        if before.parent_id == 856605387050188821:  # ignore new maps channel
+        if before.parent_id in [856605387050188821, 840614462494081075]:  # ignore new maps channel and hall of fame
             return
         if after.archived and not after.locked:
             await after.edit(archived=False)
