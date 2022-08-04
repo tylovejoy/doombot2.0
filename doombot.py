@@ -6,6 +6,7 @@ from typing import List
 
 import aiohttp
 import discord
+from discord import RawMessageUpdateEvent
 from discord.ext import commands, tasks
 
 from database.documents import (
@@ -34,6 +35,7 @@ from utils.constants import (
     TOP_SUGGESTIONS_ID,
     TOURNAMENT_INFO_ID,
     TOURNAMENT_SUBMISSION_ID,
+    EMOJI_SUGG,
 )
 from utils.enums import Emoji
 from utils.utilities import display_record, logging_util, star_emoji
@@ -196,11 +198,16 @@ class DoomBot(discord.Client):
         channel = self.guild.get_channel(976939041712922634)
         for member in channel.overwrites:
             if isinstance(member, discord.Member):
-                await channel.set_permissions(member, overwrite=None, reason="Cool Lounge -")
+                await channel.set_permissions(
+                    member, overwrite=None, reason="Cool Lounge -"
+                )
 
         for member in choices:
-            await channel.set_permissions(member, overwrite=discord.PermissionOverwrite(read_messages=True), reason="Cool Lounge +")
-
+            await channel.set_permissions(
+                member,
+                overwrite=discord.PermissionOverwrite(read_messages=True),
+                reason="Cool Lounge +",
+            )
 
     @tasks.loop(seconds=30)
     async def duel_checker(self):
@@ -214,10 +221,14 @@ class DoomBot(discord.Client):
                 return
             if duel.end_time > datetime.datetime.now():
                 return
-                
+
             if not duel.player1.record and not duel.player2.record:
-                await self.get_guild(GUILD_ID).get_channel_or_thread(DUELS_ID).get_partial_message(duel.channel_msg).delete()
-                await self.get_guild(GUILD_ID).get_channel_or_thread(duel.thread).delete()
+                await self.get_guild(GUILD_ID).get_channel_or_thread(
+                    DUELS_ID
+                ).get_partial_message(duel.channel_msg).delete()
+                await self.get_guild(GUILD_ID).get_channel_or_thread(
+                    duel.thread
+                ).delete()
                 await duel.delete()
                 return
 
@@ -225,7 +236,6 @@ class DoomBot(discord.Client):
                 duel.player1.record = duel.player2.record * 2
             elif duel.player2.record is None:
                 duel.player2.record = duel.player1.record * 2
-
 
             if duel.player1.record < duel.player2.record:
                 await ExperiencePoints.duel_end(
@@ -248,9 +258,7 @@ class DoomBot(discord.Client):
                 .get_channel(DUELS_ID)
                 .fetch_message(duel.channel_msg)
             )
-            await msg.edit(
-                content=f"THE WINNER IS {winner.mention}!\n" + msg.content
-            )
+            await msg.edit(content=f"THE WINNER IS {winner.mention}!\n" + msg.content)
             await self.get_channel(duel.thread).archive(locked=True)
             await duel.delete()
 
@@ -359,6 +367,12 @@ class DoomBot(discord.Client):
 
     async def on_guild_scheduled_event_update(self, guild, before, after):
         pass
+
+    async def on_raw_message_edit(self, payload: RawMessageUpdateEvent):
+        if payload.channel_id == EMOJI_SUGG:
+            await (
+                await self.get_channel(EMOJI_SUGG).fetch_message(payload.message_id)
+            ).delete()
 
     @staticmethod
     async def on_message(message: discord.Message):
@@ -477,7 +491,10 @@ class DoomBot(discord.Client):
 
     @staticmethod
     async def on_thread_update(before: discord.Thread, after: discord.Thread):
-        if before.parent_id in [856605387050188821, 840614462494081075]:  # ignore new maps channel and hall of fame
+        if before.parent_id in [
+            856605387050188821,
+            840614462494081075,
+        ]:  # ignore new maps channel and hall of fame
             return
         if after.archived and not after.locked:
             await after.edit(archived=False)
