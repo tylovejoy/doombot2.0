@@ -24,7 +24,7 @@ ROLE_WHITELIST = (
         # 808426677562114122,  # LIVE - Record Org
     ]
 )
-
+NEBULA = 141372217677053952
 # fmt: off
 #                            [ prod constants ]
 BOT_ID                     = 801483463642841150
