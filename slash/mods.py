@@ -11,6 +11,7 @@ from slash.parents import ModParent
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from slash.slash_command import Slash
+from views.roles import TherapyRole
 
 logger = getLogger(__name__)
 
@@ -55,7 +56,8 @@ class TempCommand(Slash, name="temp", guilds=[GUILD_ID], parent=ModParent):
             752273327749464105
         ).fetch_message(960946619111571476)
         embed = create_embed("Serious Chat Access", "", "")
-        await msg.edit(embed=embed)
+        view = TherapyRole()
+        await msg.edit(embed=embed, view=view)
 
 
 class Vote(Slash, name="vote", guilds=[GUILD_ID], parent=ModParent):
