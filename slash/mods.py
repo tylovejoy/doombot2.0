@@ -51,13 +51,13 @@ class TempCommand(Slash, name="temp", guilds=[GUILD_ID], parent=ModParent):
                 content="Only nebula can use this command."
             )
             return
-
-        msg = await self.interaction.guild.get_channel(
-            752273327749464105
-        ).fetch_message(960946619111571476)
+        await self.interaction.edit_original_message(content="Doing.")
         embed = create_embed("Serious Chat Access", "", "")
         view = TherapyRole()
-        await msg.edit(embed=embed, view=view)
+        await self.interaction.guild.get_channel(752273327749464105).send(
+            embed=embed, view=view
+        )
+        await self.interaction.edit_original_message(content="Done.")
 
 
 class Vote(Slash, name="vote", guilds=[GUILD_ID], parent=ModParent):
