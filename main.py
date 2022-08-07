@@ -53,10 +53,8 @@ async def setup():
     """Upload slash commands to discord."""
 
     await database_init()
-    logger.info(logging_util("Uploading", "SLASH COMMANDS"))
     await bot.upload_guild_application_commands()
     await bot.upload_global_application_commands()
-    logger.info(logging_util("Uploading Complete", "SLASH COMMANDS"))
 
 
 TOKEN = environ["TOKEN"]

@@ -6,7 +6,7 @@ from logging import getLogger
 from database.documents import Voting
 from utils.embed import create_embed
 from utils.utilities import check_permissions, logging_util
-from utils.constants import GUILD_ID
+from utils.constants import GUILD_ID, NEBULA
 from slash.parents import ModParent
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
@@ -24,6 +24,38 @@ anonymity_convert = {
     "Private": 1,
     "Public": 2,
 }
+
+
+class Sync(Slash, name="sync", guilds=[GUILD_ID], parent=ModParent):
+    async def callback(self) -> None:
+        await self.defer(ephemeral=True)
+        if self.interaction.user.id != NEBULA:
+            await self.interaction.edit_original_message(
+                content="Only nebula can use this command."
+            )
+            return
+        await self.interaction.edit_original_message(content="Syncing")
+        logger.info(logging_util("Uploading", "SLASH COMMANDS"))
+        await self.client.upload_guild_application_commands()
+        await self.client.upload_global_application_commands()
+        logger.info(logging_util("Uploading Complete", "SLASH COMMANDS"))
+        await self.interaction.edit_original_message(content="Done")
+
+
+class TempCommand(Slash, name="temp", guilds=[GUILD_ID], parent=ModParent):
+    async def callback(self) -> None:
+        await self.defer(ephemeral=True)
+        if self.interaction.user.id != NEBULA:
+            await self.interaction.edit_original_message(
+                content="Only nebula can use this command."
+            )
+            return
+
+        msg = await self.interaction.guild.get_channel(
+            752273327749464105
+        ).fetch_message(960946619111571476)
+        embed = create_embed("Serious Chat Access", "", "")
+        await msg.edit(embed=embed)
 
 
 class Vote(Slash, name="vote", guilds=[GUILD_ID], parent=ModParent):

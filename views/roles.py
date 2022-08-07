@@ -182,17 +182,16 @@ class TherapyRole(discord.ui.View):
         super().__init__(timeout=None)
 
     @discord.ui.button(
-        label="Therapy",
+        label="Serious Chat",
         style=discord.ButtonStyle.green,
         custom_id="therapy",
     )
     async def therapy_access(self, item, interaction: discord.Interaction):
-
         user = await ExperiencePoints.find_user(interaction.user.id)
         if getattr(user, "therapy_banned", None):
             await interaction.response.send_message(
                 ephemeral=True,
-                content="You are banned from therapy. Please contact a staff member for more information.",
+                content="You are blocked from serious-chat. Please contact a staff member for more information.",
             )
             return
         role = interaction.guild.get_role(815041888566116422)
