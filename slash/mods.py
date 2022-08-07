@@ -18,6 +18,8 @@ logger = getLogger(__name__)
 
 def setup(bot: discord.Client):
     logger.info(logging_util("Loading", "MODS"))
+    bot.application_command(Sync)
+    bot.application_command(TempCommand)
 
 
 anonymity_convert = {
@@ -27,7 +29,7 @@ anonymity_convert = {
 }
 
 
-class Sync(Slash, name="sync", guilds=[GUILD_ID], parent=ModParent):
+class Sync(Slash, name="sync", guilds=[GUILD_ID]):
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
         if self.interaction.user.id != NEBULA:
@@ -43,7 +45,7 @@ class Sync(Slash, name="sync", guilds=[GUILD_ID], parent=ModParent):
         await self.interaction.edit_original_message(content="Done")
 
 
-class TempCommand(Slash, name="temp", guilds=[GUILD_ID], parent=ModParent):
+class TempCommand(Slash, name="temp", guilds=[GUILD_ID]):
     async def callback(self) -> None:
         await self.defer(ephemeral=True)
         if self.interaction.user.id != NEBULA:

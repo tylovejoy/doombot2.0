@@ -52,6 +52,8 @@ def load_all_extensions():
 async def setup():
     """Upload slash commands to discord."""
     await database_init()
+    await bot.upload_guild_application_commands()
+    await bot.upload_global_application_commands()
 
 
 TOKEN = environ["TOKEN"]
