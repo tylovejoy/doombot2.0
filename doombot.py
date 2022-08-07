@@ -179,7 +179,7 @@ class DoomBot(discord.Client):
 
             self.add_view(ServerRelatedPings(), message_id=960946617169612850)
             self.add_view(PronounRoles(), message_id=960946618142699560)
-            self.add_view(TherapyRole(), message_id=960946619111571476)
+            self.add_view(TherapyRole(), message_id=1005874559037231284)
 
             self.persistent_views_added = True
 
