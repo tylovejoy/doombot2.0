@@ -173,7 +173,7 @@ class Record(Document):
     async def find_unique_players(cls) -> Set[str]:
         """Find unique players."""
         x = await cls.find().project(projection_model=UniquePlayers).to_list()
-        return set(str(i) for i in x)
+        return {str(i) for i in x}
 
     @classmethod
     async def find_world_records_user(cls, user_id: int) -> List[WorldRecordsAggregate]:
@@ -209,9 +209,9 @@ class Record(Document):
         search_filter = {}
 
         if map_code:
-            search_filter.update({"code": map_code})
+            search_filter["code"] = map_code
         if verified:
-            search_filter.update({"verified": verified})
+            search_filter["verified"] = verified
 
         return (
             await cls.find(search_filter)
@@ -261,19 +261,19 @@ class Record(Document):
         verified = filters.get("verified")
         search_filter = {}
         if map_code:
-            search_filter.update({"code": map_code})
+            search_filter["code"] = map_code
         if map_level:
             _level = (
                 discord.utils.escape_markdown(map_level)
                 .replace(")", "\)")
                 .replace("(", "\(")
             )
-            search_filter.update(RegEx("level", f"^{_level}$"))
+            search_filter |= RegEx("level", f"^{_level}$")
 
         if user_id:
-            search_filter.update({"user_id": user_id})
+            search_filter["user_id"] = user_id
         if verified:
-            search_filter.update({"verified": verified})
+            search_filter["verified"] = verified
         return search_filter
 
     @classmethod
@@ -297,7 +297,7 @@ class Record(Document):
     async def get_codes(cls, starts_with) -> Generator[tuple[Any, str], Any, None]:
         """Get map codes that start with a specific string."""
         all_codes = (
-            await cls.find(RegEx("code", "^" + starts_with, "i"))
+            await cls.find(RegEx("code", f"^{starts_with}", "i"))
             .aggregate(
                 [
                     {"$project": {"code": 1}},

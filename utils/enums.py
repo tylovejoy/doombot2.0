@@ -107,9 +107,7 @@ class Emoji(Enum):
     @classmethod
     def is_verified(cls, value: bool):
         """Check for verification status. Return the proper emoji."""
-        if value:
-            return cls.VERIFIED
-        return cls.NOT_VERIFIED
+        return cls.VERIFIED if value else cls.NOT_VERIFIED
 
     def __str__(self) -> str:
         """String representation."""

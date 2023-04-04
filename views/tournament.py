@@ -122,10 +122,8 @@ class TournamentStartView(discord.ui.View):
     async def enable_accept_button(self):
         """Enable confirm button when other buttons are pressed."""
         if any(
-            [
-                x is discord.ButtonStyle.green
-                for x in [self.bo.style, self.ta.style, self.mc.style, self.hc.style]
-            ]
+            x is discord.ButtonStyle.green
+            for x in [self.bo.style, self.ta.style, self.mc.style, self.hc.style]
         ):
             self.add_item(self.confirm_button)
         await self.interaction.edit_original_message(view=self)

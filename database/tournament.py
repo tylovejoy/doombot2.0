@@ -168,10 +168,9 @@ class Tournament(Document):
         )
 
     def get_all_map_str(self) -> str:
-        map_string = ""
-        for category in self.get_categories():
-            map_string += self.get_map_str(category)
-        return map_string
+        return "".join(
+            self.get_map_str(category) for category in self.get_categories()
+        )
 
     def get_map_str_short(self, category: str) -> str:
         category = getattr(self, category, None)
@@ -184,9 +183,7 @@ class Tournament(Document):
             mission = getattr(obj, difficulty, None)
             if not mission.type:
                 continue
-            missions += f"- {difficulty.capitalize()}: " + format_missions(
-                mission.type, mission.target
-            )
+            missions += f"- {difficulty.capitalize()}: {format_missions(mission.type, mission.target)}"
 
         return missions + "\n"
 

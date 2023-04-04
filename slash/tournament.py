@@ -123,11 +123,7 @@ class TournamentStart(
             raise TournamentStateError("Tournament already active!")
 
         last_tournament = await Tournament.find_latest()
-        if last_tournament:
-            last_id = last_tournament.tournament_id
-        else:
-            last_id = 0
-
+        last_id = last_tournament.tournament_id if last_tournament else 0
         self.schedule_start: datetime.datetime = dateparser.parse(
             self.schedule_start, settings={"PREFER_DATES_FROM": "future"}
         )
@@ -361,11 +357,7 @@ class ViewTournamentRecords(Slash, name="leaderboard", parent=TournamentParent):
         if not records:
             raise SearchNotFound("No records found.")
 
-        if self.rank is MISSING:
-            rank_str = "- Overall"
-        else:
-            rank_str = "- " + self.rank
-
+        rank_str = "- Overall" if self.rank is MISSING else f"- {self.rank}"
         embed = create_embed(
             title=f"{tournament_category_map(category)} {rank_str}",
             desc="",
@@ -620,13 +612,12 @@ class TournamentAddMissions(
                         "Top Placement": "top",
                     }
                 )
-            if diff != "general":
-                return discord.AutoCompleteResponse(
-                    {
-                        "Sub x time": "sub",
-                        "Complete entire level": "complete",
-                    }
-                )
+            return discord.AutoCompleteResponse(
+                {
+                    "Sub x time": "sub",
+                    "Complete entire level": "complete",
+                }
+            )
 
 
 class TournamentPublishMissions(
@@ -776,7 +767,7 @@ async def end_tournament(client: discord.Client, tournament: Tournament):
         await client.get_channel(TOURNAMENT_ORG_ID).send(
             file=discord.File(
                 fp=r"DPK_Tournament.xlsx",
-                filename=f"DPK_Tournament_{datetime.datetime.today().strftime('%d-%m-%Y')}.xlsx",
+                filename=f"DPK_Tournament_{datetime.datetime.now().strftime('%d-%m-%Y')}.xlsx",
             )
         )
 
@@ -832,10 +823,9 @@ async def send_records_to_db(tournament: Tournament):
             else:
                 if search.record <= record.record:
                     continue
-                else:
-                    search.record = record.record
-                    search.attachment_url = record.attachment_url
-                    search.verified = True
+                search.record = record.record
+                search.attachment_url = record.attachment_url
+                search.verified = True
             await search.save()
 
 
@@ -900,7 +890,7 @@ async def start_tournament(client: discord.Client, tournament: Tournament):
 
 
 async def create_hall_of_fame(tournament: Tournament) -> discord.Embed:
-    embed = hall_of_fame(tournament.name + " - Top 3", "")
+    embed = hall_of_fame(f"{tournament.name} - Top 3", "")
     for category in ["ta", "mc", "hc", "bo"]:
         data: TournamentData = getattr(tournament, category, None)
         if not data:
@@ -966,11 +956,7 @@ async def leaderboard_xp_formula(category, record, top_record):
     formula = (
         1 - (record.record - top_record) / (XP_MULTIPLIER[category] * top_record)
     ) * 2500
-    if formula < 100:
-        xp = 100
-    else:
-        xp = formula
-    return xp
+    return max(formula, 100)
 
 
 async def init_xp_store(tournament: Tournament) -> Dict[int, Dict[str, int]]:

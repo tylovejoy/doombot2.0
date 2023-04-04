@@ -86,9 +86,7 @@ class Tags(Document):
     @classmethod
     async def find_all_tag_categories(cls) -> List[str]:
         tags = await cls.find().project(TagCategories).to_list()
-        categories = set()
-        for t in tags:
-            categories.add(t.category)
+        categories = {t.category for t in tags}
         return sorted(categories)
 
 
@@ -206,9 +204,7 @@ class ExperiencePoints(Document):
     async def get_alias(cls, user_id: int) -> str:
         """Get an alias of a user."""
         user = await cls.find_user(user_id)
-        if user:
-            return user.alias
-        return "No name"
+        return user.alias if user else "No name"
 
     @classmethod
     async def is_alertable(cls, user_id: int) -> bool:

@@ -73,7 +73,7 @@ class ViewGuide(
         if not search:
             raise SearchNotFound(f"There are no guides for {self.map_code} yet.")
 
-        links = [link for link in search.guide]
+        links = list(search.guide)
         view = Paginator(links, self.interaction.user)
         await view.start(self.interaction)
 
@@ -95,7 +95,7 @@ class SubmitGuide(RecordSlash, guilds=[GUILD_ID], name="guide", parent=SubmitPar
         search = await Guide.find_one(Guide.code == self.map_code)
 
         if search:
-            if any([link for link in search.guide if link == self.link]):
+            if any(link for link in search.guide if link == self.link):
                 raise DocumentAlreadyExists(
                     "This particular link has already been added."
                 )

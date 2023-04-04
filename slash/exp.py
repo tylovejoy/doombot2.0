@@ -33,9 +33,9 @@ def setup(bot):
 def format_xp(xp):
     """Truncate/format numbers over 1000 to 1k format."""
     if 1000000 > xp > 999:
-        xp = str(float(xp) / 1000)[:-2] + "k"
+        xp = f"{str(float(xp) / 1000)[:-2]}k"
     elif xp > 1000000:
-        xp = str(float(xp) / 1000000)[:-3] + "m"
+        xp = f"{str(float(xp) / 1000000)[:-3]}m"
 
     return str(xp)
 
@@ -55,18 +55,17 @@ def find_portrait(level) -> str:
     if number == "0":
         number = "1"
     if level <= 20:
-        filename = "bronze" + number + ".png"
+        return f"bronze{number}.png"
     elif 20 <= level < 40:
-        filename = "silver" + number + ".png"
+        return f"silver{number}.png"
     elif 40 <= level < 60:
-        filename = "gold" + number + ".png"
+        return f"gold{number}.png"
     elif 60 <= level < 80:
-        filename = "platinum" + number + ".png"
+        return f"platinum{number}.png"
     elif 80 <= level < 100:
-        filename = "diamond" + number + ".png"
+        return f"diamond{number}.png"
     else:
-        filename = "diamond5.png"
-    return filename
+        return "diamond5.png"
 
 
 class RankLeaderboard(Slash, name="rank-leaderboard", guilds=[GUILD_ID]):
@@ -116,7 +115,7 @@ class RankCard(Slash, name="rank"):
 
         user = self.user
 
-        name = user.name[:18] + "#" + user.discriminator
+        name = f"{user.name[:18]}#{user.discriminator}"
 
         if search.alias:
             name = search.alias[:18]
@@ -157,7 +156,7 @@ class RankCard(Slash, name="rank"):
         # Portrait PFP
         level = find_level(search.xp)
         portrait_file = find_portrait(level)
-        portrait = Image.open("data/portraits/" + portrait_file).convert("RGBA")
+        portrait = Image.open(f"data/portraits/{portrait_file}").convert("RGBA")
         img.paste(portrait, (-60, -30), portrait)
 
         rank_x_offset = 50
@@ -186,8 +185,8 @@ class RankCard(Slash, name="rank"):
         wins = search.wins
         if wins is None:
             wins = 0
-        wins = str(wins) + " W"
-        losses = str(losses) + " L"
+        wins = f"{str(wins)} W"
+        losses = f"{str(losses)} L"
         wins_pos = 729 + (849 - 729) // 2 - d.textlength(wins, font=duels_font) // 2
         losses_pos = 729 + (849 - 729) // 2 - d.textlength(losses, font=duels_font) // 2
 
@@ -262,7 +261,7 @@ class RankCard(Slash, name="rank"):
             (place_x, place_y), str(place), fill=(255, 255, 255, 255), font=place_font
         )
 
-        pos_portrait = Image.open("data/portraits/" + pos_portrait_f).convert("RGBA")
+        pos_portrait = Image.open(f"data/portraits/{pos_portrait_f}").convert("RGBA")
         img.paste(pos_portrait, (x - 350, -28), pos_portrait)
 
         width, height = img.size
@@ -287,11 +286,7 @@ class Alerts(Slash, name="alerts"):
         await self.defer(ephemeral=True)
         user = await ExperiencePoints.find_user(self.interaction.user.id)
 
-        if self.value:
-            user.alerts_enabled = True
-        else:
-            user.alerts_enabled = False
-
+        user.alerts_enabled = bool(self.value)
         await self.interaction.edit_original_message(
             content=f"Alerts turned {'on' if self.value else 'off'}."
         )

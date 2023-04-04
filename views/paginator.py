@@ -66,9 +66,7 @@ class Paginator(discord.ui.View):
 
     async def interaction_check(self, item, interaction: discord.Interaction) -> bool:
         """Check if the interaction user is the original users who started the interaction."""
-        if interaction.user == self.author:
-            return True
-        return False
+        return interaction.user == self.author
 
     async def on_timeout(self) -> None:
         """Stop view on timeout."""

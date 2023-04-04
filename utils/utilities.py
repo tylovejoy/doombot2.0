@@ -31,7 +31,7 @@ def preprocess_level_name(level_name: str):
 
 
 def logging_util(first: str, second: str) -> str:
-    return first + " " + "-" * (30 - len(first)) + " " + second + "..."
+    return f"{first} " + "-" * (30 - len(first)) + " " + second + "..."
 
 
 def is_time_format(s: str) -> bool:
@@ -66,13 +66,11 @@ def display_record(record: float, tournament: bool = False) -> str:
     seconds_remove = -4
 
     if tournament:
-        if dt.hour == 0 and dt.minute == 0:
-            hour_remove = 6
-        elif dt.hour == 0:
-            hour_remove = 3
-            if dt.minute < 10:
-                hour_remove = 4
-
+        if dt.hour == 0:
+            if dt.minute == 0:
+                hour_remove = 6
+            else:
+                hour_remove = 4 if dt.minute < 10 else 3
         if dt.microsecond == 0:
             seconds_remove = -7
 
@@ -93,9 +91,7 @@ def preprocess_map_code(map_code: str) -> str:
 async def find_alt_map_code(map_code: str) -> Tuple[str, bool]:
     """Return a map code alias and a corresponding bool."""
     search = await MapAlias.get_alias(map_code)
-    if search:
-        return search, True
-    return map_code, False
+    return (search, True) if search else (map_code, False)
 
 
 def case_ignore_compare(string1: str, string2: str) -> bool:
@@ -157,16 +153,9 @@ def star_emoji(stars: int) -> str:
 async def select_button_enable(
     view: discord.ui.View, select: discord.ui.Select
 ) -> None:
-    if len(select.values):
-        view.confirm.disabled = False
-    else:
-        view.confirm.disabled = True
+    view.confirm.disabled = not len(select.values)
     for x in select.options:
-        if x.label in select.values:
-            x.default = True
-        else:
-            x.default = False
-
+        x.default = x.label in select.values
     await view.interaction.edit_original_message(view=view)
 
 

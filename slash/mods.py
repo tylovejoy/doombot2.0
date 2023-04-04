@@ -159,11 +159,7 @@ class EndVote(discord.ui.Button):
                 if value == i:
                     user_str += f"<@{user}>\n"
 
-            embed.add_field(
-                name=choice,
-                value=user_str if user_str else "No results",
-                inline=False,
-            )
+            embed.add_field(name=choice, value=user_str or "No results", inline=False)
 
         if document.anonymity == 1:
             await interaction.user.send(embed=embed)

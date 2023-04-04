@@ -80,7 +80,7 @@ async def personal_best(interaction: discord.Interaction, target: discord.Member
     # if over 1024 char limit
     # split pbs dict value into list of individual pbs
     # and divide in half.. Add two fields instead of just one.
-    if len(embed_dict) > 0:
+    if embed_dict:
 
         delimiter_regex = r">.*\n>.*\n>.*\n━━━━━━━━━━━━\n"
 

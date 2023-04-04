@@ -54,7 +54,7 @@ async def init_workbook(tournament: Tournament):
 
     # Format missions worksheet
     missions_ws.write_row(
-        "A" + str(1),
+        'A1',
         [
             "Names",
             "Easy",
@@ -86,7 +86,7 @@ async def init_workbook(tournament: Tournament):
         )
 
         missions_ws.write_row(
-            "A" + str(i),
+            f"A{str(i)}",
             [
                 f"{user.alias} ({user.user_id})",
                 data["easy"],

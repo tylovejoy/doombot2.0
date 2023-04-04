@@ -82,9 +82,7 @@ class DuelStart(
             f"**Level:** {self.map_level}\n"
         )
         if not await view.start(
-            self.interaction,
-            "Is this correct?\n" + start_msg,
-            f"Starting duel...",
+            self.interaction, "Is this correct?\n" + start_msg, "Starting duel..."
         ):
             return
 
@@ -156,12 +154,11 @@ class DuelSubmit(Slash, guilds=[GUILD_ID], name="submit", parent=DuelParent):
         elif duel.player2.user_id == self.interaction.user.id:
             player = duel.player2
 
-        if player.record is None or player.record > record_seconds:
-            player.record = record_seconds
-            player.attachment_url = self.screenshot.url
-        else:
+        if player.record is not None and player.record <= record_seconds:
             raise RecordNotFaster("Personal best needs to be faster to update.")
 
+        player.record = record_seconds
+        player.attachment_url = self.screenshot.url
         embed = create_embed(
             title="New submission",
             desc=display_record(player.record),
@@ -207,8 +204,8 @@ class ForfeitDuel(Slash, guilds=[GUILD_ID], name="forfeit", parent=DuelParent):
         if not view.confirm.value:
             return
 
-        winner = None
         loser = None
+        winner = None
         if duel.player1.user_id == self.interaction.user.id:
             loser = duel.player1.user_id
             winner = duel.player2.user_id
@@ -226,15 +223,9 @@ class ForfeitDuel(Slash, guilds=[GUILD_ID], name="forfeit", parent=DuelParent):
         )
 
         await msg.edit(
-            content=(
-                f"{self.interaction.user.mention} forfeited and lost {duel.wager} XP!\n"
-            )
-            + msg.content
+            content=f"{self.interaction.user.mention} forfeited and lost {duel.wager} XP!\n{msg.content}"
         )
-        await self.interaction.edit_original_message(
-            content=f"Forfeit!",
-            view=None,
-        )
+        await self.interaction.edit_original_message(content="Forfeit!", view=None)
         await self.interaction.guild.get_thread(duel.thread).archive(locked=True)
         await duel.delete()
 

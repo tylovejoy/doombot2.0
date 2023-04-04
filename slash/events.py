@@ -82,7 +82,7 @@ class CreateEvent(Slash, guilds=[GUILD_ID], name="event"):
         )
         document = Events(
             event_id=event_data["id"],
-            event_name=self.event_type + " Night!",
+            event_name=f"{self.event_type} Night!",
             schedule_start=self.schedule_start,
             started=False,
         )

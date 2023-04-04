@@ -194,20 +194,6 @@ class DoomBot(discord.Client):
     async def cool_lounge(self):
         """Rotate members in cool lounge."""
         return
-        choices = random.choices(self.guild.members, k=10)
-        channel = self.guild.get_channel(976939041712922634)
-        for member in channel.overwrites:
-            if isinstance(member, discord.Member):
-                await channel.set_permissions(
-                    member, overwrite=None, reason="Cool Lounge -"
-                )
-
-        for member in choices:
-            await channel.set_permissions(
-                member,
-                overwrite=discord.PermissionOverwrite(read_messages=True),
-                reason="Cool Lounge +",
-            )
 
     @tasks.loop(seconds=30)
     async def duel_checker(self):
@@ -258,7 +244,7 @@ class DoomBot(discord.Client):
                 .get_channel(DUELS_ID)
                 .fetch_message(duel.channel_msg)
             )
-            await msg.edit(content=f"THE WINNER IS {winner.mention}!\n" + msg.content)
+            await msg.edit(content=f"THE WINNER IS {winner.mention}!\n{msg.content}")
             await self.get_channel(duel.thread).archive(locked=True)
             await duel.delete()
 
@@ -273,7 +259,7 @@ class DoomBot(discord.Client):
         sentinel = datetime.datetime(year=1, month=1, day=1)
 
         # Deactivate ended tournament
-        if all([s == sentinel for s in schedules]):
+        if all(s == sentinel for s in schedules):
             tournament.active = False
             await tournament.save()
             return

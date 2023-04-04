@@ -96,24 +96,21 @@ class MapSlash(Slash):
                 return discord.AutoCompleteResponse(
                     {k: k for k in MapNames.list()[:25]}
                 )
-            response = discord.AutoCompleteResponse(
+            return discord.AutoCompleteResponse(
                 {
                     k: k
                     for k in MAPS_AUTOCOMPLETE
                     if case_ignore_compare(k, options[focused])
                 }
             )
-            return response
-
         if focused == "map_type":
-            response = discord.AutoCompleteResponse(
+            return discord.AutoCompleteResponse(
                 {
                     k: k
                     for k in MAP_TYPES_AUTOCOMPLETE
                     if case_ignore_compare(k, options[focused])
                 }
             )
-            return response
 
 
 class RecordSlash(Slash):
@@ -128,7 +125,7 @@ class RecordSlash(Slash):
             return discord.AutoCompleteResponse({k: k for k in levels[:25]})
         if focused == "map_code":
             return discord.AutoCompleteResponse(
-                {k: v for k, v in await Record.get_codes(options[focused])}
+                dict(await Record.get_codes(options[focused]))
             )
 
 
@@ -156,7 +153,7 @@ async def tags_autocomplete(
     if options[focused] == "":
         return discord.AutoCompleteResponse({k: k for k in list_obj[:25]})
 
-    if focused in ["name", "search", "category"]:
+    if focused in {"name", "search", "category"}:
 
         count = 0
         autocomplete_ = {}

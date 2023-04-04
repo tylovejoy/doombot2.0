@@ -91,8 +91,7 @@ async def find_orig_msg(interaction, search: Record):
         )
     except (discord.NotFound, discord.HTTPException):
         n_spr = None
-    orig_message = spr or n_spr
-    return orig_message
+    return spr or n_spr
 
 
 def accepted(interaction: discord.Interaction, search: Record) -> dict:
